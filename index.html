@@ -1,0 +1,4070 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zone War – FPS Multijugador</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0a0a0f;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* ═══════════════ LOGIN ═══════════════ */
+    #loginScreen {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.85) 100%);
+      display: flex;
+      justify-content: space-between;
+      align-items: stretch;
+      z-index: 999;
+      padding: 30px;
+      pointer-events: none;
+    }
+
+    .lobby-sidebar {
+      width: 280px;
+      background: rgba(10, 10, 15, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 20px;
+      pointer-events: auto;
+      height: auto;
+      align-self: center;
+    }
+
+    .lobby-header h1 {
+      font-size: 1.8em;
+      color: #ff4444;
+      text-shadow: 0 0 15px rgba(255, 0, 0, 0.6);
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+      animation: titlePulse 2s ease-in-out infinite;
+    }
+
+    @keyframes titlePulse {
+
+      0%,
+      100% {
+        text-shadow: 0 0 15px rgba(255, 68, 68, 0.6);
+      }
+
+      50% {
+        text-shadow: 0 0 25px rgba(255, 68, 68, 0.9);
+      }
+    }
+
+    .lobby-header .sub {
+      color: #889;
+      letter-spacing: 3px;
+      font-size: 0.75em;
+      margin-bottom: 20px;
+    }
+
+    .lobby-settings-box {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      flex-grow: 1;
+      justify-content: flex-start;
+    }
+
+    .setting-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .setting-group label {
+      color: #889;
+      font-size: 0.65em;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .setting-group input,
+    .setting-group select {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 68, 68, 0.3);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      font-size: 1em;
+      outline: none;
+      transition: all 0.3s;
+    }
+
+    .setting-group select {
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg fill='red' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 35px;
+    }
+
+    .setting-group input:focus,
+    .setting-group select:focus {
+      border-color: #ff4444;
+      box-shadow: 0 0 15px rgba(255, 68, 68, 0.25);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .setting-group select option {
+      background: #0a0a0f;
+      color: #fff;
+    }
+
+    .lobby-play-container {
+      align-self: flex-end;
+      margin-bottom: 10px;
+      pointer-events: auto;
+    }
+
+    #joinBtn {
+      background: linear-gradient(135deg, #ffe600, #ffaa00);
+      border: none;
+      border-radius: 12px;
+      padding: 18px 48px;
+      color: #000;
+      font-size: 1.4em;
+      font-weight: 900;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 0 35px rgba(255, 170, 0, 0.4);
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      font-family: 'Courier New', monospace;
+    }
+
+    #joinBtn:hover {
+      transform: scale(1.08) translateY(-3px);
+      box-shadow: 0 0 50px rgba(255, 230, 0, 0.7);
+      background: linear-gradient(135deg, #fff044, #ffbb00);
+    }
+
+    #joinBtn:active {
+      transform: scale(0.98) translateY(0);
+    }
+
+    .players-online {
+      margin-top: 20px;
+      color: #556;
+      font-size: .7em;
+      letter-spacing: 2px;
+    }
+
+    .players-online span {
+      color: #ff4444;
+      font-weight: bold;
+    }
+
+    /* ═══════════════ GAME ═══════════════ */
+    #game {
+      position: relative;
+      width: 800px;
+      height: 560px;
+      overflow: hidden;
+      border: 2px solid #222;
+      cursor: crosshair;
+      display: block;
+    }
+
+    #game.fullscreen {
+      width: 100vw;
+      height: 100vh;
+      border: none;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    /* CROSSHAIR */
+    #crosshair {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(255, 255, 255, .9);
+      font-size: 22px;
+      pointer-events: none;
+      z-index: 10;
+      text-shadow: 0 0 4px black;
+      transition: opacity .1s;
+    }
+
+    /* FLASH */
+    #flash {
+      position: absolute;
+      inset: 0;
+      background: white;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 15;
+    }
+
+    /* HIT FLASH */
+    #hitFlash {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 40%, #ff000088 100%);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 14;
+    }
+
+    /* WEAPON */
+    #weapon {
+      position: absolute;
+      bottom: -10px;
+      right: -20px;
+      width: 420px;
+      pointer-events: none;
+      user-select: none;
+      z-index: 9;
+      transition: width .12s ease, left .12s ease, right .12s ease, transform .05s ease, bottom .05s linear;
+    }
+
+    /* PARACHUTE */
+    #parachute {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+      user-select: none;
+      z-index: 9;
+      display: none;
+      filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.45));
+    }
+
+    @keyframes parachuteSway {
+      0% {
+        transform: rotate(-1.5deg);
+      }
+
+      50% {
+        transform: rotate(1.5deg);
+      }
+
+      100% {
+        transform: rotate(-1.5deg);
+      }
+    }
+
+    #parachute.swaying {
+      animation: parachuteSway 3s ease-in-out infinite;
+      transform-origin: top center;
+    }
+
+    #game.fullscreen #parachute {
+      object-fit: fill;
+    }
+
+    /* SCOPE OVERLAY (sniper) */
+    #scopeOverlay {
+      position: absolute;
+      inset: 0;
+      z-index: 8;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+
+    #scopeOverlay.active {
+      opacity: 1;
+    }
+
+    #scopeOverlay .scope-ring {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 380px;
+      height: 380px;
+      border: 2px solid rgba(255, 255, 255, .15);
+      border-radius: 50%;
+      box-shadow: 0 0 0 2000px rgba(0, 0, 0, .85), inset 0 0 40px rgba(0, 0, 0, .6);
+    }
+
+    #scopeOverlay .scope-cross-h,
+    #scopeOverlay .scope-cross-v {
+      position: absolute;
+      background: rgba(255, 255, 255, .2);
+    }
+
+    #scopeOverlay .scope-cross-h {
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 380px;
+      height: 1px;
+    }
+
+    #scopeOverlay .scope-cross-v {
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 1px;
+      height: 380px;
+    }
+
+    #scopeOverlay .scope-dot {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 4px;
+      height: 4px;
+      background: #ff4444;
+      border-radius: 50%;
+      box-shadow: 0 0 6px #ff4444;
+    }
+
+    /* WEAPON SELECTOR HUD */
+    #weaponSelector {
+      position: absolute;
+      bottom: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      pointer-events: none;
+      z-index: 11;
+    }
+
+    .ws-slot {
+      background: rgba(0, 0, 0, .55);
+      border: 1px solid #ffffff22;
+      border-radius: 6px;
+      padding: 6px 14px;
+      color: #888;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .ws-slot.active {
+      border-color: #ff4444;
+      color: #ff4444;
+      background: rgba(255, 68, 68, .1);
+      box-shadow: 0 0 12px #ff444433;
+    }
+
+    .ws-key {
+      background: rgba(255, 255, 255, .1);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-size: 9px;
+      color: #aaa;
+    }
+
+    /* HUD */
+    #hud {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 11;
+    }
+
+    /* Health bar */
+    #healthBar {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    #healthTrack {
+      width: 200px;
+      height: 12px;
+      background: #111;
+      border: 1px solid #ff444466;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    #healthFill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #ff4444, #ff8844);
+      border-radius: 6px;
+      transition: width .2s;
+    }
+
+    #healthText {
+      color: #ff4444;
+      font-size: 11px;
+      letter-spacing: 2px;
+    }
+
+    /* Player list */
+    #playerList {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(0, 0, 0, .65);
+      border: 1px solid #ff444433;
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #ccc;
+      font-size: 11px;
+      letter-spacing: 1px;
+      min-width: 150px;
+    }
+
+    #playerList .pl-title {
+      color: #ff4444;
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .pl-entry {
+      padding: 3px 0;
+      border-bottom: 1px solid #ffffff0a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: space-between;
+    }
+
+    .pl-dot {
+      width: 6px;
+      height: 6px;
+      background: #44ff44;
+      border-radius: 50%;
+      box-shadow: 0 0 6px #44ff44;
+      flex-shrink: 0;
+    }
+
+    .pl-dot.me {
+      background: #ff4444;
+      box-shadow: 0 0 6px #ff4444;
+    }
+
+    .pl-hp {
+      color: #aaa;
+      font-size: 10px;
+    }
+
+    /* my name */
+    #myName {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(0, 0, 0, .6);
+      border: 1px solid #ff444433;
+      border-radius: 6px;
+      padding: 8px 14px;
+      color: #ff4444;
+      font-size: 12px;
+      letter-spacing: 2px;
+    }
+
+    /* instructions */
+    #instructions {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, .5);
+      border-radius: 6px;
+      padding: 5px 12px;
+      color: #555;
+      font-size: 10px;
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+
+    /* pointer lock overlay */
+    #lockOverlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, .75);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 50;
+      cursor: pointer;
+    }
+
+    #lockOverlay p {
+      color: #fff;
+      font-size: 1.2em;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .3
+      }
+    }
+
+    /* ═══════════════ DEATH SCREEN ═══════════════ */
+    #deathScreen {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, .88);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      z-index: 60;
+    }
+
+    #deathScreen h2 {
+      color: #ff2222;
+      font-size: 3em;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      text-shadow: 0 0 40px #ff0000;
+      animation: titlePulse 1s infinite;
+    }
+
+    #deathScreen p {
+      color: #888;
+      letter-spacing: 2px;
+      font-size: .9em;
+    }
+
+    #respawnBtn {
+      margin-top: 10px;
+      background: linear-gradient(135deg, #ff2222, #aa0000);
+      border: none;
+      border-radius: 8px;
+      padding: 16px 40px;
+      color: #fff;
+      font-size: 1em;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      cursor: pointer;
+      pointer-events: all;
+      transition: all .2s;
+      box-shadow: 0 0 30px #ff000033;
+    }
+
+    #respawnBtn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 0 50px #ff000066;
+    }
+
+    #killedBy {
+      color: #ff6666;
+      font-size: .85em;
+      letter-spacing: 2px;
+    }
+
+    /* ═══════════════ DEBUG ═══════════════ */
+    #debugPanel {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 40;
+      display: none;
+    }
+
+    #debugPanel.on {
+      display: block;
+    }
+
+    #debugInfo {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, .85);
+      border: 1px solid #00ff88;
+      border-radius: 8px;
+      padding: 10px 18px;
+      color: #00ff88;
+      font-size: 11px;
+      letter-spacing: 1px;
+      line-height: 1.9;
+      white-space: nowrap;
+      font-family: 'Courier New', monospace;
+      pointer-events: auto;
+    }
+
+    #debugInfo .db-title {
+      color: #fff;
+      font-size: 12px;
+      letter-spacing: 3px;
+      margin-bottom: 4px;
+      border-bottom: 1px solid #00ff8844;
+      padding-bottom: 4px;
+    }
+
+    #debugInfo .db-warn {
+      color: #ffcc00;
+    }
+
+    #debugCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      display: none;
+      z-index: 39;
+    }
+
+    #debugCanvas.on {
+      display: block;
+    }
+
+    /* ═══════════════ DAMAGE NUMBERS ═══════════════ */
+    .dmg-num {
+      position: absolute;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      font-size: 18px;
+      color: #ffdd00;
+      text-shadow: 0 0 8px #ff8800, 1px 1px 0 #000;
+      pointer-events: none;
+      z-index: 30;
+      animation: floatUp .9s ease-out forwards;
+    }
+
+    .dmg-num.crit {
+      color: #ff4444;
+      font-size: 24px;
+      text-shadow: 0 0 12px #ff0000, 1px 1px 0 #000;
+    }
+
+    @keyframes floatUp {
+      0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      60% {
+        opacity: 1;
+        transform: translateY(-40px) scale(1.1);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translateY(-70px) scale(.8);
+      }
+    }
+
+    /* ═══════════════ KILL FEED (CoD style) ═══════════════ */
+    #killFeed {
+      position: absolute;
+      top: 60px;
+      left: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      pointer-events: none;
+      z-index: 20;
+      max-height: 300px;
+      overflow: hidden;
+    }
+
+    .kf-entry {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 0, 0, .72);
+      border-left: 3px solid #ff4444;
+      border-radius: 0 4px 4px 0;
+      padding: 5px 12px 5px 8px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      white-space: nowrap;
+      animation: kfSlideIn .3s ease-out forwards;
+      opacity: 0;
+      transform: translateX(-40px);
+    }
+
+    .kf-entry.fade-out {
+      animation: kfFadeOut .5s ease-in forwards;
+    }
+
+    .kf-entry.me-kill {
+      border-left-color: #ffcc00;
+      background: rgba(255, 204, 0, .08);
+    }
+
+    .kf-killer {
+      color: #fff;
+      font-weight: bold;
+      text-shadow: 0 0 6px rgba(255, 255, 255, .3);
+    }
+
+    .kf-killer.is-me {
+      color: #ffcc00;
+    }
+
+    .kf-icon {
+      font-size: 13px;
+      margin: 0 2px;
+      filter: drop-shadow(0 0 4px #ff4444);
+    }
+
+    .kf-victim {
+      color: #ccc;
+    }
+
+    .kf-victim.is-me {
+      color: #ff6666;
+      font-weight: bold;
+    }
+
+    .kf-weapon {
+      color: #888;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      background: rgba(255, 255, 255, .06);
+      border-radius: 3px;
+      padding: 1px 5px;
+      margin-left: 2px;
+    }
+
+    @keyframes kfSlideIn {
+      0% {
+        opacity: 0;
+        transform: translateX(-40px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes kfFadeOut {
+      0% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+    }
+
+    /* ═══════════════ MODE SELECT ═══════════════ */
+    .mode-select {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .mode-btn {
+      background: rgba(255, 255, 255, .03);
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #aaa;
+      font-size: .8em;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .25s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mode-btn:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #fff;
+    }
+
+    .mode-btn.active {
+      border-color: #ff4444;
+      color: #fff;
+      background: rgba(255, 68, 68, .15);
+      box-shadow: 0 0 20px rgba(255, 68, 68, 0.2);
+    }
+
+    .mode-btn .mode-icon {
+      font-size: 1.2em;
+      display: inline-block;
+    }
+
+    #brJumpPrompt {
+      position: absolute;
+      bottom: 120px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 55;
+      background: rgba(0, 0, 0, .75);
+      border: 1px solid #ff444466;
+      border-radius: 10px;
+      padding: 14px 28px;
+      color: #fff;
+      font-size: 1.1em;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      pointer-events: none;
+      animation: blink 1.5s ease-in-out infinite;
+      display: none;
+      font-family: 'Courier New', monospace;
+    }
+
+    #brJumpPrompt .key {
+      display: inline-block;
+      background: #ff4444;
+      color: #fff;
+      padding: 2px 10px;
+      border-radius: 4px;
+      margin: 0 4px;
+      font-weight: bold;
+      box-shadow: 0 2px 0 #aa0000;
+    }
+
+    #brAltitude {
+      position: absolute;
+      top: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 55;
+      background: rgba(0, 0, 0, .6);
+      border: 1px solid #ff444444;
+      border-radius: 8px;
+      padding: 8px 20px;
+      color: #ffcc00;
+      font-size: 14px;
+      letter-spacing: 2px;
+      font-family: 'Courier New', monospace;
+      display: none;
+      pointer-events: none;
+    }
+
+    /* ═══════════════ EMOTE VIDEO OVERLAY ═══════════════ */
+    #emoteOverlay {
+      position: absolute;
+      inset: 0;
+      display: none;
+      z-index: 65;
+      pointer-events: none;
+      justify-content: center;
+      align-items: center;
+      background: transparent;
+    }
+
+    #emoteOverlay.active {
+      display: flex;
+    }
+
+    #emoteVideo {
+      display: none;
+    }
+
+    #emoteHint {
+      position: absolute;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 11px;
+      letter-spacing: 2px;
+      font-family: 'Courier New', monospace;
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+
+    #emoteOverlay.in-game {
+      background: transparent;
+      pointer-events: none;
+    }
+
+    #emoteOverlay.in-game #emoteHint {
+      color: #ff4444;
+      text-shadow: 0 0 8px rgba(255, 68, 68, 0.8);
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    /* Lobby click hint on character */
+    #lobbyClickHint {
+      position: absolute;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 10px;
+      letter-spacing: 2px;
+      font-family: 'Courier New', monospace;
+      text-transform: uppercase;
+      pointer-events: none;
+      z-index: 12;
+      animation: blink 2s ease-in-out infinite;
+      display: none;
+    }
+
+    /* ═══════════════ LOBBY UPDATES ═══════════════ */
+    .lobby-icon-btn {
+      position: absolute;
+      top: 30px;
+      right: 30px;
+      background: rgba(10, 10, 15, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      color: #fff;
+      font-size: 1.5em;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      transition: all 0.25s ease;
+      pointer-events: auto;
+      z-index: 1000;
+    }
+
+    .lobby-icon-btn:hover {
+      border-color: #ff4444;
+      transform: rotate(45deg) scale(1.05);
+      box-shadow: 0 0 15px rgba(255, 68, 68, 0.3);
+    }
+
+    .lobby-dropdown-panel {
+      position: absolute;
+      top: 90px;
+      right: 30px;
+      width: 280px;
+      background: rgba(10, 10, 15, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 16px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 1000;
+      pointer-events: auto;
+      animation: dropdownIn 0.25s ease-out;
+    }
+
+    .lobby-dropdown-panel.active {
+      display: flex;
+    }
+
+    .mode-dropdown-btn {
+      background: rgba(10, 10, 15, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 14px 24px;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 260px;
+      justify-content: space-between;
+    }
+
+    .mode-dropdown-btn:hover {
+      border-color: #ff4444;
+      box-shadow: 0 0 20px rgba(255, 68, 68, 0.2);
+    }
+
+    .mode-dropdown-btn::after {
+      content: '▼';
+      font-size: 0.8em;
+      color: #ff4444;
+      transition: transform 0.25s ease;
+    }
+
+    .mode-dropdown-btn.open::after {
+      transform: rotate(180deg);
+    }
+
+    .mode-dropdown-list {
+      position: absolute;
+      bottom: calc(100% + 10px);
+      right: 0;
+      width: 260px;
+      background: rgba(10, 10, 15, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 12px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 1000;
+      animation: dropdownIn 0.25s ease-out;
+    }
+
+    .mode-dropdown-list.active {
+      display: flex;
+    }
+
+    .mode-option {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #aaa;
+      font-size: 0.8em;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mode-option:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .mode-option.active {
+      border-color: #ff4444;
+      color: #fff;
+      background: rgba(255, 68, 68, 0.15);
+      box-shadow: 0 0 15px rgba(255, 68, 68, 0.2);
+    }
+
+    @keyframes dropdownIn {
+      0% {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ═══════════════ EMOTE WHEEL (FORTNITE STYLE) ═══════════════ */
+    .emote-wheel-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1001;
+      pointer-events: auto;
+    }
+
+    .emote-wheel-overlay.active {
+      display: flex;
+    }
+
+    .emote-wheel-container {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      animation: wheelScaleIn 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes wheelScaleIn {
+      0% {
+        transform: scale(0.8);
+        opacity: 0;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    #emoteWheelSvg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .wheel-segment {
+      fill: rgba(10, 10, 15, 0.85);
+      stroke: rgba(255, 255, 255, 0.08);
+      stroke-width: 1.5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .wheel-segment-group {
+      cursor: pointer;
+    }
+
+    .wheel-segment-group:hover .wheel-segment {
+      fill: rgba(255, 68, 68, 0.18);
+      stroke: #ff4444;
+      filter: drop-shadow(0 0 5px rgba(255, 68, 68, 0.5));
+    }
+
+    .wheel-segment-group:hover text {
+      fill: #fff;
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    }
+
+    .wheel-segment-text {
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      fill: #888;
+      pointer-events: none;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      transition: fill 0.2s;
+    }
+
+    .wheel-segment-icon {
+      font-size: 18px;
+      pointer-events: none;
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+
+    .emote-wheel-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100px;
+      height: 100px;
+      background: radial-gradient(circle, rgba(20, 20, 30, 0.98) 0%, rgba(10, 10, 15, 0.98) 100%);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.8), inset 0 0 10px rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .emote-wheel-center-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      text-align: center;
+    }
+
+    #emoteWheelCenterIcon {
+      font-size: 22px;
+      transition: transform 0.2s ease;
+    }
+
+    #emoteWheelCenterText {
+      font-family: 'Courier New', monospace;
+      font-size: 9px;
+      font-weight: 900;
+      color: #ff4444;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-shadow: 0 0 6px rgba(255, 68, 68, 0.3);
+      width: 85px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ══════ GAME ══════ -->
+  <div id="game">
+    <!-- ══════ LOBBY / LOGIN ══════ -->
+    <div id="loginScreen">
+      <!-- Top Right Configuration Button -->
+      <button id="lobbySettingsBtn" class="lobby-icon-btn">⚙</button>
+
+      <!-- Dropdown Settings Panel (under config button) -->
+      <div id="lobbySettingsPanel" class="lobby-dropdown-panel">
+        <div class="setting-group">
+          <label>Pantalla</label>
+          <div class="mode-select" style="flex-direction: row; gap: 8px;">
+            <div class="mode-btn active" id="screenWindowed" style="flex: 1; justify-content: center; padding: 8px;">
+              <span class="mode-icon">🖥</span> Ventana
+            </div>
+            <div class="mode-btn" id="screenFull" style="flex: 1; justify-content: center; padding: 8px;">
+              <span class="mode-icon">📺</span> Completa
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lobby-sidebar">
+        <div class="lobby-header">
+          <h1>⚔ ZONE WAR</h1>
+          <p class="sub">MULTIPLAYER FPS</p>
+        </div>
+
+        <div class="lobby-settings-box">
+          <div class="setting-group">
+            <label>Nombre de jugador</label>
+            <input type="text" id="nameInput" placeholder="Tu nombre..." maxlength="16" autocomplete="off">
+          </div>
+          <div class="setting-group" style="position: relative;">
+            <label>Personaje</label>
+            <div id="skinSelectorContainer" style="position: relative; width: 100%; pointer-events: auto;">
+              <button id="skinSelectBtn" class="mode-dropdown-btn" style="min-width: 100%; font-size: 14px; padding: 10px 14px; border-radius: 8px; justify-content: space-between;">
+                <span style="display: flex; align-items: center; gap: 8px;">
+                  <span id="currentSkinIcon" style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px;">🐱</span>
+                  <span id="currentSkinText">Default</span>
+                </span>
+              </button>
+              <div id="skinDropdownList" class="mode-dropdown-list" style="width: 100%; bottom: auto; top: calc(100% + 5px);">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="players-online">En línea: <span id="onlineCount">…</span></p>
+      </div>
+
+      <div class="lobby-play-container"
+        style="display: flex; flex-direction: column; align-items: flex-end; gap: 15px; pointer-events: none;">
+        <!-- Collapsible Game Mode Dropdown -->
+        <div id="modeSelectorContainer" style="position: relative; pointer-events: auto;">
+          <button id="modeSelectBtn" class="mode-dropdown-btn">
+            <span><span id="currentModeIcon">⚔</span> <span id="currentModeText">Modo: Normal</span></span>
+          </button>
+
+          <div id="modeDropdownList" class="mode-dropdown-list">
+            <div class="mode-btn active" id="modeNormal" style="margin-bottom: 6px;">
+              <span class="mode-icon">⚔</span> Normal
+            </div>
+            <div class="mode-btn" id="modeBR" style="margin-bottom: 6px;">
+              <span class="mode-icon">🪂</span> Battle Royale
+            </div>
+            <div class="mode-btn" id="modeRvB">
+              <span class="mode-icon">🔴</span> Red vs Blue
+            </div>
+
+            <div id="teamSelect" class="setting-group"
+              style="display: none; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
+              <label>Elige tu equipo</label>
+              <div class="mode-select" style="flex-direction: row; gap: 8px;">
+                <div class="mode-btn active" id="teamRed"
+                  style="flex: 1; justify-content: center; border-color: #ff4444; color: #ff4444; background: rgba(255,68,68,0.1); padding: 8px;">
+                  🔴 Rojo</div>
+                <div class="mode-btn" id="teamBlue"
+                  style="flex: 1; justify-content: center; border-color: #4444ff; color: #4444ff; padding: 8px;">
+                  🔵 Azul</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button id="joinBtn" style="pointer-events: auto;">JUGAR</button>
+      </div>
+    </div>
+    <div id="crosshair">+</div>
+    <div id="flash"></div>
+    <div id="hitFlash"></div>
+    <img id="weapon" src="" alt="">
+    <img id="parachute" src="" alt="">
+    <div id="scopeOverlay">
+      <div class="scope-ring"></div>
+      <div class="scope-cross-h"></div>
+      <div class="scope-cross-v"></div>
+      <div class="scope-dot"></div>
+    </div>
+
+    <div id="lockOverlay">
+      <p>Click para jugar</p>
+    </div>
+
+    <!-- BR overlays -->
+    <div id="brJumpPrompt">Presiona <span class="key">E</span> para lanzarte</div>
+    <div id="brAltitude">ALT: 50m</div>
+
+    <!-- EMOTE WHEEL SELECTOR -->
+    <div id="emoteWheel" class="emote-wheel-overlay">
+      <div class="emote-wheel-container">
+        <svg id="emoteWheelSvg" viewBox="0 0 200 200"></svg>
+        <div class="emote-wheel-center">
+          <div class="emote-wheel-center-inner">
+            <span id="emoteWheelCenterIcon">🕺</span>
+            <span id="emoteWheelCenterText">EMOTES</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMOTE OVERLAY -->
+    <div id="emoteOverlay">
+      <video id="emoteVideo" playsinline crossorigin="anonymous"></video>
+      <div id="emoteHint">▶ reproduciendo emote…</div>
+    </div>
+    <div id="lobbyClickHint">🕺 Haz clic en tu personaje o presiona B para emotes</div>
+
+    <!-- RvB Scoreboard -->
+    <div id="rvbScoreBoard"
+      style="display: none; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); border: 1px solid #ffffff22; border-radius: 8px; padding: 8px 20px; font-family: 'Courier New', monospace; font-size: 14px; font-weight: bold; gap: 20px; z-index: 11; align-items: center;">
+      <span style="color: #ff4444;">ROJO: <span id="scoreRed">0</span></span>
+      <span style="color: #4444ff;">AZUL: <span id="scoreBlue">0</span></span>
+    </div>
+
+    <!-- DEBUG -->
+    <canvas id="debugCanvas" width="800" height="560"></canvas>
+    <div id="debugPanel">
+      <div id="debugInfo">
+        <div class="db-title">🛠 DEBUG MODE — [L] cerrar</div>
+        <div id="dbFps">FPS: —</div>
+        <div id="dbPos">POS: —</div>
+        <div id="dbYaw">YAW: —</div>
+        <div id="dbPitch">PITCH: —</div>
+        <div id="dbPlayers">PLAYERS: —</div>
+        <div id="dbHit">LAST HIT: —</div>
+        <div id="dbPing" class="db-warn">PING: —</div>
+        <div id="dbAimbot" style="color:#ff4444; cursor:pointer; user-select:none;">AIMBOT: OFF [K]</div>
+        <div id="dbWireframe" style="color:#ff4444; cursor:pointer; user-select:none;">BORDES: OFF [U]</div>
+      </div>
+    </div>
+
+    <!-- DEATH -->
+    <div id="deathScreen">
+      <h2>💀 MUERTO</h2>
+      <p id="killedBy"></p>
+      <p style="color:#555;font-size:.75em">Respawneando…</p>
+      <button id="respawnBtn">▶ REVIVIR</button>
+    </div>
+
+    <!-- KILL FEED -->
+    <div id="killFeed"></div>
+
+    <!-- HUD -->
+    <div id="hud">
+      <div id="myName"></div>
+      <div id="playerList">
+        <div class="pl-title">◉ Jugadores</div>
+        <div id="plEntries"></div>
+      </div>
+      <div id="healthBar">
+        <div id="healthTrack">
+          <div id="healthFill"></div>
+        </div>
+        <div id="healthText">200 / 200</div>
+      </div>
+      <div id="weaponSelector">
+        <div class="ws-slot active" id="ws0"><span class="ws-key">1</span> Rifle</div>
+        <div class="ws-slot" id="ws1"><span class="ws-key">2</span> Sniper</div>
+        <div class="ws-slot" id="ws2"><span class="ws-key">3</span> Pistola</div>
+      </div>
+      <div id="instructions">WASD · Shift:sprint · Espacio:saltar · Clic der:apuntar · Clic izq:disparar · 1-3:armas ·
+        L:debug</div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160/build/three.module.js";
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getDatabase, ref, set, onValue, onDisconnect, remove, get }
+      from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+    /* ══ FIREBASE CONFIG ══ */
+    const FB_CONFIG = {
+      apiKey: "AIzaSyCw0v9mVUpOO8HYYfHLhyzkgIMfoBljJcQ",
+      authDomain: "fortnite-8012b.firebaseapp.com",
+      databaseURL: "https://fortnite-8012b-default-rtdb.firebaseio.com",
+      projectId: "fortnite-8012b",
+      storageBucket: "fortnite-8012b.firebasestorage.app",
+      messagingSenderId: "862924450554",
+      appId: "1:862924450554:web:b01ab7f85afa7965c2f743"
+    };
+
+    /* ══ IMAGE URLS (GitHub raw — no expiry) ══ */
+    const IMG_PLAYER = "https://raw.githubusercontent.com/yoyoyogogo/png/main/yespis.png";
+    const IMG_PLANE = "https://raw.githubusercontent.com/yoyoyogogo/png/main/plane.png";
+    const IMG_PARACHUTE = "https://raw.githubusercontent.com/yoyoyogogo/png/main/parachute.png";
+    const SND_BATTLE = "https://raw.githubusercontent.com/yoyoyogogo/png/main/Let%20the%20Battle%20Begin.mp3";
+    const SND_SHOOT = "https://raw.githubusercontent.com/yoyoyogogo/png/main/disparopistola.mp3";
+    const SND_KILL = "https://raw.githubusercontent.com/yoyoyogogo/png/main/killsound.mp3";
+    const SND_DOUBLEKILL = "https://raw.githubusercontent.com/yoyoyogogo/png/main/doblekill.mp3";
+    const SND_TRIPLEKILL = "https://raw.githubusercontent.com/yoyoyogogo/png/main/triplekill.mp3";
+    const SND_QUADKILL = "https://raw.githubusercontent.com/yoyoyogogo/png/main/cuatrokill.mp3";
+
+    /* ══ WEAPONS DEFINITION ══ */
+    const WEAPONS = [
+      {
+        name: 'Rifle',
+        imgIdle: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun1.png',
+        imgAim: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun1.5.png',
+        damage: [15, 25],       // min-max
+        fireRate: 130,           // ms between shots
+        fovNormal: 75,
+        fovAim: 60,            // slight zoom
+        aimWidth: '700px',
+        idleWidth: '420px',
+        useScope: false
+      },
+      {
+        name: 'Sniper',
+        imgIdle: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun2.png',
+        imgAim: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun2.png',
+        damage: [45, 70],       // high damage
+        fireRate: 1100,          // slow fire rate
+        fovNormal: 75,
+        fovAim: 30,            // strong zoom
+        aimWidth: '700px',
+        idleWidth: '420px',
+        useScope: true
+      },
+      {
+        name: 'Pistola',
+        imgIdle: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun3.png',
+        imgAim: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun3.5.png',
+        damage: [15, 25],       // same as rifle
+        fireRate: 300,           // same as rifle
+        fovNormal: 75,
+        fovAim: 60,            // slight zoom
+        aimWidth: '700px',
+        idleWidth: '420px',
+        useScope: false,
+        sndShoot: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/disparopistola2.mp3'
+      }
+    ];
+
+    /* ══ CONSTANTS ══ */
+    const MAX_HP = 200;
+    // Billboard quad dimensions (world units) — matches hit AABB exactly
+    const QUAD_W = 1.8;
+    const QUAD_H = 2.4;
+
+    /* ══ FIREBASE ══ */
+    const fbApp = initializeApp(FB_CONFIG);
+    const db = getDatabase(fbApp);
+
+    /* live count on login screen */
+    let normalCount = 0, brCount = 0, rvbCount = 0;
+    function updateOnlineCount() {
+      document.getElementById('onlineCount').textContent = normalCount + brCount + rvbCount;
+    }
+    onValue(ref(db, 'fps/players_normal'), snap => {
+      normalCount = Object.keys(snap.val() || {}).length;
+      updateOnlineCount();
+    });
+    onValue(ref(db, 'fps/players_br'), snap => {
+      brCount = Object.keys(snap.val() || {}).length;
+      updateOnlineCount();
+    });
+    onValue(ref(db, 'fps/players_rvb'), snap => {
+      rvbCount = Object.keys(snap.val() || {}).length;
+      updateOnlineCount();
+    });
+
+    /* ══ LOGIN ══ */
+    let myId = '', myName = '', selectedMode = 'normal', selectedScreenMode = 'windowed';
+    let inLobby = true;
+    let lobbyPlayerMesh = null;
+    let lobbyPedestalMesh = null;
+    let lobbyEmoteMesh = null;
+    let emoteVideoTexture = null;
+    let tryJoin = () => { };
+    const rng = () => Math.random().toString(36).slice(2, 10);
+    document.getElementById('joinBtn').addEventListener('click', () => tryJoin());
+    document.getElementById('nameInput').addEventListener('keydown', e => { if (e.key === 'Enter') tryJoin(); });
+
+    /* Toggle dropdown settings panel (top right config) */
+    const lobbySettingsBtn = document.getElementById('lobbySettingsBtn');
+    const lobbySettingsPanel = document.getElementById('lobbySettingsPanel');
+    if (lobbySettingsBtn && lobbySettingsPanel) {
+      lobbySettingsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        lobbySettingsPanel.classList.toggle('active');
+        // Close mode dropdown
+        const modeList = document.getElementById('modeDropdownList');
+        const modeBtn = document.getElementById('modeSelectBtn');
+        if (modeList) {
+          modeList.classList.remove('active');
+          modeBtn.classList.remove('open');
+        }
+        // Close skin dropdown
+        const skinList = document.getElementById('skinDropdownList');
+        const skinBtn = document.getElementById('skinSelectBtn');
+        if (skinList && skinBtn) {
+          skinList.classList.remove('active');
+          skinBtn.classList.remove('open');
+        }
+      });
+      document.addEventListener('click', (e) => {
+        if (!lobbySettingsPanel.contains(e.target) && e.target !== lobbySettingsBtn) {
+          lobbySettingsPanel.classList.remove('active');
+        }
+      });
+    }
+
+    /* Toggle mode select dropdown (above JUGAR) */
+    const modeSelectBtn = document.getElementById('modeSelectBtn');
+    const modeDropdownList = document.getElementById('modeDropdownList');
+    if (modeSelectBtn && modeDropdownList) {
+      modeSelectBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        modeDropdownList.classList.toggle('active');
+        modeSelectBtn.classList.toggle('open');
+        // Close settings dropdown
+        if (lobbySettingsPanel) {
+          lobbySettingsPanel.classList.remove('active');
+        }
+        // Close skin dropdown
+        const skinList = document.getElementById('skinDropdownList');
+        const skinBtn = document.getElementById('skinSelectBtn');
+        if (skinList && skinBtn) {
+          skinList.classList.remove('active');
+          skinBtn.classList.remove('open');
+        }
+      });
+      document.addEventListener('click', (e) => {
+        const container = document.getElementById('modeSelectorContainer');
+        if (container && !container.contains(e.target)) {
+          modeDropdownList.classList.remove('active');
+          modeSelectBtn.classList.remove('open');
+        }
+      });
+    }
+
+    /* Toggle skin select dropdown */
+    const skinSelectBtn = document.getElementById('skinSelectBtn');
+    const skinDropdownList = document.getElementById('skinDropdownList');
+    if (skinSelectBtn && skinDropdownList) {
+      skinSelectBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        skinDropdownList.classList.toggle('active');
+        skinSelectBtn.classList.toggle('open');
+        // Close mode select and settings panels
+        if (modeDropdownList) {
+          modeDropdownList.classList.remove('active');
+          modeSelectBtn.classList.remove('open');
+        }
+        if (lobbySettingsPanel) {
+          lobbySettingsPanel.classList.remove('active');
+        }
+      });
+      document.addEventListener('click', (e) => {
+        const container = document.getElementById('skinSelectorContainer');
+        if (container && !container.contains(e.target)) {
+          skinDropdownList.classList.remove('active');
+          skinSelectBtn.classList.remove('open');
+        }
+      });
+    }
+
+    /* Mode select buttons */
+    let selectedTeam = 'red';
+    document.getElementById('modeNormal').addEventListener('click', () => {
+      selectedMode = 'normal';
+      document.getElementById('modeNormal').classList.add('active');
+      document.getElementById('modeBR').classList.remove('active');
+      document.getElementById('modeRvB').classList.remove('active');
+      document.getElementById('teamSelect').style.display = 'none';
+      document.getElementById('currentModeIcon').textContent = '⚔';
+      document.getElementById('currentModeText').textContent = 'Modo: Normal';
+      if (modeDropdownList) {
+        modeDropdownList.classList.remove('active');
+        modeSelectBtn.classList.remove('open');
+      }
+    });
+    document.getElementById('modeBR').addEventListener('click', () => {
+      selectedMode = 'br';
+      document.getElementById('modeBR').classList.add('active');
+      document.getElementById('modeNormal').classList.remove('active');
+      document.getElementById('modeRvB').classList.remove('active');
+      document.getElementById('teamSelect').style.display = 'none';
+      document.getElementById('currentModeIcon').textContent = '🪂';
+      document.getElementById('currentModeText').textContent = 'Modo: Battle Royale';
+      if (modeDropdownList) {
+        modeDropdownList.classList.remove('active');
+        modeSelectBtn.classList.remove('open');
+      }
+    });
+    document.getElementById('modeRvB').addEventListener('click', () => {
+      selectedMode = 'rvb';
+      document.getElementById('modeRvB').classList.add('active');
+      document.getElementById('modeNormal').classList.remove('active');
+      document.getElementById('modeBR').classList.remove('active');
+      document.getElementById('teamSelect').style.display = 'block';
+      document.getElementById('currentModeIcon').textContent = '🔴';
+      document.getElementById('currentModeText').textContent = 'Modo: Red vs Blue';
+    });
+
+    document.getElementById('teamRed').addEventListener('click', () => {
+      selectedTeam = 'red';
+      document.getElementById('teamRed').classList.add('active');
+      document.getElementById('teamRed').style.background = 'rgba(255,68,68,0.1)';
+      document.getElementById('teamBlue').classList.remove('active');
+      document.getElementById('teamBlue').style.background = '';
+    });
+    document.getElementById('teamBlue').addEventListener('click', () => {
+      selectedTeam = 'blue';
+      document.getElementById('teamBlue').classList.add('active');
+      document.getElementById('teamBlue').style.background = 'rgba(68,68,255,0.1)';
+      document.getElementById('teamRed').classList.remove('active');
+      document.getElementById('teamRed').style.background = '';
+    });
+
+    /* Screen select buttons */
+    document.getElementById('screenWindowed').addEventListener('click', () => {
+      selectedScreenMode = 'windowed';
+      document.getElementById('screenWindowed').classList.add('active');
+      document.getElementById('screenFull').classList.remove('active');
+      const gameEl = document.getElementById('game');
+      if (gameEl) {
+        gameEl.classList.remove('fullscreen');
+        window.dispatchEvent(new Event('resize'));
+      }
+    });
+    document.getElementById('screenFull').addEventListener('click', () => {
+      selectedScreenMode = 'full';
+      document.getElementById('screenFull').classList.add('active');
+      document.getElementById('screenWindowed').classList.remove('active');
+      const gameEl = document.getElementById('game');
+      if (gameEl) {
+        gameEl.classList.add('fullscreen');
+        window.dispatchEvent(new Event('resize'));
+      }
+    });
+
+    /* ════════════════════════════════════════════════════
+       GAME
+    ════════════════════════════════════════════════════ */
+    function initGame(gameMode) {
+      const gameEl = document.getElementById('game');
+      let GAME_W = 800, GAME_H = 560;
+      if (selectedScreenMode === 'full') {
+        gameEl.classList.add('fullscreen');
+        GAME_W = window.innerWidth;
+        GAME_H = window.innerHeight;
+      }
+
+      /* ── SCENE ── */
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x6db6ff);
+
+      const BASE_FOV = 75;
+      const camera = new THREE.PerspectiveCamera(BASE_FOV, GAME_W / GAME_H, 0.1, 1000);
+      let currentFov = BASE_FOV, targetFov = BASE_FOV;
+
+      let selectedSkinUrl = IMG_PLAYER;
+      let selectedSkinName = "Default";
+      const skinTextures = {};
+
+      // Helper to resolve raw GitHub URL for video or icon links
+      function resolveUrl(url) {
+        if (!url) return '';
+        if (url.startsWith('http://') || url.startsWith('https://')) return url;
+        return 'https://raw.githubusercontent.com/yoyoyogogo/png/main/' + url;
+      }
+      const spawnPos = () => ({ x: (Math.random() - .5) * 60, z: (Math.random() - .5) * 60 });
+
+      // Set camera to initial lobby view position looking at pedestal (0, -0.6, 0)
+      let sp = spawnPos();
+      camera.position.set(0, 0.2, 3.6);
+      camera.lookAt(new THREE.Vector3(0, -0.6, 0));
+
+      /* ── RENDERER — unlocked FPS ── */
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(GAME_W, GAME_H);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      // No vsync cap: we do NOT pass { powerPreference } which would force vsync
+      gameEl.prepend(renderer.domElement);
+
+      /* ── LIGHTS ── */
+      const sun = new THREE.DirectionalLight(0xffffff, 2); sun.position.set(5, 10, 5); scene.add(sun);
+      scene.add(new THREE.AmbientLight(0xffffff, 1));
+
+      /* ── FLOOR ── */
+      let floorMesh;
+      let currentFloorW = 500;
+      let currentFloorD = 500;
+      function setFloor(w, d, color) {
+        currentFloorW = w;
+        currentFloorD = d;
+        if (floorMesh) scene.remove(floorMesh);
+        floorMesh = new THREE.Mesh(
+          new THREE.PlaneGeometry(w, d),
+          new THREE.MeshPhongMaterial({ color: color || 0x4f9a45 })
+        );
+        floorMesh.rotation.x = -Math.PI / 2; floorMesh.position.y = -2; scene.add(floorMesh);
+      }
+      setFloor(500, 500, 0x4f9a45);
+
+      // Hide standard game HUD initially
+      document.getElementById('weapon').style.display = 'none';
+      document.getElementById('crosshair').style.display = 'none';
+      document.getElementById('weaponSelector').style.display = 'none';
+      document.getElementById('instructions').style.display = 'none';
+      document.getElementById('hud').style.display = 'none';
+      document.getElementById('lockOverlay').style.display = 'none';
+      document.getElementById('killFeed').style.display = 'none';
+
+      // ── LOBBY 3D PREVIEW ──
+      let lobbyAngle = 0;
+
+      // Create lobby stand/pedestal
+      const pedestalGeo = new THREE.CylinderGeometry(0.8, 0.9, 0.2, 32);
+      const pedestalMat = new THREE.MeshPhongMaterial({
+        color: 0x221144,
+        emissive: 0x11052C,
+        specular: 0xaa00aa,
+        shininess: 30
+      });
+      const pedestal = new THREE.Mesh(pedestalGeo, pedestalMat);
+      pedestal.position.set(0, -2 + 0.1, 0); // floor is at y = -2
+      scene.add(pedestal);
+      lobbyPedestalMesh = pedestal;
+
+      // Create lobby character billboard (representing player)
+      const lobbyPlayerGeo = new THREE.PlaneGeometry(QUAD_W, QUAD_H);
+      const lobbyPlayerMat = new THREE.MeshBasicMaterial({
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthTest: true,
+        depthWrite: false,
+        alphaTest: 0.05
+      });
+      const lobbyPlayer = new THREE.Mesh(lobbyPlayerGeo, lobbyPlayerMat);
+      lobbyPlayer.position.set(0, -2 + 0.2 + QUAD_H / 2, 0); // stand on pedestal
+      scene.add(lobbyPlayer);
+      lobbyPlayerMesh = lobbyPlayer;
+
+      // Helper to load skin texture and cache it
+      function loadSkinTexture(url, callback) {
+        const resolved = resolveUrl(url);
+        if (skinTextures[resolved]) {
+          if (callback) callback(skinTextures[resolved]);
+          return;
+        }
+        new THREE.TextureLoader().load(resolved, tex => {
+          tex.minFilter = THREE.LinearFilter;
+          tex.magFilter = THREE.LinearFilter;
+          skinTextures[resolved] = tex;
+          if (callback) callback(tex);
+        }, undefined, err => {
+          console.error("Failed to load texture for:", resolved, err);
+        });
+      }
+
+      // Load character texture
+      let lobbyOriginalTexture = null;
+      loadSkinTexture(IMG_PLAYER, tex => {
+        lobbyPlayerMat.map = tex;
+        lobbyPlayerMat.needsUpdate = true;
+        lobbyOriginalTexture = tex;
+      });
+
+      // Load skins list from Firebase and populate selection menu
+      get(ref(db, 'fps/skins')).then(snap => {
+        let skins = [];
+        if (snap.exists()) {
+          const val = snap.val();
+          if (val) {
+            if (Array.isArray(val)) {
+              skins = val.filter(Boolean);
+            } else if (typeof val === 'object') {
+              skins = Object.values(val);
+            }
+          }
+        }
+        populateSkinSelect(skins);
+      }).catch(err => {
+        console.error("Error loading skins from Firebase:", err);
+      });
+
+      function populateSkinSelect(skins) {
+        const listContainer = document.getElementById('skinDropdownList');
+        if (!listContainer) return;
+
+        // Helper to check if icon is image URL or emoji
+        function getIconHtml(icon) {
+          if (!icon) return '👤';
+          const isImageUrl = icon.includes('.') || icon.startsWith('http');
+          if (isImageUrl) {
+            return `<img src="${resolveUrl(icon)}" style="width: 18px; height: 18px; object-fit: contain; border-radius: 4px; display: block;">`;
+          }
+          return icon;
+        }
+
+        // Standard default skin option
+        let html = `
+          <div class="mode-option active" data-value="${IMG_PLAYER}" data-name="Default" style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+            <span class="mode-icon" style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px;">🐱</span> Default
+          </div>
+        `;
+
+        skins.forEach(skin => {
+          html += `
+            <div class="mode-option" data-value="${skin.image}" data-name="${skin.name}" style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+              <span class="mode-icon" style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px;">${getIconHtml(skin.icon)}</span> ${skin.name}
+            </div>
+          `;
+        });
+
+        listContainer.innerHTML = html;
+
+        // Add click listeners to options
+        listContainer.querySelectorAll('.mode-option').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const val = btn.getAttribute('data-value');
+            selectedSkinUrl = val;
+            selectedSkinName = btn.getAttribute('data-name');
+
+            // Update button text and icon
+            const iconSpan = btn.querySelector('.mode-icon');
+            const currentSkinIcon = document.getElementById('currentSkinIcon');
+            const currentSkinText = document.getElementById('currentSkinText');
+            if (currentSkinIcon && currentSkinText) {
+              currentSkinIcon.innerHTML = iconSpan.innerHTML;
+              currentSkinText.textContent = btn.textContent.trim();
+            }
+
+            // Update active state in list
+            listContainer.querySelectorAll('.mode-option').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Close dropdown
+            const skinSelectBtn = document.getElementById('skinSelectBtn');
+            const skinDropdownList = document.getElementById('skinDropdownList');
+            if (skinDropdownList && skinSelectBtn) {
+              skinDropdownList.classList.remove('active');
+              skinSelectBtn.classList.remove('open');
+            }
+
+            // Update 3D preview
+            if (emoteIsPlaying) {
+              closeEmote();
+            }
+            loadSkinTexture(val, tex => {
+              if (selectedSkinUrl === val && lobbyPlayerMesh) {
+                lobbyPlayerMesh.material.map = tex;
+                lobbyPlayerMesh.material.needsUpdate = true;
+                lobbyOriginalTexture = tex;
+              }
+            });
+          });
+        });
+      }
+
+      // Create lobby emote billboard (representing player doing emote video)
+      const lobbyEmoteGeo = new THREE.PlaneGeometry(QUAD_W, QUAD_H);
+      const lobbyEmoteMat = new THREE.MeshBasicMaterial({
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthTest: true,
+        depthWrite: false,
+        alphaTest: 0.05
+      });
+      lobbyEmoteMesh = new THREE.Mesh(lobbyEmoteGeo, lobbyEmoteMat);
+      lobbyEmoteMesh.position.copy(lobbyPlayer.position);
+      lobbyEmoteMesh.visible = false;
+      scene.add(lobbyEmoteMesh);
+
+      // Create video texture
+      const emoteVideo = document.getElementById('emoteVideo');
+      emoteVideoTexture = new THREE.VideoTexture(emoteVideo);
+      emoteVideoTexture.colorSpace = THREE.SRGBColorSpace;
+      lobbyEmoteMat.map = emoteVideoTexture;
+
+      // ── EMOTE SYSTEM (lobby click → play emote video) ──
+      const lobbyRaycaster = new THREE.Raycaster();
+      const lobbyMouse = new THREE.Vector2();
+      let emoteIsPlaying = false;
+      let localPlayerEmoteMesh = null;
+      const playerPhysicalPos = new THREE.Vector3();
+      let myActiveEmote = null;
+      const emoteOverlay = document.getElementById('emoteOverlay');
+      const emoteHint = document.getElementById('emoteHint');
+      const lobbyClickHint = document.getElementById('lobbyClickHint');
+      const emoteWheel = document.getElementById('emoteWheel');
+
+      // resolveUrl helper is defined at the top of initGame
+
+
+
+      let RAW_EMOTE_LIST = [];
+      let EMOTE_LIST = [];
+      const emoteBlobUrls = {}; // resolvedUrl -> objectURL
+
+      function getEmoteVideoForCharacter(emote, characterName) {
+        if (emote.characterVideos) {
+          return emote.characterVideos[characterName] || '';
+        }
+        if (characterName === "Default" && emote.video) {
+          return emote.video;
+        }
+        return '';
+      }
+
+      function preFetchVideos() {
+        RAW_EMOTE_LIST.forEach(emote => {
+          const videos = [];
+          if (emote.characterVideos) {
+            Object.values(emote.characterVideos).forEach(v => {
+              if (v) videos.push(v);
+            });
+          }
+          if (emote.video) {
+            videos.push(emote.video);
+          }
+          videos.forEach(video => {
+            const resolved = resolveUrl(video);
+            if (emoteBlobUrls[resolved]) return;
+
+            fetch(resolved)
+              .then(r => r.blob())
+              .then(blob => {
+                const videoBlob = new Blob([blob], { type: 'video/webm' });
+                emoteBlobUrls[resolved] = URL.createObjectURL(videoBlob);
+              })
+              .catch(() => { });
+          });
+        });
+      }
+
+      function getSectorPath(cx, cy, rInner, rOuter, startAngle, endAngle) {
+        const x1_o = cx + rOuter * Math.cos(startAngle);
+        const y1_o = cy + rOuter * Math.sin(startAngle);
+        const x2_o = cx + rOuter * Math.cos(endAngle);
+        const y2_o = cy + rOuter * Math.sin(endAngle);
+        const x2_i = cx + rInner * Math.cos(endAngle);
+        const y2_i = cy + rInner * Math.sin(endAngle);
+        const x1_i = cx + rInner * Math.cos(startAngle);
+        const y1_i = cy + rInner * Math.sin(startAngle);
+        const largeArcFlag = (endAngle - startAngle) > Math.PI ? 1 : 0;
+        return `M ${x1_i} ${y1_i} L ${x1_o} ${y1_o} A ${rOuter} ${rOuter} 0 ${largeArcFlag} 1 ${x2_o} ${y2_o} L ${x2_i} ${y2_i} A ${rInner} ${rInner} 0 ${largeArcFlag} 0 ${x1_i} ${y1_i} Z`;
+      }
+
+      function initEmoteWheel() {
+        const svg = document.getElementById('emoteWheelSvg');
+        if (!svg) return;
+        svg.innerHTML = '';
+        const cx = 100, cy = 100;
+        const rInner = 42;
+        const rOuter = 95;
+        const n = EMOTE_LIST.length;
+        const angleStep = (Math.PI * 2) / n;
+        const startOffset = -Math.PI / 2 - angleStep / 2;
+
+        EMOTE_LIST.forEach((emote, i) => {
+          const startAngle = startOffset + i * angleStep;
+          const endAngle = startOffset + (i + 1) * angleStep;
+          const pathD = getSectorPath(cx, cy, rInner, rOuter, startAngle, endAngle);
+
+          const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          g.setAttribute('class', 'wheel-segment-group');
+
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', pathD);
+          path.setAttribute('class', 'wheel-segment');
+          g.appendChild(path);
+
+          const midAngle = startAngle + angleStep / 2;
+          const rText = 68;
+          const tx = cx + rText * Math.cos(midAngle);
+          const ty = cy + rText * Math.sin(midAngle);
+
+          // Render icon (image URL vs Emoji)
+          const isImageUrl = emote.icon && (emote.icon.includes('.') || emote.icon.startsWith('http'));
+          let iconElement;
+          if (isImageUrl) {
+            iconElement = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+            iconElement.setAttribute('x', tx - 10);
+            iconElement.setAttribute('y', ty - 18);
+            iconElement.setAttribute('width', 20);
+            iconElement.setAttribute('height', 20);
+            iconElement.setAttributeNS('http://www.w3.org/1999/xlink', 'href', resolveUrl(emote.icon));
+          } else {
+            iconElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            iconElement.setAttribute('x', tx);
+            iconElement.setAttribute('y', ty - 8);
+            iconElement.setAttribute('class', 'wheel-segment-icon');
+            iconElement.textContent = emote.icon || '';
+          }
+          g.appendChild(iconElement);
+
+          const labelText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          labelText.setAttribute('x', tx);
+          labelText.setAttribute('y', ty + 12);
+          labelText.setAttribute('class', 'wheel-segment-text');
+          labelText.style.fontSize = '6px';
+          labelText.textContent = emote.label || (emote.name === 'Cancelar' ? 'CERRAR' : emote.name.slice(0, 8).toUpperCase());
+          g.appendChild(labelText);
+
+          g.addEventListener('mouseenter', () => {
+            const centerIcon = document.getElementById('emoteWheelCenterIcon');
+            centerIcon.innerHTML = '';
+            if (isImageUrl) {
+              const img = document.createElement('img');
+              img.src = resolveUrl(emote.icon);
+              img.style.width = '24px';
+              img.style.height = '24px';
+              centerIcon.appendChild(img);
+            } else {
+              centerIcon.textContent = emote.icon || '';
+            }
+            document.getElementById('emoteWheelCenterText').textContent = emote.name;
+            document.getElementById('emoteWheelCenterText').style.color = emote.icon === '❌' ? '#ff4444' : '#ffe600';
+            centerIcon.style.transform = 'scale(1.2)';
+          });
+          g.addEventListener('mouseleave', () => {
+            const centerIcon = document.getElementById('emoteWheelCenterIcon');
+            centerIcon.innerHTML = '🕺';
+            document.getElementById('emoteWheelCenterText').textContent = 'EMOTES';
+            document.getElementById('emoteWheelCenterText').style.color = '#ff4444';
+            centerIcon.style.transform = 'scale(1)';
+          });
+          g.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeEmoteWheel();
+            if (emote.icon !== '❌') {
+              playEmote(emote);
+            }
+          });
+          svg.appendChild(g);
+        });
+      }
+
+      function openEmoteWheel() {
+        if (dead) return;
+
+        // Filter emotes based on current skin name
+        const filtered = RAW_EMOTE_LIST.filter(emote => {
+          const video = getEmoteVideoForCharacter(emote, selectedSkinName);
+          return !!video;
+        });
+        EMOTE_LIST = [...filtered, { name: 'Cancelar', icon: '❌' }];
+
+        initEmoteWheel();
+
+        emoteWheel.classList.add('active');
+        if (inLobby) {
+          lobbyClickHint.style.display = 'none';
+        } else {
+          document.exitPointerLock();
+        }
+      }
+
+      function closeEmoteWheel() {
+        emoteWheel.classList.remove('active');
+        if (inLobby) {
+          if (!emoteIsPlaying) {
+            lobbyClickHint.style.display = 'block';
+          }
+        } else {
+          gameEl.requestPointerLock();
+        }
+      }
+
+      emoteWheel.addEventListener('click', (e) => {
+        if (e.target === emoteWheel) {
+          e.stopPropagation();
+          closeEmoteWheel();
+        }
+      });
+
+      // Load emotes from Firebase (no fallback — only shows what's in the DB)
+      get(ref(db, 'fps/emotes')).then(snap => {
+        let list = [];
+        if (snap.exists()) {
+          const val = snap.val();
+          if (val) {
+            if (Array.isArray(val)) {
+              list = val.filter(Boolean);
+            } else if (typeof val === 'object') {
+              list = Object.values(val);
+            }
+          }
+        }
+        RAW_EMOTE_LIST = list;
+        preFetchVideos();
+      }).catch(err => {
+        console.error("Error loading emotes:", err);
+        RAW_EMOTE_LIST = [];
+      });
+
+      // Show click hint in lobby
+      lobbyClickHint.style.display = 'block';
+
+      function closeEmote() {
+        emoteVideo.oncanplay = null;
+        emoteVideo.onended = null;
+        emoteVideo.onerror = null;
+
+        emoteVideo.pause();
+        emoteVideo.src = "";
+        emoteVideo.load();
+
+        emoteOverlay.classList.remove('active');
+        emoteOverlay.classList.remove('in-game');
+        emoteOverlay.style.pointerEvents = 'none';
+        emoteIsPlaying = false;
+
+        // Restore character visibility
+        if (lobbyPlayerMesh) lobbyPlayerMesh.visible = true;
+        if (lobbyEmoteMesh) lobbyEmoteMesh.visible = false;
+
+        if (inLobby) {
+          lobbyClickHint.style.display = 'block';
+        } else {
+          // In game: remove localPlayerEmoteMesh
+          if (localPlayerEmoteMesh) {
+            localPlayerEmoteMesh.visible = false;
+            scene.remove(localPlayerEmoteMesh);
+          }
+          // Restore camera position to player physical position
+          camera.position.copy(playerPhysicalPos);
+          // Restore weapon and crosshair visibility
+          document.getElementById('weapon').style.display = '';
+          document.getElementById('crosshair').style.display = '';
+          
+          // Clear active emote and publish
+          myActiveEmote = null;
+          publishPos();
+        }
+      }
+
+      function playEmote(emote) {
+        const videoPath = getEmoteVideoForCharacter(emote, selectedSkinName);
+        if (!videoPath) return;
+
+        if (emoteIsPlaying) {
+          closeEmote();
+        }
+        emoteIsPlaying = true;
+
+        if (inLobby) {
+          lobbyClickHint.style.display = 'none';
+
+          // Hide original character and show emote mesh
+          if (lobbyPlayerMesh) lobbyPlayerMesh.visible = false;
+          if (lobbyEmoteMesh) lobbyEmoteMesh.visible = true;
+
+          emoteOverlay.classList.remove('in-game');
+          emoteOverlay.style.pointerEvents = 'auto';
+        } else {
+          // In game: spawn localPlayerEmoteMesh
+          playerPhysicalPos.copy(camera.position);
+          
+          if (!localPlayerEmoteMesh) {
+            const geo = new THREE.PlaneGeometry(QUAD_W, QUAD_H);
+            const mat = new THREE.MeshBasicMaterial({
+              map: emoteVideoTexture,
+              transparent: true,
+              side: THREE.DoubleSide,
+              depthTest: true,
+              depthWrite: false,
+              alphaTest: 0.05
+            });
+            localPlayerEmoteMesh = new THREE.Mesh(geo, mat);
+          }
+          localPlayerEmoteMesh.position.set(
+            playerPhysicalPos.x,
+            playerPhysicalPos.y - 1.5 + QUAD_H / 2,
+            playerPhysicalPos.z
+          );
+          localPlayerEmoteMesh.visible = true;
+          scene.add(localPlayerEmoteMesh);
+
+          // Hide weapon and crosshair
+          document.getElementById('weapon').style.display = 'none';
+          document.getElementById('crosshair').style.display = 'none';
+
+          // Overlay display
+          emoteOverlay.classList.add('in-game');
+          emoteOverlay.style.pointerEvents = 'none';
+
+          // Publish to Firebase
+          myActiveEmote = {
+            name: emote.name,
+            video: videoPath,
+            t: Date.now()
+          };
+          publishPos();
+        }
+
+        emoteOverlay.classList.add('active');
+
+        const resolved = resolveUrl(videoPath);
+
+        function startPlayback(url) {
+          emoteVideo.src = url;
+          emoteVideo.muted = false;
+          emoteVideo.volume = 0.7;
+          emoteHint.textContent = '▶ reproduciendo emote…';
+
+          emoteVideo.oncanplay = () => {
+            emoteVideo.play().catch(() => { });
+          };
+
+          emoteVideo.onended = () => {
+            closeEmote();
+          };
+
+          emoteVideo.onerror = () => {
+            emoteHint.textContent = '⚠ Error al cargar emote';
+            setTimeout(() => closeEmote(), 1500);
+          };
+
+          // Allow clicking anywhere to skip/close (only if in lobby)
+          if (inLobby) {
+            emoteOverlay.style.pointerEvents = 'auto';
+            emoteOverlay.onclick = () => closeEmote();
+          } else {
+            emoteOverlay.style.pointerEvents = 'none';
+            emoteOverlay.onclick = null;
+          }
+
+          emoteVideo.load();
+        }
+
+        const cached = emoteBlobUrls[resolved];
+        if (cached) {
+          startPlayback(cached);
+        } else {
+          emoteHint.textContent = '⏳ cargando emote…';
+          fetch(resolved)
+            .then(r => r.blob())
+            .then(blob => {
+              const videoBlob = new Blob([blob], { type: 'video/webm' });
+              emoteBlobUrls[resolved] = URL.createObjectURL(videoBlob);
+              startPlayback(emoteBlobUrls[resolved]);
+            })
+            .catch(() => {
+              emoteHint.textContent = '⚠ Error al cargar emote';
+              setTimeout(() => closeEmote(), 1500);
+            });
+        }
+      }
+
+      // Click detection on canvas for lobby character
+      gameEl.addEventListener('click', (event) => {
+        if (!inLobby) return;
+
+        // Calculate mouse position relative to the game element
+        const rect = gameEl.getBoundingClientRect();
+        lobbyMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        lobbyMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        // Raycast from camera through click point
+        lobbyRaycaster.setFromCamera(lobbyMouse, camera);
+        
+        const targets = [];
+        if (lobbyPlayerMesh && lobbyPlayerMesh.visible) targets.push(lobbyPlayerMesh);
+        if (lobbyEmoteMesh && lobbyEmoteMesh.visible) targets.push(lobbyEmoteMesh);
+        const hits = lobbyRaycaster.intersectObjects(targets, false);
+
+        if (hits.length > 0) {
+          openEmoteWheel();
+        } else {
+          if (emoteIsPlaying) {
+            closeEmote();
+          }
+        }
+      });
+
+      // Reassign tryJoin inside the Three.js scope to access scene elements
+      tryJoin = function () {
+        const n = document.getElementById('nameInput').value.trim();
+        if (!n) {
+          const inp = document.getElementById('nameInput');
+          inp.style.borderColor = '#f00';
+          setTimeout(() => inp.style.borderColor = 'rgba(255, 68, 68, 0.3)', 800);
+          return;
+        }
+        myName = n;
+        myId = rng();
+        inLobby = false;
+        document.getElementById('loginScreen').style.display = 'none';
+        lobbyClickHint.style.display = 'none';
+        // Stop emote if playing
+        if (emoteIsPlaying) closeEmote();
+
+        // Remove 3D lobby elements
+        if (lobbyPedestalMesh) {
+          scene.remove(lobbyPedestalMesh);
+          lobbyPedestalMesh.geometry.dispose();
+          lobbyPedestalMesh.material.dispose();
+          lobbyPedestalMesh = null;
+        }
+        if (lobbyPlayerMesh) {
+          scene.remove(lobbyPlayerMesh);
+          lobbyPlayerMesh.geometry.dispose();
+          lobbyPlayerMesh.material.dispose();
+          lobbyPlayerMesh = null;
+        }
+        if (lobbyEmoteMesh) {
+          scene.remove(lobbyEmoteMesh);
+          lobbyEmoteMesh.geometry.dispose();
+          lobbyEmoteMesh.material.dispose();
+          lobbyEmoteMesh = null;
+        }
+
+        // Show normal game HUD
+        document.getElementById('myName').textContent = '● ' + myName;
+        document.getElementById('hud').style.display = 'block';
+        document.getElementById('lockOverlay').style.display = 'flex';
+        document.getElementById('killFeed').style.display = 'flex';
+        document.getElementById('weapon').style.display = 'block';
+        document.getElementById('crosshair').style.display = 'block';
+        document.getElementById('weaponSelector').style.display = 'flex';
+        document.getElementById('instructions').style.display = 'block';
+
+        // Set game mode to selected
+        gameMode = selectedMode;
+
+        // Connect to Firebase database for players & matches
+        connectFirebase();
+
+        // Position camera at a spawn position
+        let spawnPosition;
+        if (gameMode === 'br') {
+          listenToMap('lobby');
+          initLobby();
+          spawnPosition = { x: 0, y: 1.5, z: 0 };
+        } else if (gameMode === 'rvb') {
+          document.getElementById('rvbScoreBoard').style.display = 'flex';
+          onValue(ref(db, 'fps/rvb_score'), snap => {
+            const score = snap.val() || { red: 0, blue: 0 };
+            document.getElementById('scoreRed').textContent = score.red || 0;
+            document.getElementById('scoreBlue').textContent = score.blue || 0;
+          });
+          listenToMap('rvb');
+          spawnPosition = getSpawnPosition();
+        } else {
+          listenToMap('normal');
+          const s = spawnPos();
+          spawnPosition = { x: s.x, y: 1.5, z: s.z };
+        }
+
+        camera.position.set(spawnPosition.x, spawnPosition.y, spawnPosition.z);
+        yaw = 0;
+        pitch = 0;
+
+        publishPos();
+        gameEl.requestPointerLock();
+      };
+
+      /* ══ BATTLE ROYALE STATE ══ */
+      let brState = 'none'; // 'none' | 'in_plane' | 'falling'
+      let brPlaneGroup = null;
+      let brFlightT = 0;
+      const brFlightStart = new THREE.Vector3();
+      const brFlightEnd = new THREE.Vector3();
+      const BR_PLANE_SPEED = 0.0008;
+      const BR_PLANE_HEIGHT = 50;
+      const BR_FALL_GRAVITY = 0.0015;
+      const BR_FALL_MAX_SPEED = 0.10;
+      const BR_FALL_STEER = 0.15;
+      let brFallVelocityY = 0;
+      let brAudio = null;
+      const brJumpPrompt = document.getElementById('brJumpPrompt');
+      const brAltitudeEl = document.getElementById('brAltitude');
+      let brCanJump = false;
+      let brJumpInterval = null;
+
+      function initBattleRoyale() {
+        brState = 'in_plane';
+        brFlightT = 0;
+        brFallVelocityY = 0;
+
+        // Random flight path across map
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 130;
+        brFlightStart.set(Math.cos(angle) * dist, BR_PLANE_HEIGHT, Math.sin(angle) * dist);
+        brFlightEnd.set(-Math.cos(angle) * dist, BR_PLANE_HEIGHT, -Math.sin(angle) * dist);
+        // Create plane sprite
+        const planeTex = texLoader.load(IMG_PLANE);
+        const planeMat = new THREE.SpriteMaterial({ map: planeTex, transparent: true });
+        const planeSprite = new THREE.Sprite(planeMat);
+        planeSprite.scale.set(14, 7, 1);
+        brPlaneGroup = new THREE.Group();
+        brPlaneGroup.add(planeSprite);
+        brPlaneGroup.position.copy(brFlightStart);
+        scene.add(brPlaneGroup);
+
+        // Camera: behind and above the plane, looking down
+        const dir = brFlightEnd.clone().sub(brFlightStart).normalize();
+        const planeYaw = Math.atan2(-dir.x, -dir.z);
+        camera.position.copy(brFlightStart);
+        camera.position.x -= dir.x * 10;
+        camera.position.z -= dir.z * 10;
+        camera.position.y = BR_PLANE_HEIGHT + 8;
+        yaw = planeYaw;
+        pitch = -1.1;
+
+        // UI
+        let countdown = 3;
+        brJumpPrompt.innerHTML = `Lanzamiento en <span class="key">${countdown}</span>`;
+        brJumpPrompt.style.display = 'block';
+
+        brJumpInterval = setInterval(() => {
+          countdown--;
+          if (countdown > 0) {
+            brJumpPrompt.innerHTML = `Lanzamiento en <span class="key">${countdown}</span>`;
+          } else {
+            clearInterval(brJumpInterval);
+            brJumpInterval = null;
+            brCanJump = true;
+            brJumpPrompt.innerHTML = `Presiona <span class="key">E</span> para lanzarte`;
+          }
+        }, 1000);
+
+        brAltitudeEl.style.display = 'block';
+        brAltitudeEl.textContent = 'ALT: ' + BR_PLANE_HEIGHT + 'm';
+        document.getElementById('weapon').style.display = 'none';
+        document.getElementById('crosshair').style.display = 'none';
+        document.getElementById('weaponSelector').style.display = 'none';
+        document.getElementById('instructions').style.display = 'none';
+        document.getElementById('parachute').style.display = 'none';
+
+        // Audio
+        brAudio = new Audio(SND_BATTLE);
+        brAudio.loop = true;
+        brAudio.volume = 0.6;
+        brAudio.play().catch(() => { });
+      }
+
+      function initLobby() {
+        brState = 'lobby';
+        document.getElementById('weapon').style.display = 'none';
+        document.getElementById('crosshair').style.display = 'none';
+        document.getElementById('weaponSelector').style.display = 'none';
+        document.getElementById('instructions').style.display = 'none';
+        document.getElementById('parachute').style.display = 'none';
+
+        brJumpPrompt.innerHTML = `Lobby de espera<br><span style="font-size:11px;color:#aaa;">Presiona <span class="key">J</span> para iniciar la partida</span>`;
+        brJumpPrompt.style.display = 'block';
+        brAltitudeEl.style.display = 'none';
+
+        camera.position.set(0, 1.5, 0);
+        yaw = 0;
+        pitch = 0;
+      }
+
+      function startMatchFromLobby() {
+        brState = 'in_plane';
+        brFlightT = 0;
+        brFallVelocityY = 0;
+        brCanJump = false;
+        if (brJumpInterval) clearInterval(brJumpInterval);
+
+        // Switch to actual BR map!
+        listenToMap('br');
+
+        // Random flight path across map
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 130;
+        brFlightStart.set(Math.cos(angle) * dist, BR_PLANE_HEIGHT, Math.sin(angle) * dist);
+        brFlightEnd.set(-Math.cos(angle) * dist, BR_PLANE_HEIGHT, -Math.sin(angle) * dist);
+
+        // Create plane sprite
+        const planeTex = texLoader.load(IMG_PLANE);
+        const planeMat = new THREE.SpriteMaterial({ map: planeTex, transparent: true });
+        const planeSprite = new THREE.Sprite(planeMat);
+        planeSprite.scale.set(14, 7, 1);
+        if (brPlaneGroup) scene.remove(brPlaneGroup);
+        brPlaneGroup = new THREE.Group();
+        brPlaneGroup.add(planeSprite);
+        brPlaneGroup.position.copy(brFlightStart);
+        scene.add(brPlaneGroup);
+
+        // Camera: behind and above the plane, looking down
+        const dir = brFlightEnd.clone().sub(brFlightStart).normalize();
+        const planeYaw = Math.atan2(-dir.x, -dir.z);
+        camera.position.copy(brFlightStart);
+        camera.position.x -= dir.x * 10;
+        camera.position.z -= dir.z * 10;
+        camera.position.y = BR_PLANE_HEIGHT + 8;
+        yaw = planeYaw;
+        pitch = -1.1;
+
+        // UI countdown (3 seconds before letting them eject)
+        let countdown = 3;
+        brJumpPrompt.innerHTML = `Lanzamiento en <span class="key">${countdown}</span>`;
+        brJumpPrompt.style.display = 'block';
+
+        brJumpInterval = setInterval(() => {
+          countdown--;
+          if (countdown > 0) {
+            brJumpPrompt.innerHTML = `Lanzamiento en <span class="key">${countdown}</span>`;
+          } else {
+            clearInterval(brJumpInterval);
+            brJumpInterval = null;
+            brCanJump = true;
+            brJumpPrompt.innerHTML = `Presiona <span class="key">E</span> para lanzarte`;
+          }
+        }, 1000);
+
+        brAltitudeEl.style.display = 'block';
+        brAltitudeEl.textContent = 'ALT: ' + BR_PLANE_HEIGHT + 'm';
+
+        // Audio
+        if (brAudio) { brAudio.pause(); brAudio.currentTime = 0; }
+        brAudio = new Audio(SND_BATTLE);
+        brAudio.loop = true;
+        brAudio.volume = 0.6;
+        brAudio.play().catch(() => { });
+      }
+
+      function brEject() {
+        if (brState !== 'in_plane' || !brCanJump) return;
+        if (brJumpInterval) { clearInterval(brJumpInterval); brJumpInterval = null; }
+        brState = 'falling';
+        brFallVelocityY = 0;
+        camera.position.copy(brPlaneGroup.position);
+        camera.position.y += 2;
+        scene.remove(brPlaneGroup);
+        brPlaneGroup = null;
+        pitch = -0.8;
+        brJumpPrompt.style.display = 'none';
+
+        // Show parachute and block weapon/HUD
+        const parachute = document.getElementById('parachute');
+        parachute.src = IMG_PARACHUTE;
+        parachute.style.display = 'block';
+        parachute.classList.add('swaying');
+
+        document.getElementById('weapon').style.display = 'none';
+        document.getElementById('crosshair').style.display = 'none';
+        document.getElementById('weaponSelector').style.display = 'none';
+        document.getElementById('instructions').style.display = 'none';
+      }
+
+      function brLand() {
+        brState = 'none';
+        camera.position.y = 1.5;
+        velocityY = 0;
+        onGround = true;
+        brAltitudeEl.style.display = 'none';
+
+        // Hide parachute and restore weapon/HUD
+        const parachute = document.getElementById('parachute');
+        parachute.style.display = 'none';
+        parachute.classList.remove('swaying');
+
+        document.getElementById('weapon').style.display = '';
+        document.getElementById('crosshair').style.display = '';
+        document.getElementById('weaponSelector').style.display = '';
+        document.getElementById('instructions').style.display = '';
+
+        // Fade out audio
+        if (brAudio) {
+          const fadeInt = setInterval(() => {
+            if (brAudio.volume > 0.05) {
+              brAudio.volume = Math.max(0, brAudio.volume - 0.03);
+            } else {
+              brAudio.pause();
+              brAudio.currentTime = 0;
+              clearInterval(fadeInt);
+            }
+          }, 50);
+        }
+      }
+
+      function brCleanup() {
+        brState = 'none';
+        if (brPlaneGroup) { scene.remove(brPlaneGroup); brPlaneGroup = null; }
+        if (brAudio) { brAudio.pause(); brAudio.currentTime = 0; brAudio = null; }
+        brJumpPrompt.style.display = 'none';
+        brAltitudeEl.style.display = 'none';
+        brCanJump = false;
+        if (brJumpInterval) { clearInterval(brJumpInterval); brJumpInterval = null; }
+
+        // Hide parachute
+        const parachute = document.getElementById('parachute');
+        parachute.style.display = 'none';
+        parachute.classList.remove('swaying');
+
+        document.getElementById('weapon').style.display = '';
+        document.getElementById('crosshair').style.display = '';
+        document.getElementById('weaponSelector').style.display = '';
+        document.getElementById('instructions').style.display = '';
+      }
+
+      /* ── MAP OBJECTS (loaded from Firebase) ── */
+      const mapObjects = [];
+      const particles = []; // active bullet impact debris particles
+      const tracers = [];   // active sniper tracer lines
+      let showWireframes = false;
+      let redSpawns = [], blueSpawns = [];
+      let firstSpawnDone = false;
+
+      function getSpawnPosition() {
+        if (gameMode === 'rvb') {
+          if (selectedTeam === 'red' && redSpawns.length > 0) {
+            const sp = redSpawns[Math.floor(Math.random() * redSpawns.length)];
+            return { x: sp.x, y: sp.y + 1.5, z: sp.z };
+          }
+          if (selectedTeam === 'blue' && blueSpawns.length > 0) {
+            const sp = blueSpawns[Math.floor(Math.random() * blueSpawns.length)];
+            return { x: sp.x, y: sp.y + 1.5, z: sp.z };
+          }
+        }
+        const s = spawnPos();
+        return { x: s.x, y: 1.5, z: s.z };
+      }
+
+      function clearMapObjects() {
+        mapObjects.forEach(m => scene.remove(m));
+        mapObjects.length = 0;
+      }
+
+      function spawnTracer(startPos, endPos) {
+        const dir = new THREE.Vector3().subVectors(endPos, startPos);
+        const len = dir.length();
+        const mid = new THREE.Vector3().addVectors(startPos, endPos).multiplyScalar(0.5);
+
+        // Bright core cylinder (slightly thicker: 0.05 radius)
+        const geo = new THREE.CylinderGeometry(0.05, 0.05, len, 4, 1);
+        const mat = new THREE.MeshBasicMaterial({
+          color: 0xffee44,
+          transparent: true,
+          opacity: 1.0,
+          depthWrite: false
+        });
+        const core = new THREE.Mesh(geo, mat);
+        core.position.copy(mid);
+        core.quaternion.setFromUnitVectors(
+          new THREE.Vector3(0, 1, 0),
+          dir.clone().normalize()
+        );
+        scene.add(core);
+        tracers.push({ mesh: core, life: 1.0, decay: 0.006 }); // Fades in ~2.7 seconds (at 60fps)
+
+        // Outer glow cylinder (wider, softer: 0.20 radius)
+        const glowGeo = new THREE.CylinderGeometry(0.20, 0.20, len, 6, 1);
+        const glowMat = new THREE.MeshBasicMaterial({
+          color: 0xffff88,
+          transparent: true,
+          opacity: 0.4,
+          depthWrite: false
+        });
+        const glow = new THREE.Mesh(glowGeo, glowMat);
+        glow.position.copy(mid);
+        glow.quaternion.copy(core.quaternion);
+        scene.add(glow);
+        tracers.push({ mesh: glow, life: 1.0, decay: 0.009 }); // Fades in ~1.8 seconds (at 60fps)
+      }
+
+      function spawnDebris(point, normal, color) {
+        const particleCount = 8;
+        const geo = new THREE.BoxGeometry(0.12, 0.12, 0.12);
+        const mat = new THREE.MeshBasicMaterial({ color: color || 0xbbbbbb });
+
+        for (let i = 0; i < particleCount; i++) {
+          const mesh = new THREE.Mesh(geo, mat);
+          mesh.position.copy(point);
+          mesh.position.addScaledVector(normal, 0.05); // slightly offset from wall to avoid clipping
+          scene.add(mesh);
+
+          const velocity = normal.clone().multiplyScalar(0.05 + Math.random() * 0.08);
+          velocity.x += (Math.random() - 0.5) * 0.06;
+          velocity.y += (Math.random() - 0.5) * 0.06;
+          velocity.z += (Math.random() - 0.5) * 0.06;
+
+          particles.push({
+            mesh: mesh,
+            velocity: velocity,
+            life: 1.0,
+            decay: 0.03 + Math.random() * 0.02
+          });
+        }
+      }
+      function loadMapFromData(data) {
+        clearMapObjects();
+        redSpawns = [];
+        blueSpawns = [];
+        if (!data) return;
+        // Floor config
+        if (data.floor) {
+          setFloor(data.floor.w || 500, data.floor.d || 500, parseInt(data.floor.color) || 0x4f9a45);
+        }
+        // Blocks
+        if (data.blocks) {
+          Object.values(data.blocks).forEach(b => {
+            const type = b.type || 'block';
+            if (type === 'spawn_red') {
+              redSpawns.push(b);
+              return;
+            }
+            if (type === 'spawn_blue') {
+              blueSpawns.push(b);
+              return;
+            }
+            const geo = new THREE.BoxGeometry(b.w || 2, b.h || 2, b.d || 2);
+            const mesh = new THREE.Mesh(
+              geo,
+              new THREE.MeshPhongMaterial({ color: parseInt(b.color) || 0x888888 })
+            );
+            // Use position directly from editor
+            mesh.position.set(b.x || 0, b.y != null ? b.y : (b.h / 2 - 2), b.z || 0);
+
+            // Add wireframe helper for debug view
+            const edges = new THREE.LineSegments(
+              new THREE.EdgesGeometry(geo),
+              new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.22 })
+            );
+            edges.name = 'wireframe';
+            edges.visible = showWireframes;
+            mesh.add(edges);
+
+            scene.add(mesh);
+
+            // Only add to physical map collision objects if collision is enabled (default: true)
+            if (b.collision !== false) {
+              // Compute bounding box for collision detection
+              mesh.updateMatrixWorld(true);
+              mesh.geometry.computeBoundingBox();
+              mesh.userData.bbox = new THREE.Box3().setFromObject(mesh);
+              mapObjects.push(mesh);
+            }
+          });
+        }
+
+        if (gameMode === 'rvb' && !firstSpawnDone) {
+          firstSpawnDone = true;
+          const sp = getSpawnPosition();
+          camera.position.set(sp.x, sp.y, sp.z);
+        }
+      }
+      let unsubscribeMap = null;
+      function listenToMap(mapType) {
+        if (unsubscribeMap) unsubscribeMap();
+        unsubscribeMap = onValue(ref(db, 'fps/map_' + mapType), snap => {
+          loadMapFromData(snap.val());
+        });
+      }
+
+      /* ═══════════════════════════════════════
+         OTHER PLAYERS — Billboard Quad Meshes
+         Same technique as Nextbot: PlaneGeometry
+         that rotates to face camera each frame.
+         depthTest=true → hidden behind walls ✓
+         Exact AABB hitbox = QUAD_W × QUAD_H ✓
+      ═══════════════════════════════════════ */
+      const texLoader = new THREE.TextureLoader();
+      let playerTex = null;
+      texLoader.load(IMG_PLAYER, tex => {
+        playerTex = tex;
+        playerTex.minFilter = THREE.LinearFilter;
+        playerTex.magFilter = THREE.LinearFilter;
+        // Update material of any already-spawned players
+        Object.values(otherPlayers).forEach(op => {
+          if (op.mesh) op.mesh.material.map = playerTex, op.mesh.material.needsUpdate = true;
+        });
+      });
+
+      /* name-tag canvas texture */
+      function makeNameTex(name, team) {
+        const c = document.createElement('canvas'); c.width = 256; c.height = 64;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = 'rgba(0,0,0,0.75)';
+        ctx.roundRect(2, 2, 252, 60, 10); ctx.fill();
+        ctx.fillStyle = team === 'red' ? '#ff4444' : (team === 'blue' ? '#4444ff' : '#ffffff');
+        ctx.font = 'bold 26px Courier New';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(name.slice(0, 16).toUpperCase(), 128, 32);
+        return new THREE.CanvasTexture(c);
+      }
+
+      const otherPlayers = {}; // id → { mesh, nameMesh, group, data, hp, dead }
+
+      function spawnOtherPlayer(id, pData) {
+        // ── BODY QUAD ──
+        // PlaneGeometry facing +Z; we'll billboard-rotate it every frame
+        const bodyGeo = new THREE.PlaneGeometry(QUAD_W, QUAD_H);
+        const bodyMat = new THREE.MeshBasicMaterial({
+          map: playerTex || null,
+          transparent: true,
+          side: THREE.DoubleSide,
+          depthTest: true,
+          depthWrite: false,
+          alphaTest: 0.05
+        });
+        const mesh = new THREE.Mesh(bodyGeo, bodyMat);
+
+        if (pData.skin) {
+          loadSkinTexture(pData.skin, tex => {
+            if (otherPlayers[id] && otherPlayers[id].data.skin === pData.skin) {
+              bodyMat.map = tex;
+              bodyMat.needsUpdate = true;
+            }
+          });
+        }
+
+        // ── NAME TAG QUAD ──
+        const nameTex = makeNameTex(pData.name || id, pData.team);
+        const nameGeo = new THREE.PlaneGeometry(2.0, 0.5);
+        const nameMat = new THREE.MeshBasicMaterial({
+          map: nameTex, transparent: true,
+          side: THREE.DoubleSide,
+          depthTest: false, depthWrite: false
+        });
+        const nameMesh = new THREE.Mesh(nameGeo, nameMat);
+        nameMesh.position.y = QUAD_H / 2 + 0.45;
+
+        // Group so name travels with body
+        const group = new THREE.Group();
+        group.add(mesh);
+        group.add(nameMesh);
+        const isDead = !!pData.dead;
+        nameMesh.visible = !isDead;
+        if (isDead) {
+          group.position.set(pData.x || 0, (pData.y || 1.5) - 1.5 + 0.01, pData.z || 0);
+          mesh.rotation.x = -Math.PI / 2;
+        } else {
+          group.position.set(pData.x || 0, (pData.y || 1.5) - 1.5 + QUAD_H / 2, pData.z || 0);
+        }
+        group.visible = !pData.inPlane;
+        scene.add(group);
+
+        otherPlayers[id] = { mesh, nameMesh, group, data: pData, hp: MAX_HP, dead: isDead, lastShotTime: pData.lastShot ? pData.lastShot.t : 0 };
+      }
+
+      function removeOtherPlayer(id) {
+        const op = otherPlayers[id]; if (!op) return;
+        scene.remove(op.group);
+        op.mesh.geometry.dispose(); op.mesh.material.dispose();
+        op.nameMesh.geometry.dispose(); op.nameMesh.material.dispose();
+        if (op.video) {
+          op.video.pause();
+          op.video.src = "";
+          op.videoTexture.dispose();
+        }
+        delete otherPlayers[id];
+      }
+
+      /* billboard: rotate group's Y so quad always faces camera,
+         but keep it upright (no pitch tilt) — identical to Nextbot */
+      function billboardAll() {
+        Object.values(otherPlayers).forEach(op => {
+          if (!op.group.visible) return;
+          if (op.dead) {
+            op.mesh.rotation.x = -Math.PI / 2;
+            op.mesh.rotation.y = 0;
+            op.mesh.rotation.z = 0;
+          } else {
+            const dx = camera.position.x - op.group.position.x;
+            const dz = camera.position.z - op.group.position.z;
+            op.group.rotation.y = Math.atan2(dx, dz);
+            op.mesh.rotation.set(0, 0, 0);
+          }
+        });
+      }
+
+      /* ── FIREBASE ── */
+      let myRef = null;
+      let myHp = MAX_HP, dead = false;
+      let myLastShot = null;
+
+      function publishPos() {
+        if (inLobby) return;
+        const pos = emoteIsPlaying ? playerPhysicalPos : camera.position;
+        set(myRef, {
+          name: myName,
+          skin: selectedSkinUrl,
+          x: +pos.x.toFixed(3),
+          y: +pos.y.toFixed(3),
+          z: +pos.z.toFixed(3),
+          yaw: +yaw.toFixed(4),
+          hp: myHp, dead, t: Date.now(),
+          inPlane: brState === 'in_plane',
+          team: gameMode === 'rvb' ? selectedTeam : null,
+          lastShot: myLastShot,
+          activeEmote: myActiveEmote || null
+        });
+      }
+
+      let myLastKillTime = 0;
+      let myMultikillCount = 0;
+      const MULTIKILL_WINDOW = 4000; // 4 seconds
+      let lastKillFeedTime = Date.now();
+      let lastStartTriggerTime = Date.now();
+
+      function connectFirebase() {
+        myRef = ref(db, `fps/players_${gameMode}/${myId}`);
+        onDisconnect(myRef).remove();
+
+        /* sync players */
+        onValue(ref(db, 'fps/players_' + gameMode), snap => {
+          if (inLobby) return;
+          const data = snap.val() || {};
+
+          // HUD player list
+          const entries = document.getElementById('plEntries');
+          entries.innerHTML = '';
+          Object.entries(data).forEach(([id, p]) => {
+            const div = document.createElement('div'); div.className = 'pl-entry';
+            const dot = document.createElement('div'); dot.className = 'pl-dot' + (id === myId ? ' me' : '');
+            const ns = document.createElement('span'); ns.textContent = p.name || id;
+            const hs = document.createElement('span'); hs.className = 'pl-hp'; hs.textContent = (p.hp ?? MAX_HP) + ' hp';
+            div.appendChild(dot); div.appendChild(ns); div.appendChild(hs);
+            entries.appendChild(div);
+          });
+
+          // spawn / update
+          const seen = new Set();
+          Object.entries(data).forEach(([id, p]) => {
+            if (id === myId) return;
+            seen.add(id);
+            if (!otherPlayers[id]) {
+              spawnOtherPlayer(id, p);
+            }
+            const op = otherPlayers[id];
+            // If team changed, update name tag
+            if (op.data.team !== p.team) {
+              op.nameMesh.material.map.dispose();
+              op.nameMesh.material.map = makeNameTex(p.name || id, p.team);
+              op.nameMesh.material.needsUpdate = true;
+            }
+            // If skin changed, update texture
+            if (op.data.skin !== p.skin) {
+              const skinToLoad = p.skin || IMG_PLAYER;
+              loadSkinTexture(skinToLoad, tex => {
+                if (otherPlayers[id] && otherPlayers[id].data.skin === p.skin) {
+                  if (!otherPlayers[id].currentEmoteUrl) {
+                    op.mesh.material.map = tex;
+                    op.mesh.material.needsUpdate = true;
+                  }
+                }
+              });
+            }
+            op.data = p; op.hp = p.hp ?? MAX_HP; op.dead = !!p.dead;
+            op.nameMesh.visible = !op.dead;
+            if (op.dead) {
+              op.group.position.set(p.x || 0, (p.y || 1.5) - 1.5 + 0.01, p.z || 0);
+            } else {
+              op.group.position.set(p.x || 0, (p.y || 1.5) - 1.5 + QUAD_H / 2, p.z || 0);
+            }
+            op.group.visible = !p.inPlane;
+
+            // Check active emote sync for other player
+            if (p.activeEmote && p.activeEmote.video) {
+              if (op.currentEmoteUrl !== p.activeEmote.video) {
+                op.currentEmoteUrl = p.activeEmote.video;
+                if (!op.video) {
+                  op.video = document.createElement('video');
+                  op.video.playsInline = true;
+                  op.video.crossOrigin = "anonymous";
+                  op.video.loop = true;
+                  op.videoTexture = new THREE.VideoTexture(op.video);
+                  op.videoTexture.colorSpace = THREE.SRGBColorSpace;
+                }
+                op.video.src = resolveUrl(p.activeEmote.video);
+                op.video.load();
+                op.video.play().catch(() => {});
+                op.mesh.material.map = op.videoTexture;
+                op.mesh.material.needsUpdate = true;
+              }
+            } else {
+              if (op.currentEmoteUrl) {
+                op.currentEmoteUrl = null;
+                if (op.video) {
+                  op.video.pause();
+                  op.video.src = "";
+                }
+                const skinToLoad = p.skin || IMG_PLAYER;
+                loadSkinTexture(skinToLoad, tex => {
+                  if (otherPlayers[id] && !otherPlayers[id].currentEmoteUrl) {
+                    op.mesh.material.map = tex;
+                    op.mesh.material.needsUpdate = true;
+                  }
+                });
+              }
+            }
+
+            // Check for new sniper shots from this player
+              if (p.lastShot && p.lastShot.t > (op.lastShotTime || 0)) {
+                op.lastShotTime = p.lastShot.t;
+                const start = new THREE.Vector3(p.lastShot.start.x, p.lastShot.start.y, p.lastShot.start.z);
+                const end = new THREE.Vector3(p.lastShot.end.x, p.lastShot.end.y, p.lastShot.end.z);
+                spawnTracer(start, end);
+              }
+          });
+          Object.keys(otherPlayers).forEach(id => { if (!seen.has(id)) removeOtherPlayer(id); });
+        });
+
+        /* incoming damage */
+        onValue(ref(db, `fps/hits_${gameMode}/${myId}`), snap => {
+          if (inLobby) return;
+          if (!snap.exists()) return;
+          const hit = snap.val(); if (!hit?.dmg) return;
+          remove(ref(db, `fps/hits_${gameMode}/${myId}`));
+          if (dead) return;
+          applyDamage(hit.dmg, hit.from || 'Unknown', hit.team || null, hit.weapon || '');
+        });
+
+        /* Listen for kill feed broadcasts */
+        onValue(ref(db, 'fps/killfeed_' + gameMode), snap => { });
+
+        onValue(ref(db, 'fps/killfeed_' + gameMode + '/latest'), snap => {
+          if (inLobby) return;
+          if (!snap.exists()) return;
+          const kf = snap.val();
+          if (!kf?.t || kf.t <= lastKillFeedTime) return;
+          lastKillFeedTime = kf.t;
+          const isMeK = (kf.killer === myName);
+          const isMeV = (kf.victim === myName);
+          addKillFeedEntry(kf.killer, kf.victim, kf.weapon || '', isMeK, isMeV);
+          if (isMeK) {
+            const now = Date.now();
+            if (now - myLastKillTime <= MULTIKILL_WINDOW) {
+              myMultikillCount++;
+            } else {
+              myMultikillCount = 1;
+            }
+            myLastKillTime = now;
+
+            // Always play the standard kill sound first
+            const killSnd = new Audio(SND_KILL);
+            killSnd.volume = 0.6;
+            killSnd.play().catch(e => console.log("Killsound play failed:", e));
+
+            // Play the streak sound after a short delay if it's a multikill
+            if (myMultikillCount > 1) {
+              let streakSrc = null;
+              if (myMultikillCount === 2) {
+                streakSrc = SND_DOUBLEKILL;
+              } else if (myMultikillCount === 3) {
+                streakSrc = SND_TRIPLEKILL;
+              } else if (myMultikillCount >= 4) {
+                streakSrc = SND_QUADKILL;
+              }
+
+              if (streakSrc) {
+                setTimeout(() => {
+                  const streakSnd = new Audio(streakSrc);
+                  streakSnd.volume = 0.6;
+                  streakSnd.play().catch(e => console.log("Streak sound play failed:", e));
+                }, 800); // 800ms delay so standard killsound can be heard first
+              }
+            }
+          }
+        });
+
+        /* Listen for match start triggers */
+        onValue(ref(db, 'fps/br_start_trigger'), snap => {
+          if (inLobby) return;
+          const t = snap.val();
+          if (t && t > lastStartTriggerTime) {
+            lastStartTriggerTime = t;
+            if (brState === 'lobby') {
+              startMatchFromLobby();
+            }
+          }
+        });
+      }
+
+      /* ── KILL FEED ── */
+      const killFeedEl = document.getElementById('killFeed');
+      const MAX_FEED_ENTRIES = 6;
+
+      function addKillFeedEntry(killerName, victimName, weaponName, isMeKiller, isMeVictim) {
+        const entry = document.createElement('div');
+        entry.className = 'kf-entry' + (isMeKiller ? ' me-kill' : '');
+
+        const killer = document.createElement('span');
+        killer.className = 'kf-killer' + (isMeKiller ? ' is-me' : '');
+        killer.textContent = killerName;
+
+        const icon = document.createElement('span');
+        icon.className = 'kf-icon';
+        icon.textContent = '💀';
+
+        const victim = document.createElement('span');
+        victim.className = 'kf-victim' + (isMeVictim ? ' is-me' : '');
+        victim.textContent = victimName;
+
+        const wpn = document.createElement('span');
+        wpn.className = 'kf-weapon';
+        wpn.textContent = weaponName || '—';
+
+        entry.appendChild(killer);
+        entry.appendChild(icon);
+        entry.appendChild(victim);
+        entry.appendChild(wpn);
+        killFeedEl.appendChild(entry);
+
+        // Limit entries
+        while (killFeedEl.children.length > MAX_FEED_ENTRIES) {
+          killFeedEl.removeChild(killFeedEl.firstChild);
+        }
+
+        // Auto fade out after 5s
+        setTimeout(() => {
+          entry.classList.add('fade-out');
+          setTimeout(() => entry.remove(), 500);
+        }, 5000);
+      }
+
+      function broadcastKill(killerName, victimName, killerTeam, weaponName) {
+        set(ref(db, 'fps/killfeed_' + gameMode + '/latest'), {
+          killer: killerName, victim: victimName, weapon: weaponName, t: Date.now()
+        });
+        if (gameMode === 'rvb') {
+          let teamToCredit = killerTeam;
+          if (!teamToCredit) {
+            // Fallback: look up team by player name
+            const killerOp = Object.values(otherPlayers).find(p => p.data.name === killerName);
+            if (killerOp && killerOp.data.team) {
+              teamToCredit = killerOp.data.team;
+            }
+          }
+          if (!teamToCredit && killerName === myName) {
+            teamToCredit = selectedTeam;
+          }
+          if (teamToCredit) {
+            get(ref(db, 'fps/rvb_score/' + teamToCredit)).then(snap => {
+              const cur = snap.val() || 0;
+              set(ref(db, 'fps/rvb_score/' + teamToCredit), cur + 1);
+            });
+          }
+        }
+      }
+
+      /* ── DAMAGE ── */
+      function applyDamage(dmg, fromName, killerTeam, weaponName) {
+        if (emoteIsPlaying) {
+          closeEmote();
+        }
+        myHp = Math.max(0, myHp - dmg);
+        updateHealthUI(); publishPos();
+        const hf = document.getElementById('hitFlash');
+        hf.style.transition = 'none'; hf.style.opacity = '1';
+        setTimeout(() => { hf.style.transition = 'opacity .4s'; hf.style.opacity = '0'; }, 30);
+        if (myHp <= 0 && !dead) {
+          dead = true;
+          publishPos();
+          showDeathScreen(fromName);
+          broadcastKill(fromName, myName, killerTeam, weaponName);
+        }
+      }
+
+      function updateHealthUI() {
+        const pct = (myHp / MAX_HP) * 100;
+        const fill = document.getElementById('healthFill');
+        fill.style.width = pct + '%';
+        fill.style.background =
+          pct > 50 ? 'linear-gradient(90deg,#44ff44,#88ff44)' :
+            pct > 25 ? 'linear-gradient(90deg,#ffaa00,#ff6600)' :
+              'linear-gradient(90deg,#ff2222,#ff6644)';
+        document.getElementById('healthText').textContent = myHp + ' / ' + MAX_HP;
+      }
+      updateHealthUI();
+
+      function showDeathScreen(k) {
+        brCleanup();
+        document.getElementById('killedBy').textContent = 'Eliminado por: ' + k;
+        document.getElementById('deathScreen').style.display = 'flex';
+        document.exitPointerLock();
+      }
+      document.getElementById('respawnBtn').addEventListener('click', () => {
+        myHp = MAX_HP; dead = false; updateHealthUI();
+        brCleanup(); pitch = 0;
+        if (gameMode === 'br') {
+          listenToMap('lobby');
+          initLobby();
+        } else if (gameMode === 'rvb') {
+          const sp = getSpawnPosition();
+          camera.position.set(sp.x, sp.y, sp.z);
+        } else {
+          const s = spawnPos(); camera.position.set(s.x, 1.5, s.z);
+        }
+        document.getElementById('deathScreen').style.display = 'none';
+        publishPos(); gameEl.requestPointerLock();
+      });
+
+      /* ═══════════════════════════════════════
+         HIT DETECTION — AABB ray vs quad rect
+         Exact same box as the visible quad.
+         No more sphere approximation.
+      ═══════════════════════════════════════ */
+      const raycaster = new THREE.Raycaster();
+
+      function shoot() {
+        if (dead) return;
+
+        // Play shot sound effect
+        const w = curWeapon();
+        const snd = new Audio(w.sndShoot || SND_SHOOT);
+        snd.volume = 0.4;
+        snd.play().catch(() => { });
+
+        // Start fading out after 250ms, taking ~100ms to reach 0 volume (plays more of the sound)
+        setTimeout(() => {
+          let fadeInterval = setInterval(() => {
+            if (snd.volume > 0.04) {
+              snd.volume = Math.max(0, snd.volume - 0.04);
+            } else {
+              snd.volume = 0;
+              snd.pause();
+              clearInterval(fadeInterval);
+            }
+          }, 10);
+        }, 250);
+
+        raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+
+        // Raycast against blocks first to see if any block blocks the bullet
+        let blockDist = Infinity;
+        let targetBlockMesh = null;
+        let blockHitPoint = null;
+        let blockHitNormal = null;
+        const blockHits = raycaster.intersectObjects(mapObjects, false);
+        if (blockHits.length > 0) {
+          blockDist = blockHits[0].distance;
+          targetBlockMesh = blockHits[0].object;
+          blockHitPoint = blockHits[0].point;
+          blockHitNormal = blockHits[0].face.normal;
+        }
+
+        let bestHit = null, bestDist = Infinity;
+
+        Object.entries(otherPlayers).forEach(([id, op]) => {
+          if (op.dead || !op.group.visible) return;
+          if (gameMode === 'rvb' && op.data.team === selectedTeam) return; // friendly fire!
+
+          // Build a world-space AABB for the quad
+          // Since billboard rotates around Y, the facing direction changes,
+          // so we test against the mesh directly with Raycaster.intersectObject
+          const hits = raycaster.intersectObject(op.mesh, false);
+          if (hits.length > 0 && hits[0].distance < bestDist) {
+            // Only consider the hit if it is closer than any solid block/wall
+            if (hits[0].distance < blockDist) {
+              bestDist = hits[0].distance;
+              bestHit = { id, dist: hits[0].distance, point: hits[0].point };
+            }
+          }
+        });
+
+        // Determine the final endpoint for a potential tracer
+        let tracerEnd = null;
+
+        if (bestHit) {
+          const op = otherPlayers[bestHit.id];
+          if (!op) return;
+          const w = curWeapon();
+          const dmg = w.damage[0] + Math.floor(Math.random() * (w.damage[1] - w.damage[0] + 1));
+          set(ref(db, `fps/hits_${gameMode}/${bestHit.id}`), {
+            dmg,
+            from: myName,
+            team: gameMode === 'rvb' ? selectedTeam : null,
+            weapon: w.name,
+            t: Date.now()
+          });
+
+          tracerEnd = bestHit.point;
+
+          // Project hit point to screen for damage number
+          const sp2 = bestHit.point.clone().project(camera);
+          const sx = (sp2.x * .5 + .5) * GAME_W;
+          const sy = (1 - (sp2.y * .5 + .5)) * GAME_H;
+          spawnDmgNum(dmg, sx, sy, dmg >= 22);
+
+          if (debugMode) {
+            const d = camera.position.distanceTo(op.group.position);
+            document.getElementById('dbHit').textContent =
+              `LAST HIT: ${op.data.name || bestHit.id} -${dmg}hp @ ${d.toFixed(1)}u${dmg >= 22 ? ' 💥CRIT' : ''}`;
+          }
+        } else {
+          if (debugMode) {
+            document.getElementById('dbHit').textContent = 'LAST HIT: MISS ✗';
+          }
+          // If it hit a block instead of a player, spawn block impact particles
+          if (targetBlockMesh) {
+            tracerEnd = blockHitPoint;
+            const col = targetBlockMesh.material.color ? targetBlockMesh.material.color.getHex() : 0x888888;
+            const worldNormal = blockHitNormal.clone();
+            worldNormal.transformDirection(targetBlockMesh.matrixWorld);
+            spawnDebris(blockHitPoint, worldNormal, col);
+          }
+        }
+
+        // Spawn sniper tracer line
+        if (curWeapon().name === 'Sniper') {
+          const dir = new THREE.Vector3();
+          camera.getWorldDirection(dir);
+          const muzzle = camera.position.clone().add(dir.clone().multiplyScalar(1.5));
+          const end = tracerEnd ? tracerEnd.clone() : muzzle.clone().add(dir.multiplyScalar(200));
+          spawnTracer(muzzle, end);
+
+          // Publish the shot details to Firebase so other players see it
+          myLastShot = {
+            start: { x: +muzzle.x.toFixed(2), y: +muzzle.y.toFixed(2), z: +muzzle.z.toFixed(2) },
+            end: { x: +end.x.toFixed(2), y: +end.y.toFixed(2), z: +end.z.toFixed(2) },
+            t: Date.now()
+          };
+          publishPos();
+        }
+      }
+
+      function spawnDmgNum(dmg, sx, sy, crit) {
+        const el = document.createElement('div');
+        el.className = 'dmg-num' + (crit ? ' crit' : '');
+        el.textContent = (crit ? '💥 ' : '') + dmg;
+        el.style.left = (sx + Math.random() * 20 - 10) + 'px';
+        el.style.top = (sy - 20) + 'px';
+        gameEl.appendChild(el);
+        setTimeout(() => el.remove(), 900);
+      }
+
+      /* ═══════════════════════════════════════
+         DEBUG MODE — draws exact quad outline
+         projected onto 2D canvas overlay
+      ═══════════════════════════════════════ */
+      let debugMode = false;
+      const debugPanel = document.getElementById('debugPanel');
+      const debugCanvas = document.getElementById('debugCanvas');
+      debugCanvas.width = GAME_W;
+      debugCanvas.height = GAME_H;
+      const dbCtx = debugCanvas.getContext('2d');
+
+      let dbFrameCount = 0, dbLastFpsTime = performance.now(), dbFps = 0;
+      let dbPing = 0;
+
+      function toggleDebug() {
+        debugMode = !debugMode;
+        debugPanel.classList.toggle('on', debugMode);
+        debugCanvas.classList.toggle('on', debugMode);
+      }
+
+      function updateDebugInfo() {
+        if (!debugMode) return;
+        dbFrameCount++;
+        const now = performance.now();
+        if (now - dbLastFpsTime >= 500) {
+          dbFps = Math.round(dbFrameCount * 1000 / (now - dbLastFpsTime));
+          dbFrameCount = 0; dbLastFpsTime = now;
+        }
+        document.getElementById('dbFps').textContent = `FPS:     ${dbFps}`;
+        document.getElementById('dbPos').textContent = `POS:     x=${camera.position.x.toFixed(1)} y=${camera.position.y.toFixed(1)} z=${camera.position.z.toFixed(1)}`;
+        document.getElementById('dbYaw').textContent = `YAW:     ${(yaw * (180 / Math.PI)).toFixed(1)}°`;
+        document.getElementById('dbPitch').textContent = `PITCH:   ${(pitch * (180 / Math.PI)).toFixed(1)}°`;
+        document.getElementById('dbPlayers').textContent = `PLAYERS: ${Object.keys(otherPlayers).length} en partida`;
+        document.getElementById('dbPing').textContent = `PING:    ${dbPing}ms`;
+      }
+
+      setInterval(() => {
+        if (inLobby || !debugMode) return;
+        const t0 = performance.now();
+        set(ref(db, `fps/ping_${gameMode}/${myId}`), { t: Date.now() }).then(() => {
+          dbPing = Math.round(performance.now() - t0);
+          remove(ref(db, `fps/ping_${gameMode}/${myId}`));
+        });
+      }, 3000);
+
+      /* Project one of the quad's 4 corners to screen coords.
+         corners in local space: (±W/2, ±H/2, 0) */
+      const _corner = new THREE.Vector3();
+      function projectCorner(group, lx, ly) {
+        // get corner in world space after billboard rotation
+        _corner.set(lx, ly, 0);
+        group.localToWorld(_corner);
+        const p = _corner.clone().project(camera);
+        return {
+          x: (p.x * .5 + .5) * GAME_W,
+          y: (1 - (p.y * .5 + .5)) * GAME_H,
+          behind: p.z >= 1
+        };
+      }
+
+      function drawDebugOverlay() {
+        dbCtx.clearRect(0, 0, GAME_W, GAME_H);
+        if (!debugMode) return;
+
+        Object.entries(otherPlayers).forEach(([id, op]) => {
+          if (!op.group.visible) return;
+
+          const hw = QUAD_W / 2, hh = QUAD_H / 2;
+          const corners = [
+            projectCorner(op.group, -hw, hh),  // top-left
+            projectCorner(op.group, hw, hh),  // top-right
+            projectCorner(op.group, hw, -hh),  // bottom-right
+            projectCorner(op.group, -hw, -hh),  // bottom-left
+          ];
+          if (corners.some(c => c.behind)) return;
+
+          const color = op.dead ? '#ff0000' : '#00ff88';
+
+          // Draw exact quad outline
+          dbCtx.beginPath();
+          dbCtx.moveTo(corners[0].x, corners[0].y);
+          corners.forEach(c => dbCtx.lineTo(c.x, c.y));
+          dbCtx.closePath();
+          dbCtx.strokeStyle = color;
+          dbCtx.lineWidth = 2;
+          dbCtx.setLineDash([6, 3]);
+          dbCtx.stroke();
+          dbCtx.setLineDash([]);
+
+          // Fill semi-transparent
+          dbCtx.fillStyle = op.dead ? 'rgba(255,0,0,0.08)' : 'rgba(0,255,136,0.06)';
+          dbCtx.fill();
+
+          // Diagonals
+          dbCtx.strokeStyle = color + '55';
+          dbCtx.lineWidth = 1;
+          dbCtx.beginPath();
+          dbCtx.moveTo(corners[0].x, corners[0].y); dbCtx.lineTo(corners[2].x, corners[2].y);
+          dbCtx.moveTo(corners[1].x, corners[1].y); dbCtx.lineTo(corners[3].x, corners[3].y);
+          dbCtx.stroke();
+
+          // Center dot
+          const cx = (corners[0].x + corners[2].x) / 2, cy = (corners[0].y + corners[2].y) / 2;
+          dbCtx.beginPath(); dbCtx.arc(cx, cy, 4, 0, Math.PI * 2);
+          dbCtx.fillStyle = '#ff4444'; dbCtx.fill();
+
+          // Line from screen center to player center
+          dbCtx.beginPath();
+          dbCtx.moveTo(GAME_W / 2, GAME_H / 2); dbCtx.lineTo(cx, cy);
+          dbCtx.strokeStyle = 'rgba(255,220,0,0.18)';
+          dbCtx.lineWidth = 1; dbCtx.setLineDash([4, 6]);
+          dbCtx.stroke(); dbCtx.setLineDash([]);
+
+          // Info label beside hitbox
+          const dist = camera.position.distanceTo(op.group.position);
+          const info = [
+            `[${op.data.name || id}]`,
+            `HP:${op.hp ?? '?'}`,
+            `dist:${dist.toFixed(1)}u`,
+            op.dead ? 'DEAD' : 'ALIVE'
+          ];
+          const labelX = Math.max(...corners.map(c => c.x)) + 6;
+          const labelY = Math.min(...corners.map(c => c.y));
+          dbCtx.font = 'bold 10px Courier New';
+          const bw = 100, bh = info.length * 14 + 8;
+          dbCtx.fillStyle = 'rgba(0,0,0,.78)';
+          dbCtx.fillRect(labelX, labelY, bw, bh);
+          dbCtx.fillStyle = color;
+          info.forEach((line, i) => dbCtx.fillText(line, labelX + 4, labelY + 13 + i * 14));
+        });
+
+        // Crosshair ring + dot
+        dbCtx.beginPath(); dbCtx.arc(GAME_W / 2, GAME_H / 2, 28, 0, Math.PI * 2);
+        dbCtx.strokeStyle = 'rgba(255,255,0,0.3)'; dbCtx.lineWidth = 1.5; dbCtx.stroke();
+        dbCtx.beginPath(); dbCtx.arc(GAME_W / 2, GAME_H / 2, 3, 0, Math.PI * 2);
+        dbCtx.fillStyle = '#ffff00'; dbCtx.fill();
+      }
+
+      /* ── WEAPON UI ── */
+      const weapon = document.getElementById('weapon');
+      const flash = document.getElementById('flash');
+      const crosshair = document.getElementById('crosshair');
+      const scopeOverlay = document.getElementById('scopeOverlay');
+      let aiming = false, walkTime = 0;
+      let currentWeaponIdx = 0;
+      let isShooting = false;
+      let shootTimeout = null;
+
+      const getWeaponIdleWidth = () => Math.round(GAME_H * 1.1) + 'px';
+      const getWeaponAimWidth = () => Math.round(GAME_H * 1.6) + 'px';
+
+      function curWeapon() { return WEAPONS[currentWeaponIdx]; }
+
+      let switching = false; // blocks shooting during switch animation
+
+      function switchWeapon(idx) {
+        if (brState === 'in_plane' || brState === 'falling') return;
+        if (idx === currentWeaponIdx) return;
+        if (idx < 0 || idx >= WEAPONS.length) return;
+        if (switching) return;
+        switching = true;
+
+        isShooting = false;
+        if (shootTimeout) { clearTimeout(shootTimeout); shootTimeout = null; }
+
+        // Cancel aim when switching
+        aiming = false;
+        scopeOverlay.classList.remove('active');
+        weapon.style.opacity = '1';
+        targetFov = curWeapon().fovNormal;
+
+        // Phase 1: drop current weapon down (off screen)
+        weapon.style.transition = 'transform .12s ease-in';
+        weapon.style.transform = 'translateY(180px)';
+
+        setTimeout(() => {
+          // Phase 2: swap weapon image (while hidden)
+          currentWeaponIdx = idx;
+          const w = curWeapon();
+          weapon.src = w.imgIdle;
+          weapon.style.width = getWeaponIdleWidth();
+          weapon.style.left = 'auto';
+          weapon.style.right = '-20px';
+          weapon.style.bottom = '-10px';
+          crosshair.style.opacity = '1';
+
+          // Update HUD selector
+          document.querySelectorAll('.ws-slot').forEach((el, i) => {
+            el.classList.toggle('active', i === idx);
+          });
+
+          // Phase 3: raise new weapon up
+          weapon.style.transition = 'transform .15s ease-out';
+          weapon.style.transform = 'translateX(0) translateY(0)';
+
+          setTimeout(() => {
+            switching = false;
+            // Reset transition to default
+            weapon.style.transition = 'width .12s ease, left .12s ease, right .12s ease, transform .05s ease, bottom .05s linear';
+          }, 160);
+        }, 130);
+      }
+
+      function updateWeaponUI() {
+        const w = curWeapon();
+        if (aiming) {
+          weapon.src = w.imgAim;
+          weapon.style.width = getWeaponAimWidth(); weapon.style.left = '50%'; weapon.style.right = 'auto';
+          weapon.style.transform = 'translateX(-50%)'; weapon.style.bottom = '-60px';
+          crosshair.style.opacity = '0';
+          targetFov = w.fovAim;
+          // Scope overlay for sniper
+          if (w.useScope) {
+            scopeOverlay.classList.add('active');
+            weapon.style.opacity = '0';
+          } else {
+            scopeOverlay.classList.remove('active');
+            weapon.style.opacity = '1';
+          }
+        } else {
+          weapon.src = w.imgIdle;
+          weapon.style.width = getWeaponIdleWidth(); weapon.style.left = 'auto'; weapon.style.right = '-20px';
+          weapon.style.transform = 'translateX(0)'; weapon.style.bottom = '-10px';
+          crosshair.style.opacity = '1';
+          targetFov = w.fovNormal;
+          scopeOverlay.classList.remove('active');
+          weapon.style.opacity = '1';
+        }
+      }
+      updateWeaponUI();
+
+      window.addEventListener('resize', () => {
+        if (selectedScreenMode === 'full') {
+          GAME_W = window.innerWidth;
+          GAME_H = window.innerHeight;
+          camera.aspect = GAME_W / GAME_H;
+          camera.updateProjectionMatrix();
+          renderer.setSize(GAME_W, GAME_H);
+          debugCanvas.width = GAME_W;
+          debugCanvas.height = GAME_H;
+          updateWeaponUI();
+        }
+      });
+
+      /* ── INPUT ── */
+      let yaw = 0, pitch = 0, velocityY = 0, onGround = true;
+      const keys = {};
+
+      /* ── AIMBOT (debug only) ── */
+      let aimbotOn = false;
+
+      function toggleAimbot() {
+        if (!debugMode) return;
+        aimbotOn = !aimbotOn;
+        document.getElementById('dbAimbot').textContent = `AIMBOT:  ${aimbotOn ? 'ON 🔴' : 'OFF'} [K]`;
+        document.getElementById('dbAimbot').style.color = aimbotOn ? '#00ff44' : '#ff4444';
+      }
+
+      function toggleWireframes() {
+        if (!debugMode) return;
+        showWireframes = !showWireframes;
+        document.getElementById('dbWireframe').textContent = `BORDES:  ${showWireframes ? 'ON 🟢' : 'OFF'} [U]`;
+        document.getElementById('dbWireframe').style.color = showWireframes ? '#00ff44' : '#ff4444';
+        mapObjects.forEach(mesh => {
+          const wire = mesh.getObjectByName('wireframe');
+          if (wire) wire.visible = showWireframes;
+        });
+      }
+
+      function runAimbot() {
+        if (!aimbotOn || dead) return;
+        // Find closest alive player
+        let bestId = null, bestDist = Infinity;
+        Object.entries(otherPlayers).forEach(([id, op]) => {
+          if (op.dead || !op.group.visible) return;
+          const d = camera.position.distanceTo(op.group.position);
+          if (d < bestDist) { bestDist = d; bestId = id; }
+        });
+        if (!bestId) return;
+        const op = otherPlayers[bestId];
+        const target = op.group.position;
+        // Calculate yaw/pitch to target
+        const dx = target.x - camera.position.x;
+        const dy = target.y - camera.position.y;
+        const dz = target.z - camera.position.z;
+        const dist = Math.sqrt(dx * dx + dz * dz);
+        const targetYaw = Math.atan2(-dx, -dz);
+        const targetPitch = Math.atan2(dy, dist);
+        // Smooth interpolation (snappy)
+        const lerpSpeed = 0.25;
+        // Handle yaw wrapping
+        let yawDiff = targetYaw - yaw;
+        while (yawDiff > Math.PI) yawDiff -= Math.PI * 2;
+        while (yawDiff < -Math.PI) yawDiff += Math.PI * 2;
+        yaw += yawDiff * lerpSpeed;
+        pitch += (targetPitch - pitch) * lerpSpeed;
+        pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
+      }
+
+      function triggerBrStart() {
+        if (gameMode === 'br' && brState === 'lobby') {
+          set(ref(db, 'fps/br_start_trigger'), Date.now());
+        }
+      }
+
+      window.addEventListener('keydown', e => {
+        if (e.key.toLowerCase() === 'b' || e.key.toLowerCase() === 'g') {
+          if (emoteWheel.classList.contains('active')) {
+            closeEmoteWheel();
+          } else {
+            openEmoteWheel();
+          }
+          return;
+        }
+
+        if (inLobby) return;
+
+        if (emoteIsPlaying) {
+          closeEmote();
+          return;
+        }
+
+        if (e.key.toLowerCase() === 'l') { toggleDebug(); return; }
+        if (e.key.toLowerCase() === 'k') { toggleAimbot(); return; }
+        if (e.key.toLowerCase() === 'u') { toggleWireframes(); return; }
+        if (e.key.toLowerCase() === 'e') { brEject(); return; }
+        if (e.key.toLowerCase() === 'j') { triggerBrStart(); return; }
+        if (e.key === '1') { switchWeapon(0); return; }
+        if (e.key === '2') { switchWeapon(1); return; }
+        if (e.key === '3') { switchWeapon(2); return; }
+        keys[e.key.toLowerCase()] = true;
+        if ([' '].includes(e.key)) e.preventDefault();
+      });
+      window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+      document.getElementById('dbAimbot').addEventListener('click', toggleAimbot);
+      document.getElementById('dbWireframe').addEventListener('click', toggleWireframes);
+
+      const lockOverlay = document.getElementById('lockOverlay');
+      gameEl.addEventListener('click', () => { if (!dead && !inLobby) gameEl.requestPointerLock(); });
+      document.addEventListener('pointerlockchange', () => {
+        if (inLobby) {
+          lockOverlay.style.display = 'none';
+          return;
+        }
+        if (emoteWheel.classList.contains('active')) {
+          lockOverlay.style.display = 'none';
+          return;
+        }
+        lockOverlay.style.display = document.pointerLockElement === gameEl ? 'none' : 'flex';
+      });
+      document.addEventListener('mousemove', e => {
+        if (document.pointerLockElement !== gameEl || dead) return;
+        if (brState === 'in_plane') return; // no mouse look in plane
+        yaw -= e.movementX * .002;
+        pitch -= e.movementY * .002;
+        pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
+      });
+      window.addEventListener('contextmenu', e => e.preventDefault());
+
+      function triggerSingleShot(w) {
+        if (dead || brState === 'in_plane' || brState === 'falling' || brState === 'lobby') return;
+        flash.style.transition = 'none'; flash.style.opacity = '.45';
+        setTimeout(() => { flash.style.transition = 'opacity .08s'; flash.style.opacity = '0'; }, 20);
+        shoot();
+        if (aiming && !w.useScope) {
+          weapon.style.transform = 'translateX(-50%) translateY(10px)';
+          setTimeout(() => weapon.style.transform = 'translateX(-50%)', 50);
+        } else if (!aiming) {
+          weapon.style.transform = 'translateX(-20px)';
+          setTimeout(() => weapon.style.transform = 'translateX(0)', 50);
+        }
+      }
+
+      let lastShot = 0;
+
+      function attemptAutoFire() {
+        if (!isShooting || dead || brState === 'in_plane' || brState === 'falling' || brState === 'lobby') return;
+        if (switching) return;
+        const w = curWeapon();
+        const now = Date.now();
+        if (now - lastShot >= w.fireRate) {
+          lastShot = now;
+          triggerSingleShot(w);
+          if (w.name === 'Rifle') {
+            shootTimeout = setTimeout(attemptAutoFire, w.fireRate);
+          } else {
+            isShooting = false;
+          }
+        } else {
+          shootTimeout = setTimeout(attemptAutoFire, w.fireRate - (now - lastShot));
+        }
+      }
+
+      window.addEventListener('mousedown', e => {
+        if (inLobby) return;
+        if (emoteIsPlaying) {
+          closeEmote();
+          return;
+        }
+        if (dead || brState === 'in_plane' || brState === 'falling' || brState === 'lobby') return;
+        if (e.button === 2) { aiming = true; updateWeaponUI(); }
+        if (e.button === 0 && document.pointerLockElement === gameEl) {
+          if (switching) return; // block shooting during weapon switch
+          isShooting = true;
+          attemptAutoFire();
+        }
+      });
+
+      window.addEventListener('mouseup', e => {
+        if (inLobby) return;
+        if (e.button === 2) { aiming = false; updateWeaponUI(); }
+        if (e.button === 0) {
+          isShooting = false;
+          if (shootTimeout) {
+            clearTimeout(shootTimeout);
+            shootTimeout = null;
+          }
+        }
+      });
+
+      /* ── MOVEMENT ── */
+      function checkPlayerCollision(newPos) {
+        const pBox = new THREE.Box3(
+          new THREE.Vector3(newPos.x - 0.4, newPos.y - 1.5, newPos.z - 0.4),
+          new THREE.Vector3(newPos.x + 0.4, newPos.y + 0.3, newPos.z + 0.4)
+        );
+
+        for (let i = 0; i < mapObjects.length; i++) {
+          const block = mapObjects[i];
+          if (block.userData.bbox && pBox.intersectsBox(block.userData.bbox)) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      function movePlayer() {
+        if (inLobby || dead) return;
+
+        // If playing emote, check if any movement key is pressed to cancel it
+        if (emoteIsPlaying) {
+          if (keys['w'] || keys['a'] || keys['s'] || keys['d'] || keys[' ']) {
+            closeEmote();
+          }
+          return;
+        }
+
+        // ── BR: In Plane — no player control ──
+        if (brState === 'in_plane') return;
+
+        // ── BR: Falling — custom physics ──
+        if (brState === 'falling') {
+          const steer = BR_FALL_STEER;
+          const fwd = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
+          const rgt = new THREE.Vector3(Math.sin(yaw - Math.PI / 2), 0, Math.cos(yaw - Math.PI / 2));
+          if (keys['w']) { camera.position.x -= fwd.x * steer; camera.position.z -= fwd.z * steer; }
+          if (keys['s']) { camera.position.x += fwd.x * steer; camera.position.z += fwd.z * steer; }
+          if (keys['a']) { camera.position.x += rgt.x * steer; camera.position.z += rgt.z * steer; }
+          if (keys['d']) { camera.position.x -= rgt.x * steer; camera.position.z -= rgt.z * steer; }
+
+          brFallVelocityY += BR_FALL_GRAVITY;
+          if (brFallVelocityY > BR_FALL_MAX_SPEED) brFallVelocityY = BR_FALL_MAX_SPEED;
+          camera.position.y -= brFallVelocityY;
+
+          // Update altitude display
+          const alt = Math.max(0, camera.position.y - 1.5);
+          brAltitudeEl.textContent = 'ALT: ' + alt.toFixed(0) + 'm';
+
+          // Landing check
+          if (camera.position.y <= 1.5) {
+            brLand();
+          }
+          return;
+        }
+
+        // ── Normal movement ──
+        const sprint = keys['shift'] && !aiming;
+        const speed = sprint ? .22 : aiming ? .06 : .12;
+        const moving = keys['w'] || keys['a'] || keys['s'] || keys['d'];
+        const fwd = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
+        const rgt = new THREE.Vector3(Math.sin(yaw - Math.PI / 2), 0, Math.cos(yaw - Math.PI / 2));
+
+        const prevX = camera.position.x;
+        const prevY = camera.position.y;
+        const prevZ = camera.position.z;
+
+        // Split X movement to allow sliding along walls
+        let moveX = 0;
+        if (keys['w']) { moveX -= fwd.x * speed; }
+        if (keys['s']) { moveX += fwd.x * speed; }
+        if (keys['a']) { moveX += rgt.x * speed; }
+        if (keys['d']) { moveX -= rgt.x * speed; }
+        camera.position.x += moveX;
+        if (checkPlayerCollision(camera.position)) {
+          camera.position.x = prevX;
+        }
+
+        // Split Z movement to allow sliding along walls
+        let moveZ = 0;
+        if (keys['w']) { moveZ -= fwd.z * speed; }
+        if (keys['s']) { moveZ += fwd.z * speed; }
+        if (keys['a']) { moveZ += rgt.z * speed; }
+        if (keys['d']) { moveZ -= rgt.z * speed; }
+        camera.position.z += moveZ;
+        if (checkPlayerCollision(camera.position)) {
+          camera.position.z = prevZ;
+        }
+
+        // Y movement (Jump & Gravity)
+        if (keys[' '] && onGround) { velocityY = .22; onGround = false; }
+        velocityY -= .012;
+        camera.position.y += velocityY;
+
+        if (checkPlayerCollision(camera.position)) {
+          if (velocityY < 0) {
+            // Landed on top of a block
+            camera.position.y = prevY;
+            velocityY = 0;
+            onGround = true;
+          } else {
+            // Hit ceiling
+            camera.position.y = prevY;
+            velocityY = 0;
+          }
+        }
+
+        if (camera.position.y <= 1.5) { camera.position.y = 1.5; velocityY = 0; onGround = true; }
+
+        if (moving && onGround) walkTime += sprint ? .22 : .12; else walkTime *= .9;
+        const bobX = Math.sin(walkTime * 2) * 8, bobY = Math.abs(Math.cos(walkTime * 2)) * 6;
+        if (!aiming) { weapon.style.bottom = (-10 + bobY) + 'px'; weapon.style.right = (-20 + bobX) + 'px'; }
+        else { weapon.style.bottom = (-60 + bobY * .3) + 'px'; }
+      }
+
+      /* ── PUBLISH THROTTLE ── */
+      let lastPub = 0;
+      function maybePublish() {
+        const now = Date.now();
+        if (now - lastPub < 80) return;
+        lastPub = now; publishPos();
+      }
+
+      /* ── ANIMATE LOOP (unlocked fps via requestAnimationFrame) ── */
+      function animate() {
+        requestAnimationFrame(animate);
+
+        if (inLobby) {
+          lobbyAngle += 0.003;
+          camera.position.x = Math.sin(lobbyAngle) * 3.6;
+          camera.position.z = Math.cos(lobbyAngle) * 3.6;
+          camera.position.y = -0.5 + Math.sin(lobbyAngle * 1.5) * 0.15;
+          camera.lookAt(new THREE.Vector3(0, -0.6, 0));
+
+          if (lobbyPlayerMesh) {
+            lobbyPlayerMesh.lookAt(camera.position.x, lobbyPlayerMesh.position.y, camera.position.z);
+          }
+          if (lobbyEmoteMesh && lobbyEmoteMesh.visible) {
+            lobbyEmoteMesh.lookAt(camera.position.x, lobbyEmoteMesh.position.y, camera.position.z);
+          }
+          if (emoteIsPlaying && emoteVideoTexture) {
+            emoteVideoTexture.needsUpdate = true;
+          }
+
+          billboardAll();
+          renderer.render(scene, camera);
+          return;
+        }
+
+        // ── BR: Update plane flight ──
+        if (brState === 'in_plane' && brPlaneGroup) {
+          brFlightT += BR_PLANE_SPEED;
+          if (brFlightT >= 1.0) {
+            brEject(); // auto-eject at end of path
+          } else {
+            // Move plane along path
+            brPlaneGroup.position.lerpVectors(brFlightStart, brFlightEnd, brFlightT);
+
+            // Camera follows behind and above the plane
+            const dir = brFlightEnd.clone().sub(brFlightStart).normalize();
+            camera.position.copy(brPlaneGroup.position);
+            camera.position.x -= dir.x * 10;
+            camera.position.z -= dir.z * 10;
+            camera.position.y = brPlaneGroup.position.y + 8;
+
+            yaw = Math.atan2(-dir.x, -dir.z);
+            pitch = -1.1; // look down ~63deg
+          }
+        }
+
+        runAimbot();  // aimbot before camera update
+        movePlayer();
+
+        if (emoteIsPlaying && !inLobby) {
+          const fwd = new THREE.Vector3(
+            -Math.sin(yaw) * Math.cos(pitch),
+            Math.sin(pitch),
+            -Math.cos(yaw) * Math.cos(pitch)
+          );
+          
+          let currentDist = 3.0;
+          const rayDir = fwd.clone().multiplyScalar(-1);
+          
+          const startRayPos = playerPhysicalPos.clone();
+          startRayPos.y -= 0.3; // start from chest level
+
+          const camRaycaster = new THREE.Raycaster(startRayPos, rayDir.normalize());
+          const camHits = camRaycaster.intersectObjects(mapObjects, false);
+          if (camHits.length > 0 && camHits[0].distance < currentDist) {
+            currentDist = Math.max(0.6, camHits[0].distance - 0.2);
+          }
+
+          camera.position.copy(startRayPos).addScaledVector(fwd, -currentDist);
+        }
+
+        if (!inLobby) maybePublish();
+
+        // Update debris particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.mesh.position.add(p.velocity);
+          p.velocity.y -= 0.003; // gravity
+          p.life -= p.decay;
+          p.mesh.scale.setScalar(p.life);
+          if (p.life <= 0) {
+            scene.remove(p.mesh);
+            p.mesh.geometry.dispose();
+            p.mesh.material.dispose();
+            particles.splice(i, 1);
+          }
+        }
+
+        // Update sniper tracers
+        for (let i = tracers.length - 1; i >= 0; i--) {
+          const t = tracers[i];
+          t.life -= t.decay;
+          t.mesh.material.opacity = t.life;
+          if (t.life <= 0) {
+            scene.remove(t.mesh);
+            t.mesh.geometry.dispose();
+            t.mesh.material.dispose();
+            tracers.splice(i, 1);
+          }
+        }
+
+        // Smooth FOV zoom transition
+        if (Math.abs(currentFov - targetFov) > 0.5) {
+          currentFov += (targetFov - currentFov) * 0.15;
+          camera.fov = currentFov;
+          camera.updateProjectionMatrix();
+        } else if (currentFov !== targetFov) {
+          currentFov = targetFov;
+          camera.fov = currentFov;
+          camera.updateProjectionMatrix();
+        }
+
+        camera.rotation.order = 'YXZ';
+        camera.rotation.y = yaw;
+        camera.rotation.x = pitch;
+        camera.rotation.z = 0;
+        if (brState === 'none' && !dead && (keys['w'] || keys['a'] || keys['s'] || keys['d'])) {
+          camera.position.y += Math.sin(walkTime * 2) * .003;
+        }
+
+        if (localPlayerEmoteMesh && localPlayerEmoteMesh.visible) {
+          localPlayerEmoteMesh.lookAt(camera.position.x, localPlayerEmoteMesh.position.y, camera.position.z);
+        }
+
+        billboardAll();            // rotate all quads to face camera
+        
+        // Update spatial volumes for other players' emotes
+        Object.values(otherPlayers).forEach(op => {
+          if (op.video && op.currentEmoteUrl) {
+            const dist = camera.position.distanceTo(op.group.position);
+            op.video.volume = Math.max(0, Math.min(0.7, 1 - (dist / 45))) * 0.7;
+          }
+        });
+
+        renderer.render(scene, camera);
+        updateDebugInfo();
+        drawDebugOverlay();
+      }
+      animate();
+
+      window.addEventListener('beforeunload', () => { if (myRef) remove(myRef); });
+
+      // Load default map for lobby view background
+      listenToMap('lobby');
+    }
+    // Initialize the game in lobby mode immediately on page load
+    initGame('normal');
+  </script>
+</body>
+
+</html>
