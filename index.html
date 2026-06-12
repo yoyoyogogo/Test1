@@ -1747,6 +1747,9 @@
       let selectedSkinName = "Default";
       const skinTextures = {};
       let closestSharedEmoteCandidate = null;
+      let closestSharedEmoteInitiator = null;
+      let localPlayerEmoteMesh = null;
+      let localPlayerEmoteIconMesh = null;
 
       // Helper to resolve raw GitHub URL for video or icon links
       function resolveUrl(url) {
@@ -1978,7 +1981,6 @@
       const lobbyRaycaster = new THREE.Raycaster();
       const lobbyMouse = new THREE.Vector2();
       let emoteIsPlaying = false;
-      let localPlayerEmoteMesh = null;
       const playerPhysicalPos = new THREE.Vector3();
       let myActiveEmote = null;
       const emoteOverlay = document.getElementById('emoteOverlay');
@@ -1994,7 +1996,13 @@
       let EMOTE_LIST = [];
       const emoteBlobUrls = {}; // resolvedUrl -> objectURL
 
-      function getEmoteVideoForCharacter(emote, characterName) {
+      function getEmoteVideoForCharacter(emote, characterName, isJoiner = false) {
+        if (isJoiner && emote.characterVideosJoin) {
+          const joinVideo = emote.characterVideosJoin[characterName] || '';
+          if (joinVideo) return joinVideo;
+          const defaultJoinVideo = emote.characterVideosJoin["Default"] || '';
+          if (defaultJoinVideo) return defaultJoinVideo;
+        }
         if (emote.characterVideos) {
           return emote.characterVideos[characterName] || '';
         }
@@ -2009,6 +2017,11 @@
           const videos = [];
           if (emote.characterVideos) {
             Object.values(emote.characterVideos).forEach(v => {
+              if (v) videos.push(v);
+            });
+          }
+          if (emote.characterVideosJoin) {
+            Object.values(emote.characterVideosJoin).forEach(v => {
               if (v) videos.push(v);
             });
           }
@@ -2220,6 +2233,10 @@
             localPlayerEmoteMesh.visible = false;
             scene.remove(localPlayerEmoteMesh);
           }
+          if (localPlayerEmoteIconMesh) {
+            localPlayerEmoteIconMesh.visible = false;
+            scene.remove(localPlayerEmoteIconMesh);
+          }
           // Restore camera position to player physical position
           camera.position.copy(playerPhysicalPos);
           // Restore weapon and crosshair visibility
@@ -2232,8 +2249,84 @@
         }
       }
 
-      function playEmote(emote) {
-        const videoPath = getEmoteVideoForCharacter(emote, selectedSkinName);
+      function makeEmoteIconTex(iconStr, callback) {
+        const isImageUrl = iconStr && (iconStr.includes('.') || iconStr.startsWith('http'));
+        if (isImageUrl) {
+          new THREE.TextureLoader().load(resolveUrl(iconStr), tex => {
+            if (callback) callback(tex);
+          });
+        } else {
+          const c = document.createElement('canvas'); c.width = 128; c.height = 128;
+          const ctx = c.getContext('2d');
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+          ctx.beginPath(); ctx.arc(64, 64, 58, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = '#ffe600'; ctx.lineWidth = 4; ctx.stroke();
+          
+          ctx.font = '72px sans-serif';
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText(iconStr || '🕺', 64, 64);
+          const tex = new THREE.CanvasTexture(c);
+          if (callback) callback(tex);
+        }
+      }
+
+      function startPlayback(url) {
+        emoteVideo.src = url;
+        emoteVideo.muted = false;
+        emoteVideo.volume = 0.7;
+        emoteHint.textContent = '▶ reproduciendo emote…';
+
+        emoteVideo.oncanplay = () => {
+          emoteVideo.play().catch(() => { });
+        };
+
+        emoteVideo.onended = () => {
+          closeEmote();
+        };
+
+        emoteVideo.onerror = () => {
+          emoteHint.textContent = '⚠ Error al cargar emote';
+          setTimeout(() => closeEmote(), 1500);
+        };
+
+        if (inLobby) {
+          emoteOverlay.style.pointerEvents = 'auto';
+          emoteOverlay.onclick = () => closeEmote();
+        } else {
+          emoteOverlay.style.pointerEvents = 'none';
+          emoteOverlay.onclick = null;
+        }
+
+        emoteVideo.load();
+      }
+
+      function startInitiatorDance() {
+        if (!myActiveEmote || !myActiveEmote.waiting) return;
+        myActiveEmote.waiting = false;
+        
+        // Hide the floating waiting icon
+        if (localPlayerEmoteIconMesh) {
+          localPlayerEmoteIconMesh.visible = false;
+          scene.remove(localPlayerEmoteIconMesh);
+        }
+        
+        // Update character material mapping to the video texture
+        if (localPlayerEmoteMesh) {
+          localPlayerEmoteMesh.material.map = emoteVideoTexture;
+          localPlayerEmoteMesh.material.needsUpdate = true;
+        }
+        
+        // Publish the updated state (waiting: false)
+        publishPos();
+        
+        // Start video playback
+        const videoPath = myActiveEmote.video;
+        const resolved = resolveUrl(videoPath);
+        startPlayback(emoteBlobUrls[resolved] || resolved);
+      }
+
+      function playEmote(emote, isJoiner = false, initiatorOp = null) {
+        const videoPath = getEmoteVideoForCharacter(emote, selectedSkinName, isJoiner);
         if (!videoPath) return;
 
         if (emoteIsPlaying) {
@@ -2250,7 +2343,37 @@
 
           emoteOverlay.classList.remove('in-game');
           emoteOverlay.style.pointerEvents = 'auto';
+
+          emoteOverlay.classList.add('active');
+          const resolved = resolveUrl(videoPath);
+          startPlayback(emoteBlobUrls[resolved] || resolved);
         } else {
+          // If joining a special emote in game, position player next to the initiator
+          if (isJoiner && emote.special && initiatorOp && initiatorOp.data) {
+            const p1_x = initiatorOp.data.x;
+            const p1_y = initiatorOp.data.y;
+            const p1_z = initiatorOp.data.z;
+            const p1_yaw = initiatorOp.data.yaw || 0;
+
+            const rX = Math.cos(p1_yaw);
+            const rZ = -Math.sin(p1_yaw);
+            const dist = 1.4; // Side-by-side distance
+
+            const targetPosRight = new THREE.Vector3(p1_x + rX * dist, p1_y, p1_z + rZ * dist);
+            if (!checkPlayerCollision(targetPosRight)) {
+              camera.position.copy(targetPosRight);
+            } else {
+              const targetPosLeft = new THREE.Vector3(p1_x - rX * dist, p1_y, p1_z - rZ * dist);
+              if (!checkPlayerCollision(targetPosLeft)) {
+                camera.position.copy(targetPosLeft);
+              } else {
+                camera.position.copy(targetPosRight);
+              }
+            }
+            yaw = p1_yaw;
+            pitch = 0;
+          }
+
           // In game: spawn localPlayerEmoteMesh
           playerPhysicalPos.copy(camera.position);
           
@@ -2271,77 +2394,83 @@
             playerPhysicalPos.y - 1.5 + QUAD_H / 2,
             playerPhysicalPos.z
           );
-          localPlayerEmoteMesh.visible = true;
-          scene.add(localPlayerEmoteMesh);
 
-          // Hide weapon and crosshair
-          document.getElementById('weapon').style.display = 'none';
-          document.getElementById('crosshair').style.display = 'none';
+          if (emote.special && !isJoiner) {
+            // Initiator of a special emote: wait for follower.
+            // Show player texture (static skin), not video texture yet
+            localPlayerEmoteMesh.material.map = lobbyOriginalTexture || playerTex;
+            localPlayerEmoteMesh.material.needsUpdate = true;
+            localPlayerEmoteMesh.visible = true;
+            scene.add(localPlayerEmoteMesh);
 
-          // Overlay display
-          emoteOverlay.classList.add('in-game');
-          emoteOverlay.style.pointerEvents = 'none';
-
-          // Publish to Firebase
-          myActiveEmote = {
-            name: emote.name,
-            video: videoPath,
-            t: Date.now()
-          };
-          publishPos();
-        }
-
-        emoteOverlay.classList.add('active');
-
-        const resolved = resolveUrl(videoPath);
-
-        function startPlayback(url) {
-          emoteVideo.src = url;
-          emoteVideo.muted = false;
-          emoteVideo.volume = 0.7;
-          emoteHint.textContent = '▶ reproduciendo emote…';
-
-          emoteVideo.oncanplay = () => {
-            emoteVideo.play().catch(() => { });
-          };
-
-          emoteVideo.onended = () => {
-            closeEmote();
-          };
-
-          emoteVideo.onerror = () => {
-            emoteHint.textContent = '⚠ Error al cargar emote';
-            setTimeout(() => closeEmote(), 1500);
-          };
-
-          // Allow clicking anywhere to skip/close (only if in lobby)
-          if (inLobby) {
-            emoteOverlay.style.pointerEvents = 'auto';
-            emoteOverlay.onclick = () => closeEmote();
-          } else {
-            emoteOverlay.style.pointerEvents = 'none';
-            emoteOverlay.onclick = null;
-          }
-
-          emoteVideo.load();
-        }
-
-        const cached = emoteBlobUrls[resolved];
-        if (cached) {
-          startPlayback(cached);
-        } else {
-          emoteHint.textContent = '⏳ cargando emote…';
-          fetch(resolved)
-            .then(r => r.blob())
-            .then(blob => {
-              const videoBlob = new Blob([blob], { type: 'video/webm' });
-              emoteBlobUrls[resolved] = URL.createObjectURL(videoBlob);
-              startPlayback(emoteBlobUrls[resolved]);
-            })
-            .catch(() => {
-              emoteHint.textContent = '⚠ Error al cargar emote';
-              setTimeout(() => closeEmote(), 1500);
+            // Spawn floating icon above local player's head
+            if (!localPlayerEmoteIconMesh) {
+              const iconGeo = new THREE.PlaneGeometry(0.6, 0.6);
+              const iconMat = new THREE.MeshBasicMaterial({ transparent: true, side: THREE.DoubleSide, depthTest: false, depthWrite: false });
+              localPlayerEmoteIconMesh = new THREE.Mesh(iconGeo, iconMat);
+            }
+            makeEmoteIconTex(emote.icon, tex => {
+              if (localPlayerEmoteIconMesh) {
+                localPlayerEmoteIconMesh.material.map = tex;
+                localPlayerEmoteIconMesh.material.needsUpdate = true;
+              }
             });
+            localPlayerEmoteIconMesh.position.set(
+              playerPhysicalPos.x,
+              playerPhysicalPos.y - 1.5 + QUAD_H / 2 + 0.95,
+              playerPhysicalPos.z
+            );
+            localPlayerEmoteIconMesh.visible = true;
+            scene.add(localPlayerEmoteIconMesh);
+
+            // Hide weapon and crosshair
+            document.getElementById('weapon').style.display = 'none';
+            document.getElementById('crosshair').style.display = 'none';
+
+            // Overlay display
+            emoteOverlay.classList.add('in-game');
+            emoteOverlay.style.pointerEvents = 'none';
+            emoteOverlay.classList.add('active');
+            emoteHint.textContent = '⏳ esperando seguidor…';
+
+            // Publish to Firebase with waiting: true
+            myActiveEmote = {
+              name: emote.name,
+              video: videoPath,
+              waiting: true,
+              t: Date.now()
+            };
+            publishPos();
+          } else {
+            // Normal emote or Joiner: start playback immediately!
+            localPlayerEmoteMesh.material.map = emoteVideoTexture;
+            localPlayerEmoteMesh.material.needsUpdate = true;
+            localPlayerEmoteMesh.visible = true;
+            scene.add(localPlayerEmoteMesh);
+
+            // Hide weapon and crosshair
+            document.getElementById('weapon').style.display = 'none';
+            document.getElementById('crosshair').style.display = 'none';
+
+            // Overlay display
+            emoteOverlay.classList.add('in-game');
+            emoteOverlay.style.pointerEvents = 'none';
+            emoteOverlay.classList.add('active');
+
+            // Publish to Firebase
+            myActiveEmote = {
+              name: emote.name,
+              video: videoPath,
+              t: Date.now()
+            };
+            if (isJoiner && initiatorOp && initiatorOp.id) {
+              myActiveEmote.targetPlayerId = initiatorOp.id;
+            }
+            publishPos();
+
+            const resolved = resolveUrl(videoPath);
+            startPlayback(emoteBlobUrls[resolved] || resolved);
+          }
         }
       }
 
@@ -2927,7 +3056,7 @@
         group.visible = !pData.inPlane;
         scene.add(group);
 
-        otherPlayers[id] = { mesh, nameMesh, group, data: pData, hp: MAX_HP, dead: isDead, lastShotTime: pData.lastShot ? pData.lastShot.t : 0 };
+        otherPlayers[id] = { id, mesh, nameMesh, group, data: pData, hp: MAX_HP, dead: isDead, lastShotTime: pData.lastShot ? pData.lastShot.t : 0 };
       }
 
       function removeOtherPlayer(id) {
@@ -2935,6 +3064,10 @@
         scene.remove(op.group);
         op.mesh.geometry.dispose(); op.mesh.material.dispose();
         op.nameMesh.geometry.dispose(); op.nameMesh.material.dispose();
+        if (op.emoteIconMesh) {
+          op.emoteIconMesh.geometry.dispose();
+          op.emoteIconMesh.material.dispose();
+        }
         if (op.video) {
           op.video.pause();
           op.video.src = "";
@@ -3049,23 +3182,70 @@
 
             // Check active emote sync for other player
             if (p.activeEmote && p.activeEmote.video) {
-              if (op.currentEmoteUrl !== p.activeEmote.video) {
-                op.currentEmoteUrl = p.activeEmote.video;
-                if (!op.video) {
-                  op.video = document.createElement('video');
-                  op.video.playsInline = true;
-                  op.video.crossOrigin = "anonymous";
-                  op.video.loop = true;
-                  op.videoTexture = new THREE.VideoTexture(op.video);
-                  op.videoTexture.colorSpace = THREE.SRGBColorSpace;
+              if (p.activeEmote.waiting) {
+                if (op.currentEmoteUrl) {
+                  op.currentEmoteUrl = null;
+                  if (op.video) {
+                    op.video.pause();
+                    op.video.src = "";
+                  }
                 }
-                op.video.src = resolveUrl(p.activeEmote.video);
-                op.video.load();
-                op.video.play().catch(() => {});
-                op.mesh.material.map = op.videoTexture;
-                op.mesh.material.needsUpdate = true;
+                const skinToLoad = p.skin || IMG_PLAYER;
+                loadSkinTexture(skinToLoad, tex => {
+                  if (otherPlayers[id] && !otherPlayers[id].currentEmoteUrl) {
+                    op.mesh.material.map = tex;
+                    op.mesh.material.needsUpdate = true;
+                  }
+                });
+
+                if (op.emoteIconName !== p.activeEmote.name) {
+                  op.emoteIconName = p.activeEmote.name;
+                  if (!op.emoteIconMesh) {
+                    const iconGeo = new THREE.PlaneGeometry(0.6, 0.6);
+                    const iconMat = new THREE.MeshBasicMaterial({ transparent: true, side: THREE.DoubleSide, depthTest: false, depthWrite: false });
+                    op.emoteIconMesh = new THREE.Mesh(iconGeo, iconMat);
+                    op.emoteIconMesh.position.set(0, QUAD_H / 2 + 0.95, 0);
+                    op.group.add(op.emoteIconMesh);
+                  }
+                  const emoteObj = RAW_EMOTE_LIST.find(e => e.name === p.activeEmote.name);
+                  const iconVal = emoteObj ? emoteObj.icon : '🕺';
+                  makeEmoteIconTex(iconVal, tex => {
+                    if (op.emoteIconMesh && op.emoteIconName === p.activeEmote.name) {
+                      op.emoteIconMesh.material.map = tex;
+                      op.emoteIconMesh.material.needsUpdate = true;
+                    }
+                  });
+                  op.emoteIconMesh.visible = true;
+                }
+              } else {
+                if (op.emoteIconMesh) {
+                  op.emoteIconMesh.visible = false;
+                  op.emoteIconName = null;
+                }
+
+                if (op.currentEmoteUrl !== p.activeEmote.video) {
+                  op.currentEmoteUrl = p.activeEmote.video;
+                  if (!op.video) {
+                    op.video = document.createElement('video');
+                    op.video.playsInline = true;
+                    op.video.crossOrigin = "anonymous";
+                    op.video.loop = true;
+                    op.videoTexture = new THREE.VideoTexture(op.video);
+                    op.videoTexture.colorSpace = THREE.SRGBColorSpace;
+                  }
+                  op.video.src = resolveUrl(p.activeEmote.video);
+                  op.video.load();
+                  op.video.play().catch(() => {});
+                  op.mesh.material.map = op.videoTexture;
+                  op.mesh.material.needsUpdate = true;
+                }
               }
             } else {
+              if (op.emoteIconMesh) {
+                op.emoteIconMesh.visible = false;
+                op.emoteIconName = null;
+              }
+
               if (op.currentEmoteUrl) {
                 op.currentEmoteUrl = null;
                 if (op.video) {
@@ -3091,6 +3271,14 @@
               }
           });
           Object.keys(otherPlayers).forEach(id => { if (!seen.has(id)) removeOtherPlayer(id); });
+          
+          if (myActiveEmote && myActiveEmote.waiting) {
+            Object.entries(data).forEach(([id, p]) => {
+              if (id !== myId && p.activeEmote && p.activeEmote.targetPlayerId === myId && p.activeEmote.name === myActiveEmote.name) {
+                startInitiatorDance();
+              }
+            });
+          }
         });
 
         /* incoming damage */
@@ -3725,7 +3913,7 @@
       window.addEventListener('keydown', e => {
         if (e.key.toLowerCase() === 'b' || e.key.toLowerCase() === 'g') {
           if (!inLobby && !emoteIsPlaying && closestSharedEmoteCandidate) {
-            playEmote(closestSharedEmoteCandidate);
+            playEmote(closestSharedEmoteCandidate, true, closestSharedEmoteInitiator);
             return;
           }
           if (emoteWheel.classList.contains('active')) {
@@ -4088,6 +4276,9 @@
         if (localPlayerEmoteMesh && localPlayerEmoteMesh.visible) {
           localPlayerEmoteMesh.lookAt(camera.position.x, localPlayerEmoteMesh.position.y, camera.position.z);
         }
+        if (localPlayerEmoteIconMesh && localPlayerEmoteIconMesh.visible) {
+          localPlayerEmoteIconMesh.lookAt(camera.position.x, localPlayerEmoteIconMesh.position.y, camera.position.z);
+        }
 
         billboardAll();            // rotate all quads to face camera
         
@@ -4105,6 +4296,7 @@
 
         // Check for shared emote candidate
         let foundCandidate = null;
+        let foundInitiator = null;
         if (!inLobby && !dead && !emoteIsPlaying && !emoteWheel.classList.contains('active')) {
           let closestDist = 5.0; // max distance of 5.0 units
           Object.values(otherPlayers).forEach(op => {
@@ -4118,6 +4310,7 @@
                   if (videoPath) {
                     closestDist = dist;
                     foundCandidate = emoteObj;
+                    foundInitiator = op;
                   }
                 }
               }
@@ -4125,6 +4318,7 @@
           });
         }
         closestSharedEmoteCandidate = foundCandidate;
+        closestSharedEmoteInitiator = foundInitiator;
         const sharedPromptEl = document.getElementById('sharedEmotePrompt');
         if (sharedPromptEl) {
           if (closestSharedEmoteCandidate) {
