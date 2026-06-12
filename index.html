@@ -49,7 +49,7 @@
       gap: 20px;
       pointer-events: auto;
       height: auto;
-      align-self: center;
+      align-self: flex-start;
     }
 
     .lobby-header h1 {
@@ -189,7 +189,7 @@
       height: 560px;
       overflow: hidden;
       border: 2px solid #222;
-      cursor: crosshair;
+      cursor: default;
       display: block;
     }
 
@@ -1164,6 +1164,7 @@
         transform: scale(0.8);
         opacity: 0;
       }
+
       100% {
         transform: scale(1);
         opacity: 1;
@@ -1301,13 +1302,16 @@
           <div class="setting-group" style="position: relative;">
             <label>Personaje</label>
             <div id="skinSelectorContainer" style="position: relative; width: 100%; pointer-events: auto;">
-              <button id="skinSelectBtn" class="mode-dropdown-btn" style="min-width: 100%; font-size: 14px; padding: 10px 14px; border-radius: 8px; justify-content: space-between;">
+              <button id="skinSelectBtn" class="mode-dropdown-btn"
+                style="min-width: 100%; font-size: 14px; padding: 10px 14px; border-radius: 8px; justify-content: space-between;">
                 <span style="display: flex; align-items: center; gap: 8px;">
-                  <span id="currentSkinIcon" style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px;">🐱</span>
+                  <span id="currentSkinIcon"
+                    style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px;"><img src="https://p7.hiclipart.com/preview/52/626/377/nicolas-maduro-broadcaster-caracas-el-mundo-singer-kersti-kaljulaid.jpg" style="width: 18px; height: 18px; object-fit: contain; border-radius: 4px; display: block;"></span>
                   <span id="currentSkinText">Default</span>
                 </span>
               </button>
-              <div id="skinDropdownList" class="mode-dropdown-list" style="width: 100%; bottom: auto; top: calc(100% + 5px);">
+              <div id="skinDropdownList" class="mode-dropdown-list"
+                style="width: 100%; bottom: auto; top: calc(100% + 5px);">
                 <!-- Dynamically populated -->
               </div>
             </div>
@@ -1375,7 +1379,8 @@
     <div id="brAltitude">ALT: 50m</div>
 
     <!-- Shared Emote Prompt -->
-    <div id="sharedEmotePrompt">Presiona <span class="key">G</span> para unirse a <span id="sharedEmoteName" style="color: #ffe600; font-weight: bold;">Emote</span></div>
+    <div id="sharedEmotePrompt">Presiona <span class="key">G</span> para unirse a <span id="sharedEmoteName"
+        style="color: #ffe600; font-weight: bold;">Emote</span></div>
 
     <!-- EMOTE WHEEL SELECTOR -->
     <div id="emoteWheel" class="emote-wheel-overlay">
@@ -1393,7 +1398,7 @@
     <!-- EMOTE OVERLAY -->
     <div id="emoteOverlay">
       <video id="emoteVideo" playsinline crossorigin="anonymous"></video>
-      <div id="emoteHint">▶ reproduciendo emote…</div>
+      <div id="emoteHint"></div>
     </div>
     <div id="lobbyClickHint">🕺 Haz clic en tu personaje o presiona B para emotes</div>
 
@@ -1821,12 +1826,13 @@
       const lobbyPlayerMat = new THREE.MeshBasicMaterial({
         transparent: true,
         side: THREE.DoubleSide,
-        depthTest: true,
+        depthTest: false,
         depthWrite: false,
         alphaTest: 0.05
       });
       const lobbyPlayer = new THREE.Mesh(lobbyPlayerGeo, lobbyPlayerMat);
-      lobbyPlayer.position.set(0, -2 + 0.2 + QUAD_H / 2, 0); // stand on pedestal
+      lobbyPlayer.position.set(0, -2 + 0.05 + QUAD_H / 2, 0); // stand on pedestal
+      lobbyPlayer.renderOrder = 99;
       scene.add(lobbyPlayer);
       lobbyPlayerMesh = lobbyPlayer;
 
@@ -1889,8 +1895,8 @@
 
         // Standard default skin option
         let html = `
-          <div class="mode-option active" data-value="${IMG_PLAYER}" data-name="Default" data-audio="" style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
-            <span class="mode-icon" style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px;">🐱</span> Default
+          <div class="mode-option active" data-value="${IMG_PLAYER}" data-name="Default" data-audio="yespis.mp3" style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+            <span class="mode-icon" style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px;">${getIconHtml("https://p7.hiclipart.com/preview/52/626/377/nicolas-maduro-broadcaster-caracas-el-mundo-singer-kersti-kaljulaid.jpg")}</span> Default
           </div>
         `;
 
@@ -1962,12 +1968,13 @@
       const lobbyEmoteMat = new THREE.MeshBasicMaterial({
         transparent: true,
         side: THREE.DoubleSide,
-        depthTest: true,
+        depthTest: false,
         depthWrite: false,
         alphaTest: 0.05
       });
       lobbyEmoteMesh = new THREE.Mesh(lobbyEmoteGeo, lobbyEmoteMat);
       lobbyEmoteMesh.position.copy(lobbyPlayer.position);
+      lobbyEmoteMesh.renderOrder = 99;
       lobbyEmoteMesh.visible = false;
       scene.add(lobbyEmoteMesh);
 
@@ -2239,10 +2246,12 @@
           }
           // Restore camera position to player physical position
           camera.position.copy(playerPhysicalPos);
-          // Restore weapon and crosshair visibility
-          document.getElementById('weapon').style.display = '';
-          document.getElementById('crosshair').style.display = '';
-          
+          // Restore weapon and crosshair visibility only if not in lobby, plane, or falling
+          if (brState !== 'lobby' && brState !== 'in_plane' && brState !== 'falling') {
+            document.getElementById('weapon').style.display = '';
+            document.getElementById('crosshair').style.display = '';
+          }
+
           // Clear active emote and publish
           myActiveEmote = null;
           publishPos();
@@ -2261,7 +2270,7 @@
           ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
           ctx.beginPath(); ctx.arc(64, 64, 58, 0, Math.PI * 2); ctx.fill();
           ctx.strokeStyle = '#ffe600'; ctx.lineWidth = 4; ctx.stroke();
-          
+
           ctx.font = '72px sans-serif';
           ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
           ctx.fillText(iconStr || '🕺', 64, 64);
@@ -2274,7 +2283,7 @@
         emoteVideo.src = url;
         emoteVideo.muted = false;
         emoteVideo.volume = 0.7;
-        emoteHint.textContent = '▶ reproduciendo emote…';
+        emoteHint.textContent = '';
 
         emoteVideo.oncanplay = () => {
           emoteVideo.play().catch(() => { });
@@ -2303,22 +2312,22 @@
       function startInitiatorDance() {
         if (!myActiveEmote || !myActiveEmote.waiting) return;
         myActiveEmote.waiting = false;
-        
+
         // Hide the floating waiting icon
         if (localPlayerEmoteIconMesh) {
           localPlayerEmoteIconMesh.visible = false;
           scene.remove(localPlayerEmoteIconMesh);
         }
-        
+
         // Update character material mapping to the video texture
         if (localPlayerEmoteMesh) {
           localPlayerEmoteMesh.material.map = emoteVideoTexture;
           localPlayerEmoteMesh.material.needsUpdate = true;
         }
-        
+
         // Publish the updated state (waiting: false)
         publishPos();
-        
+
         // Start video playback
         const videoPath = myActiveEmote.video;
         const resolved = resolveUrl(videoPath);
@@ -2376,7 +2385,7 @@
 
           // In game: spawn localPlayerEmoteMesh
           playerPhysicalPos.copy(camera.position);
-          
+
           if (!localPlayerEmoteMesh) {
             const geo = new THREE.PlaneGeometry(QUAD_W, QUAD_H);
             const mat = new THREE.MeshBasicMaterial({
@@ -2485,7 +2494,7 @@
 
         // Raycast from camera through click point
         lobbyRaycaster.setFromCamera(lobbyMouse, camera);
-        
+
         const targets = [];
         if (lobbyPlayerMesh && lobbyPlayerMesh.visible) targets.push(lobbyPlayerMesh);
         if (lobbyEmoteMesh && lobbyEmoteMesh.visible) targets.push(lobbyEmoteMesh);
@@ -2605,11 +2614,16 @@
         brFlightT = 0;
         brFallVelocityY = 0;
 
-        // Random flight path across map
-        const angle = Math.random() * Math.PI * 2;
-        const dist = 130;
-        brFlightStart.set(Math.cos(angle) * dist, BR_PLANE_HEIGHT, Math.sin(angle) * dist);
-        brFlightEnd.set(-Math.cos(angle) * dist, BR_PLANE_HEIGHT, -Math.sin(angle) * dist);
+        // Use map editor flight path if both points exist, otherwise random path
+        if (editorPlaneStart && editorPlaneEnd) {
+          brFlightStart.set(editorPlaneStart.x, editorPlaneStart.y != null ? editorPlaneStart.y : BR_PLANE_HEIGHT, editorPlaneStart.z);
+          brFlightEnd.set(editorPlaneEnd.x, editorPlaneEnd.y != null ? editorPlaneEnd.y : BR_PLANE_HEIGHT, editorPlaneEnd.z);
+        } else {
+          const angle = Math.random() * Math.PI * 2;
+          const dist = 130;
+          brFlightStart.set(Math.cos(angle) * dist, BR_PLANE_HEIGHT, Math.sin(angle) * dist);
+          brFlightEnd.set(-Math.cos(angle) * dist, BR_PLANE_HEIGHT, -Math.sin(angle) * dist);
+        }
         // Create plane sprite
         const planeTex = texLoader.load(IMG_PLANE);
         const planeMat = new THREE.SpriteMaterial({ map: planeTex, transparent: true });
@@ -2626,7 +2640,7 @@
         camera.position.copy(brFlightStart);
         camera.position.x -= dir.x * 10;
         camera.position.z -= dir.z * 10;
-        camera.position.y = BR_PLANE_HEIGHT + 8;
+        camera.position.y = brFlightStart.y + 8;
         yaw = planeYaw;
         pitch = -1.1;
 
@@ -2680,68 +2694,79 @@
       }
 
       function startMatchFromLobby() {
-        brState = 'in_plane';
-        brFlightT = 0;
-        brFallVelocityY = 0;
-        brCanJump = false;
-        if (brJumpInterval) clearInterval(brJumpInterval);
-
-        // Switch to actual BR map!
+        // Switch to actual BR map listener!
         listenToMap('br');
 
-        // Random flight path across map
-        const angle = Math.random() * Math.PI * 2;
-        const dist = 130;
-        brFlightStart.set(Math.cos(angle) * dist, BR_PLANE_HEIGHT, Math.sin(angle) * dist);
-        brFlightEnd.set(-Math.cos(angle) * dist, BR_PLANE_HEIGHT, -Math.sin(angle) * dist);
+        // Fetch BR map once to initialize flight path cleanly after map loads
+        get(ref(db, 'fps/map_br')).then(snap => {
+          const mapData = snap.val();
+          loadMapFromData(mapData); // Ensure map is loaded and editorPlaneStart/End are set!
 
-        // Create plane sprite
-        const planeTex = texLoader.load(IMG_PLANE);
-        const planeMat = new THREE.SpriteMaterial({ map: planeTex, transparent: true });
-        const planeSprite = new THREE.Sprite(planeMat);
-        planeSprite.scale.set(14, 7, 1);
-        if (brPlaneGroup) scene.remove(brPlaneGroup);
-        brPlaneGroup = new THREE.Group();
-        brPlaneGroup.add(planeSprite);
-        brPlaneGroup.position.copy(brFlightStart);
-        scene.add(brPlaneGroup);
+          brState = 'in_plane';
+          brFlightT = 0;
+          brFallVelocityY = 0;
+          brCanJump = false;
+          if (brJumpInterval) clearInterval(brJumpInterval);
 
-        // Camera: behind and above the plane, looking down
-        const dir = brFlightEnd.clone().sub(brFlightStart).normalize();
-        const planeYaw = Math.atan2(-dir.x, -dir.z);
-        camera.position.copy(brFlightStart);
-        camera.position.x -= dir.x * 10;
-        camera.position.z -= dir.z * 10;
-        camera.position.y = BR_PLANE_HEIGHT + 8;
-        yaw = planeYaw;
-        pitch = -1.1;
-
-        // UI countdown (3 seconds before letting them eject)
-        let countdown = 3;
-        brJumpPrompt.innerHTML = `Lanzamiento en <span class="key">${countdown}</span>`;
-        brJumpPrompt.style.display = 'block';
-
-        brJumpInterval = setInterval(() => {
-          countdown--;
-          if (countdown > 0) {
-            brJumpPrompt.innerHTML = `Lanzamiento en <span class="key">${countdown}</span>`;
+          // Use map editor flight path if both points exist, otherwise random path
+          if (editorPlaneStart && editorPlaneEnd) {
+            brFlightStart.set(editorPlaneStart.x, editorPlaneStart.y != null ? editorPlaneStart.y : BR_PLANE_HEIGHT, editorPlaneStart.z);
+            brFlightEnd.set(editorPlaneEnd.x, editorPlaneEnd.y != null ? editorPlaneEnd.y : BR_PLANE_HEIGHT, editorPlaneEnd.z);
           } else {
-            clearInterval(brJumpInterval);
-            brJumpInterval = null;
-            brCanJump = true;
-            brJumpPrompt.innerHTML = `Presiona <span class="key">E</span> para lanzarte`;
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 130;
+            brFlightStart.set(Math.cos(angle) * dist, BR_PLANE_HEIGHT, Math.sin(angle) * dist);
+            brFlightEnd.set(-Math.cos(angle) * dist, BR_PLANE_HEIGHT, -Math.sin(angle) * dist);
           }
-        }, 1000);
 
-        brAltitudeEl.style.display = 'block';
-        brAltitudeEl.textContent = 'ALT: ' + BR_PLANE_HEIGHT + 'm';
+          // Create plane sprite
+          const planeTex = texLoader.load(IMG_PLANE);
+          const planeMat = new THREE.SpriteMaterial({ map: planeTex, transparent: true });
+          const planeSprite = new THREE.Sprite(planeMat);
+          planeSprite.scale.set(14, 7, 1);
+          if (brPlaneGroup) scene.remove(brPlaneGroup);
+          brPlaneGroup = new THREE.Group();
+          brPlaneGroup.add(planeSprite);
+          brPlaneGroup.position.copy(brFlightStart);
+          scene.add(brPlaneGroup);
 
-        // Audio
-        if (brAudio) { brAudio.pause(); brAudio.currentTime = 0; }
-        brAudio = new Audio(SND_BATTLE);
-        brAudio.loop = true;
-        brAudio.volume = 0.6;
-        brAudio.play().catch(() => { });
+          // Camera: behind and above the plane, looking down
+          const dir = brFlightEnd.clone().sub(brFlightStart).normalize();
+          const planeYaw = Math.atan2(-dir.x, -dir.z);
+          camera.position.copy(brFlightStart);
+          camera.position.x -= dir.x * 10;
+          camera.position.z -= dir.z * 10;
+          camera.position.y = brFlightStart.y + 8;
+          yaw = planeYaw;
+          pitch = -1.1;
+
+          // UI countdown (3 seconds before letting them eject)
+          let countdown = 3;
+          brJumpPrompt.innerHTML = `Lanzamiento en <span class="key">${countdown}</span>`;
+          brJumpPrompt.style.display = 'block';
+
+          brJumpInterval = setInterval(() => {
+            countdown--;
+            if (countdown > 0) {
+              brJumpPrompt.innerHTML = `Lanzamiento en <span class="key">${countdown}</span>`;
+            } else {
+              clearInterval(brJumpInterval);
+              brJumpInterval = null;
+              brCanJump = true;
+              brJumpPrompt.innerHTML = `Presiona <span class="key">E</span> para lanzarte`;
+            }
+          }, 1000);
+
+          brAltitudeEl.style.display = 'block';
+          brAltitudeEl.textContent = 'ALT: ' + brFlightStart.y.toFixed(0) + 'm';
+
+          // Audio
+          if (brAudio) { brAudio.pause(); brAudio.currentTime = 0; }
+          brAudio = new Audio(SND_BATTLE);
+          brAudio.loop = true;
+          brAudio.volume = 0.6;
+          brAudio.play().catch(() => { });
+        });
       }
 
       function brEject() {
@@ -2825,6 +2850,7 @@
       const tracers = [];   // active sniper tracer lines
       let showWireframes = false;
       let redSpawns = [], blueSpawns = [];
+      let editorPlaneStart = null, editorPlaneEnd = null;
       let firstSpawnDone = false;
 
       function getSpawnPosition() {
@@ -2912,6 +2938,8 @@
         clearMapObjects();
         redSpawns = [];
         blueSpawns = [];
+        editorPlaneStart = null;
+        editorPlaneEnd = null;
         if (!data) return;
         // Floor config
         if (data.floor) {
@@ -2927,6 +2955,14 @@
             }
             if (type === 'spawn_blue') {
               blueSpawns.push(b);
+              return;
+            }
+            if (type === 'plane_start') {
+              editorPlaneStart = b;
+              return;
+            }
+            if (type === 'plane_end') {
+              editorPlaneEnd = b;
               return;
             }
             const geo = new THREE.BoxGeometry(b.w || 2, b.h || 2, b.d || 2);
@@ -3235,7 +3271,7 @@
                   }
                   op.video.src = resolveUrl(p.activeEmote.video);
                   op.video.load();
-                  op.video.play().catch(() => {});
+                  op.video.play().catch(() => { });
                   op.mesh.material.map = op.videoTexture;
                   op.mesh.material.needsUpdate = true;
                 }
@@ -3263,15 +3299,15 @@
             }
 
             // Check for new sniper shots from this player
-              if (p.lastShot && p.lastShot.t > (op.lastShotTime || 0)) {
-                op.lastShotTime = p.lastShot.t;
-                const start = new THREE.Vector3(p.lastShot.start.x, p.lastShot.start.y, p.lastShot.start.z);
-                const end = new THREE.Vector3(p.lastShot.end.x, p.lastShot.end.y, p.lastShot.end.z);
-                spawnTracer(start, end);
-              }
+            if (p.lastShot && p.lastShot.t > (op.lastShotTime || 0)) {
+              op.lastShotTime = p.lastShot.t;
+              const start = new THREE.Vector3(p.lastShot.start.x, p.lastShot.start.y, p.lastShot.start.z);
+              const end = new THREE.Vector3(p.lastShot.end.x, p.lastShot.end.y, p.lastShot.end.z);
+              spawnTracer(start, end);
+            }
           });
           Object.keys(otherPlayers).forEach(id => { if (!seen.has(id)) removeOtherPlayer(id); });
-          
+
           if (myActiveEmote && myActiveEmote.waiting) {
             Object.entries(data).forEach(([id, p]) => {
               if (id !== myId && p.activeEmote && p.activeEmote.targetPlayerId === myId && p.activeEmote.name === myActiveEmote.name) {
@@ -4208,10 +4244,10 @@
             Math.sin(pitch),
             -Math.cos(yaw) * Math.cos(pitch)
           );
-          
+
           let currentDist = 3.0;
           const rayDir = fwd.clone().multiplyScalar(-1);
-          
+
           const startRayPos = playerPhysicalPos.clone();
           startRayPos.y -= 0.3; // start from chest level
 
@@ -4281,7 +4317,7 @@
         }
 
         billboardAll();            // rotate all quads to face camera
-        
+
         // Update spatial volumes for other players' emotes
         Object.values(otherPlayers).forEach(op => {
           if (op.video && op.currentEmoteUrl) {
