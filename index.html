@@ -889,6 +889,37 @@
       pointer-events: none;
     }
 
+    #sharedEmotePrompt {
+      position: absolute;
+      bottom: 120px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 55;
+      background: rgba(0, 0, 0, .75);
+      border: 1px solid #ffe600;
+      border-radius: 10px;
+      padding: 14px 28px;
+      color: #fff;
+      font-size: 1.1em;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      pointer-events: none;
+      animation: blink 1.5s ease-in-out infinite;
+      display: none;
+      font-family: 'Courier New', monospace;
+    }
+
+    #sharedEmotePrompt .key {
+      display: inline-block;
+      background: #ffe600;
+      color: #000;
+      padding: 2px 10px;
+      border-radius: 4px;
+      margin: 0 4px;
+      font-weight: bold;
+      box-shadow: 0 2px 0 #b3a200;
+    }
+
     /* ═══════════════ EMOTE VIDEO OVERLAY ═══════════════ */
     #emoteOverlay {
       position: absolute;
@@ -1343,6 +1374,9 @@
     <div id="brJumpPrompt">Presiona <span class="key">E</span> para lanzarte</div>
     <div id="brAltitude">ALT: 50m</div>
 
+    <!-- Shared Emote Prompt -->
+    <div id="sharedEmotePrompt">Presiona <span class="key">G</span> para unirse a <span id="sharedEmoteName" style="color: #ffe600; font-weight: bold;">Emote</span></div>
+
     <!-- EMOTE WHEEL SELECTOR -->
     <div id="emoteWheel" class="emote-wheel-overlay">
       <div class="emote-wheel-container">
@@ -1712,6 +1746,7 @@
       let selectedSkinUrl = IMG_PLAYER;
       let selectedSkinName = "Default";
       const skinTextures = {};
+      let closestSharedEmoteCandidate = null;
 
       // Helper to resolve raw GitHub URL for video or icon links
       function resolveUrl(url) {
@@ -1851,14 +1886,14 @@
 
         // Standard default skin option
         let html = `
-          <div class="mode-option active" data-value="${IMG_PLAYER}" data-name="Default" style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+          <div class="mode-option active" data-value="${IMG_PLAYER}" data-name="Default" data-audio="" style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
             <span class="mode-icon" style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px;">🐱</span> Default
           </div>
         `;
 
         skins.forEach(skin => {
           html += `
-            <div class="mode-option" data-value="${skin.image}" data-name="${skin.name}" style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+            <div class="mode-option" data-value="${skin.image}" data-name="${skin.name}" data-audio="${skin.audio || ''}" style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
               <span class="mode-icon" style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px;">${getIconHtml(skin.icon)}</span> ${skin.name}
             </div>
           `;
@@ -1873,6 +1908,15 @@
             const val = btn.getAttribute('data-value');
             selectedSkinUrl = val;
             selectedSkinName = btn.getAttribute('data-name');
+
+            // Play character audio phrase if configured
+            const audioPath = btn.getAttribute('data-audio');
+            if (audioPath) {
+              const audioUrl = resolveUrl(audioPath);
+              const snd = new Audio(audioUrl);
+              snd.volume = 0.6;
+              snd.play().catch(e => console.log("Failed to play character sound phrase:", e));
+            }
 
             // Update button text and icon
             const iconSpan = btn.querySelector('.mode-icon');
@@ -3680,6 +3724,10 @@
 
       window.addEventListener('keydown', e => {
         if (e.key.toLowerCase() === 'b' || e.key.toLowerCase() === 'g') {
+          if (!inLobby && !emoteIsPlaying && closestSharedEmoteCandidate) {
+            playEmote(closestSharedEmoteCandidate);
+            return;
+          }
           if (emoteWheel.classList.contains('active')) {
             closeEmoteWheel();
           } else {
@@ -4047,9 +4095,45 @@
         Object.values(otherPlayers).forEach(op => {
           if (op.video && op.currentEmoteUrl) {
             const dist = camera.position.distanceTo(op.group.position);
-            op.video.volume = Math.max(0, Math.min(0.7, 1 - (dist / 45))) * 0.7;
+            if (emoteIsPlaying && myActiveEmote && op.data && op.data.activeEmote && myActiveEmote.name === op.data.activeEmote.name) {
+              op.video.volume = 0;
+            } else {
+              op.video.volume = Math.max(0, Math.min(0.7, 1 - (dist / 45))) * 0.7;
+            }
           }
         });
+
+        // Check for shared emote candidate
+        let foundCandidate = null;
+        if (!inLobby && !dead && !emoteIsPlaying && !emoteWheel.classList.contains('active')) {
+          let closestDist = 5.0; // max distance of 5.0 units
+          Object.values(otherPlayers).forEach(op => {
+            if (op.dead || !op.group.visible) return;
+            if (op.data && op.data.activeEmote && op.data.activeEmote.name) {
+              const dist = camera.position.distanceTo(op.group.position);
+              if (dist < closestDist) {
+                const emoteObj = RAW_EMOTE_LIST.find(e => e.name === op.data.activeEmote.name);
+                if (emoteObj) {
+                  const videoPath = getEmoteVideoForCharacter(emoteObj, selectedSkinName);
+                  if (videoPath) {
+                    closestDist = dist;
+                    foundCandidate = emoteObj;
+                  }
+                }
+              }
+            }
+          });
+        }
+        closestSharedEmoteCandidate = foundCandidate;
+        const sharedPromptEl = document.getElementById('sharedEmotePrompt');
+        if (sharedPromptEl) {
+          if (closestSharedEmoteCandidate) {
+            document.getElementById('sharedEmoteName').textContent = closestSharedEmoteCandidate.name;
+            sharedPromptEl.style.display = 'block';
+          } else {
+            sharedPromptEl.style.display = 'none';
+          }
+        }
 
         renderer.render(scene, camera);
         updateDebugInfo();
