@@ -1013,7 +1013,7 @@
 
     .lobby-dropdown-panel {
       position: absolute;
-      top: 90px;
+      top: 155px;
       right: 30px;
       width: 280px;
       background: rgba(10, 10, 15, 0.9);
@@ -1133,6 +1133,96 @@
         opacity: 1;
         transform: translateY(0);
       }
+    }
+
+    .skins-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .skin-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .skin-card:hover {
+      border-color: #ff4444;
+      background: rgba(255, 68, 68, 0.05);
+      transform: translateY(-2px);
+    }
+
+    .skin-card.active {
+      border-color: #ff4444;
+      background: rgba(255, 68, 68, 0.15);
+      box-shadow: 0 0 15px rgba(255, 68, 68, 0.25);
+    }
+
+    .skin-card-icon {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .skin-card-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .skin-card-name {
+      font-size: 10px;
+      font-weight: bold;
+      color: #ccc;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+    }
+
+    .skin-card.active .skin-card-name {
+      color: #fff;
+    }
+
+    #lobbySkinsBtn {
+      position: absolute;
+      top: 95px;
+      bottom: auto;
+      right: 30px;
+      background: linear-gradient(135deg, #ffe600, #ffaa00);
+      color: #000;
+      box-shadow: 0 4px 15px rgba(255, 170, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      z-index: 1001;
+    }
+
+    #lobbySkinsBtn:hover {
+      background: linear-gradient(135deg, #fff044, #ffbb00) !important;
+      transform: scale(1.08) rotate(5deg) !important;
+      box-shadow: 0 0 25px rgba(255, 230, 0, 0.6) !important;
+      color: #000 !important;
+    }
+
+    #lobbySkinsPanel {
+      z-index: 1001;
     }
 
     /* ═══════════════ EMOTE WHEEL (FORTNITE STYLE) ═══════════════ */
@@ -1261,6 +1351,27 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
+    #ws4.ws-slot {
+      border-color: #ffaa00 !important;
+      color: #ffaa00 !important;
+      background: rgba(255, 170, 0, 0.08) !important;
+      text-shadow: 0 0 8px rgba(255, 170, 0, 0.6);
+      box-shadow: 0 0 15px rgba(255, 170, 0, 0.25);
+      animation: goldGlow 1.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes goldGlow {
+      from {
+        box-shadow: 0 0 8px rgba(255, 170, 0, 0.25);
+        border-color: #ffaa00;
+      }
+
+      to {
+        box-shadow: 0 0 20px rgba(255, 170, 0, 0.6);
+        border-color: #ffe600;
+      }
+    }
   </style>
 </head>
 
@@ -1272,6 +1383,8 @@
     <div id="loginScreen">
       <!-- Top Right Configuration Button -->
       <button id="lobbySettingsBtn" class="lobby-icon-btn">⚙</button>
+      <!-- Bottom Right Skins Button -->
+      <button id="lobbySkinsBtn" class="lobby-icon-btn">👤</button>
 
       <!-- Dropdown Settings Panel (under config button) -->
       <div id="lobbySettingsPanel" class="lobby-dropdown-panel">
@@ -1288,6 +1401,17 @@
         </div>
       </div>
 
+      <!-- Dropdown Skins Panel -->
+      <div id="lobbySkinsPanel" class="lobby-dropdown-panel"
+        style="width: 320px; max-height: calc(100vh - 150px); overflow-y: auto;">
+        <h3
+          style="font-size: 11px; letter-spacing: 3px; color: #ff4444; text-transform: uppercase; margin-bottom: 8px;">
+          Elige tu Personaje</h3>
+        <div class="skins-grid" id="lobbySkinsGrid">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
       <div class="lobby-sidebar">
         <div class="lobby-header">
           <h1>⚔ ZONE WAR</h1>
@@ -1298,23 +1422,6 @@
           <div class="setting-group">
             <label>Nombre de jugador</label>
             <input type="text" id="nameInput" placeholder="Tu nombre..." maxlength="16" autocomplete="off">
-          </div>
-          <div class="setting-group" style="position: relative;">
-            <label>Personaje</label>
-            <div id="skinSelectorContainer" style="position: relative; width: 100%; pointer-events: auto;">
-              <button id="skinSelectBtn" class="mode-dropdown-btn"
-                style="min-width: 100%; font-size: 14px; padding: 10px 14px; border-radius: 8px; justify-content: space-between;">
-                <span style="display: flex; align-items: center; gap: 8px;">
-                  <span id="currentSkinIcon"
-                    style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px;"><img src="https://p7.hiclipart.com/preview/52/626/377/nicolas-maduro-broadcaster-caracas-el-mundo-singer-kersti-kaljulaid.jpg" style="width: 18px; height: 18px; object-fit: contain; border-radius: 4px; display: block;"></span>
-                  <span id="currentSkinText">Default</span>
-                </span>
-              </button>
-              <div id="skinDropdownList" class="mode-dropdown-list"
-                style="width: 100%; bottom: auto; top: calc(100% + 5px);">
-                <!-- Dynamically populated -->
-              </div>
-            </div>
           </div>
         </div>
 
@@ -1434,6 +1541,19 @@
       <button id="respawnBtn">▶ REVIVIR</button>
     </div>
 
+    <!-- Airdrop components -->
+    <div id="airdropMarker"
+      style="position: absolute; display: none; color: #ffe600; font-family: 'Courier New', monospace; font-size: 11px; font-weight: bold; background: rgba(10,10,15,0.85); padding: 5px 10px; border: 1px solid #ffe600; border-radius: 6px; pointer-events: none; z-index: 12; box-shadow: 0 0 10px rgba(255,230,0,0.3); transform: translate(-50%, -100%);">
+      📦 AIRDROP <span id="airdropDistText">0m</span>
+    </div>
+
+    <div id="airdropPrompt"
+      style="position: absolute; bottom: 160px; left: 50%; transform: translateX(-50%); z-index: 55; background: rgba(0, 0, 0, 0.75); border: 1px solid #ffe600; border-radius: 10px; padding: 14px 28px; color: #fff; font-size: 1.1em; letter-spacing: 3px; text-transform: uppercase; pointer-events: none; display: none; font-family: 'Courier New', monospace;">
+      Presiona <span class="key"
+        style="background: #ffe600; color: #000; padding: 2px 10px; border-radius: 4px; margin: 0 4px; font-weight: bold; box-shadow: 0 2px 0 #b3a200;">E</span>
+      para saquear Airdrop
+    </div>
+
     <!-- KILL FEED -->
     <div id="killFeed"></div>
 
@@ -1454,8 +1574,10 @@
         <div class="ws-slot active" id="ws0"><span class="ws-key">1</span> Rifle</div>
         <div class="ws-slot" id="ws1"><span class="ws-key">2</span> Sniper</div>
         <div class="ws-slot" id="ws2"><span class="ws-key">3</span> Pistola</div>
+        <div class="ws-slot" id="ws3"><span class="ws-key">4</span> Bazooka</div>
+        <div class="ws-slot" id="ws4" style="display: none;"><span class="ws-key">5</span> Fusil Mítico</div>
       </div>
-      <div id="instructions">WASD · Shift:sprint · Espacio:saltar · Clic der:apuntar · Clic izq:disparar · 1-3:armas ·
+      <div id="instructions">WASD · Shift:sprint · Espacio:saltar · Clic der:apuntar · Clic izq:disparar · 1-4:armas ·
         L:debug</div>
     </div>
   </div>
@@ -1526,6 +1648,34 @@
         idleWidth: '420px',
         useScope: false,
         sndShoot: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/disparopistola2.mp3'
+      },
+      {
+        name: 'Bazooka',
+        imgIdle: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun4.png',
+        imgAim: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun4.5.png',
+        damage: [60, 90],       // high damage
+        fireRate: 1500,          // slow fire rate
+        fovNormal: 75,
+        fovAim: 55,            // moderate zoom
+        aimWidth: '700px',
+        idleWidth: '420px',
+        useScope: false,
+        sndShoot: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/bazooka.mp3',
+        sndFadeDelay: 1000
+      },
+      {
+        name: 'Fusil Mítico',
+        imgIdle: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun1.png',
+        imgAim: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun1.5.png',
+        damage: [35, 55],       // high damage!
+        fireRate: 95,           // fast fire rate!
+        fovNormal: 75,
+        fovAim: 50,            // moderate zoom
+        aimWidth: '700px',
+        idleWidth: '420px',
+        useScope: false,
+        sndShoot: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/disparopistola.mp3',
+        isMythic: true
       }
     ];
 
@@ -1559,6 +1709,16 @@
 
     /* ══ LOGIN ══ */
     let myId = '', myName = '', selectedMode = 'normal', selectedScreenMode = 'windowed';
+
+    // Load saved player name
+    const nameInputEl = document.getElementById('nameInput');
+    if (nameInputEl) {
+      nameInputEl.value = localStorage.getItem('zw_playerName') || '';
+      nameInputEl.addEventListener('input', () => {
+        localStorage.setItem('zw_playerName', nameInputEl.value.trim());
+      });
+    }
+
     let inLobby = true;
     let lobbyPlayerMesh = null;
     let lobbyPedestalMesh = null;
@@ -1572,10 +1732,17 @@
     /* Toggle dropdown settings panel (top right config) */
     const lobbySettingsBtn = document.getElementById('lobbySettingsBtn');
     const lobbySettingsPanel = document.getElementById('lobbySettingsPanel');
+    const lobbySkinsBtn = document.getElementById('lobbySkinsBtn');
+    const lobbySkinsPanel = document.getElementById('lobbySkinsPanel');
+
     if (lobbySettingsBtn && lobbySettingsPanel) {
       lobbySettingsBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         lobbySettingsPanel.classList.toggle('active');
+        // Close skins panel
+        if (lobbySkinsPanel) {
+          lobbySkinsPanel.classList.remove('active');
+        }
         // Close mode dropdown
         const modeList = document.getElementById('modeDropdownList');
         const modeBtn = document.getElementById('modeSelectBtn');
@@ -1583,17 +1750,33 @@
           modeList.classList.remove('active');
           modeBtn.classList.remove('open');
         }
-        // Close skin dropdown
-        const skinList = document.getElementById('skinDropdownList');
-        const skinBtn = document.getElementById('skinSelectBtn');
-        if (skinList && skinBtn) {
-          skinList.classList.remove('active');
-          skinBtn.classList.remove('open');
-        }
       });
       document.addEventListener('click', (e) => {
         if (!lobbySettingsPanel.contains(e.target) && e.target !== lobbySettingsBtn) {
           lobbySettingsPanel.classList.remove('active');
+        }
+      });
+    }
+
+    if (lobbySkinsBtn && lobbySkinsPanel) {
+      lobbySkinsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        lobbySkinsPanel.classList.toggle('active');
+        // Close settings panel
+        if (lobbySettingsPanel) {
+          lobbySettingsPanel.classList.remove('active');
+        }
+        // Close mode dropdown
+        const modeList = document.getElementById('modeDropdownList');
+        const modeBtn = document.getElementById('modeSelectBtn');
+        if (modeList) {
+          modeList.classList.remove('active');
+          modeBtn.classList.remove('open');
+        }
+      });
+      document.addEventListener('click', (e) => {
+        if (!lobbySkinsPanel.contains(e.target) && e.target !== lobbySkinsBtn) {
+          lobbySkinsPanel.classList.remove('active');
         }
       });
     }
@@ -1610,12 +1793,9 @@
         if (lobbySettingsPanel) {
           lobbySettingsPanel.classList.remove('active');
         }
-        // Close skin dropdown
-        const skinList = document.getElementById('skinDropdownList');
-        const skinBtn = document.getElementById('skinSelectBtn');
-        if (skinList && skinBtn) {
-          skinList.classList.remove('active');
-          skinBtn.classList.remove('open');
+        // Close skins panel
+        if (lobbySkinsPanel) {
+          lobbySkinsPanel.classList.remove('active');
         }
       });
       document.addEventListener('click', (e) => {
@@ -1627,36 +1807,11 @@
       });
     }
 
-    /* Toggle skin select dropdown */
-    const skinSelectBtn = document.getElementById('skinSelectBtn');
-    const skinDropdownList = document.getElementById('skinDropdownList');
-    if (skinSelectBtn && skinDropdownList) {
-      skinSelectBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        skinDropdownList.classList.toggle('active');
-        skinSelectBtn.classList.toggle('open');
-        // Close mode select and settings panels
-        if (modeDropdownList) {
-          modeDropdownList.classList.remove('active');
-          modeSelectBtn.classList.remove('open');
-        }
-        if (lobbySettingsPanel) {
-          lobbySettingsPanel.classList.remove('active');
-        }
-      });
-      document.addEventListener('click', (e) => {
-        const container = document.getElementById('skinSelectorContainer');
-        if (container && !container.contains(e.target)) {
-          skinDropdownList.classList.remove('active');
-          skinSelectBtn.classList.remove('open');
-        }
-      });
-    }
-
     /* Mode select buttons */
     let selectedTeam = 'red';
     document.getElementById('modeNormal').addEventListener('click', () => {
       selectedMode = 'normal';
+      localStorage.setItem('zw_selectedMode', 'normal');
       document.getElementById('modeNormal').classList.add('active');
       document.getElementById('modeBR').classList.remove('active');
       document.getElementById('modeRvB').classList.remove('active');
@@ -1670,6 +1825,7 @@
     });
     document.getElementById('modeBR').addEventListener('click', () => {
       selectedMode = 'br';
+      localStorage.setItem('zw_selectedMode', 'br');
       document.getElementById('modeBR').classList.add('active');
       document.getElementById('modeNormal').classList.remove('active');
       document.getElementById('modeRvB').classList.remove('active');
@@ -1683,6 +1839,7 @@
     });
     document.getElementById('modeRvB').addEventListener('click', () => {
       selectedMode = 'rvb';
+      localStorage.setItem('zw_selectedMode', 'rvb');
       document.getElementById('modeRvB').classList.add('active');
       document.getElementById('modeNormal').classList.remove('active');
       document.getElementById('modeBR').classList.remove('active');
@@ -1693,6 +1850,7 @@
 
     document.getElementById('teamRed').addEventListener('click', () => {
       selectedTeam = 'red';
+      localStorage.setItem('zw_selectedTeam', 'red');
       document.getElementById('teamRed').classList.add('active');
       document.getElementById('teamRed').style.background = 'rgba(255,68,68,0.1)';
       document.getElementById('teamBlue').classList.remove('active');
@@ -1700,6 +1858,7 @@
     });
     document.getElementById('teamBlue').addEventListener('click', () => {
       selectedTeam = 'blue';
+      localStorage.setItem('zw_selectedTeam', 'blue');
       document.getElementById('teamBlue').classList.add('active');
       document.getElementById('teamBlue').style.background = 'rgba(68,68,255,0.1)';
       document.getElementById('teamRed').classList.remove('active');
@@ -1709,6 +1868,7 @@
     /* Screen select buttons */
     document.getElementById('screenWindowed').addEventListener('click', () => {
       selectedScreenMode = 'windowed';
+      localStorage.setItem('zw_screenMode', 'windowed');
       document.getElementById('screenWindowed').classList.add('active');
       document.getElementById('screenFull').classList.remove('active');
       const gameEl = document.getElementById('game');
@@ -1719,6 +1879,7 @@
     });
     document.getElementById('screenFull').addEventListener('click', () => {
       selectedScreenMode = 'full';
+      localStorage.setItem('zw_screenMode', 'full');
       document.getElementById('screenFull').classList.add('active');
       document.getElementById('screenWindowed').classList.remove('active');
       const gameEl = document.getElementById('game');
@@ -1727,6 +1888,20 @@
         window.dispatchEvent(new Event('resize'));
       }
     });
+
+    // Load saved configurations
+    const savedMode = localStorage.getItem('zw_selectedMode') || 'normal';
+    const savedTeam = localStorage.getItem('zw_selectedTeam') || 'red';
+    const savedScreenMode = localStorage.getItem('zw_screenMode') || 'windowed';
+
+    const modeBtnEl = document.getElementById(savedMode === 'br' ? 'modeBR' : (savedMode === 'rvb' ? 'modeRvB' : 'modeNormal'));
+    if (modeBtnEl) modeBtnEl.click();
+
+    const teamBtnEl = document.getElementById(savedTeam === 'blue' ? 'teamBlue' : 'teamRed');
+    if (teamBtnEl) teamBtnEl.click();
+
+    const screenBtnEl = document.getElementById(savedScreenMode === 'full' ? 'screenFull' : 'screenWindowed');
+    if (screenBtnEl) screenBtnEl.click();
 
     /* ════════════════════════════════════════════════════
        GAME
@@ -1748,13 +1923,126 @@
       const camera = new THREE.PerspectiveCamera(BASE_FOV, GAME_W / GAME_H, 0.1, 1000);
       let currentFov = BASE_FOV, targetFov = BASE_FOV;
 
-      let selectedSkinUrl = IMG_PLAYER;
-      let selectedSkinName = "Default";
+      let selectedSkinUrl = localStorage.getItem('zw_skinUrl') || IMG_PLAYER;
+      let selectedSkinName = localStorage.getItem('zw_skinName') || "Default";
+      let currentLobbyAudio = null;
       const skinTextures = {};
       let closestSharedEmoteCandidate = null;
       let closestSharedEmoteInitiator = null;
       let localPlayerEmoteMesh = null;
       let localPlayerEmoteIconMesh = null;
+
+      /* ══ AIRDROP STATE & UTILITIES ══ */
+      let currentAirdropData = null;
+      let airdropMeshGroup = null;
+      let airdropSmokeParticles = [];
+      let hasMythicWeapon = false;
+      let localAirdropY = 50.0;
+      let currentHostId = null;
+
+      function getGroundHeight(x, z) {
+        const ray = new THREE.Raycaster(
+          new THREE.Vector3(x, 80, z),
+          new THREE.Vector3(0, -1, 0)
+        );
+        const hits = ray.intersectObjects(mapObjects, false);
+        if (hits.length > 0) {
+          return hits[0].point.y;
+        }
+        return -2; // Default floor height
+      }
+
+      function createAirdropMesh(data) {
+        removeAirdropMesh();
+        airdropMeshGroup = new THREE.Group();
+        airdropMeshGroup.position.set(data.x, data.y, data.z);
+        scene.add(airdropMeshGroup);
+
+        // 1. Crate Body
+        const crateGeo = new THREE.BoxGeometry(1.8, 1.8, 1.8);
+        const crateMat = new THREE.MeshPhongMaterial({
+          color: 0xaa2222, // Deep Red
+          specular: 0xffaaaa,
+          shininess: 20
+        });
+        const crateMesh = new THREE.Mesh(crateGeo, crateMat);
+        crateMesh.name = "crate";
+        crateMesh.position.y = 0.9;
+        airdropMeshGroup.add(crateMesh);
+
+        // 2. Cover / Lid
+        const lidGeo = new THREE.BoxGeometry(1.9, 0.4, 1.9);
+        const lidMat = new THREE.MeshPhongMaterial({
+          color: 0x222222, // Charcoal
+          specular: 0x555555,
+          shininess: 10
+        });
+        const lidMesh = new THREE.Mesh(lidGeo, lidMat);
+        lidMesh.position.y = 1.8;
+        airdropMeshGroup.add(lidMesh);
+
+        // 3. Neon Glowing Accent
+        const lightGeo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+        const lightMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+        const lightMesh = new THREE.Mesh(lightGeo, lightMat);
+        lightMesh.position.set(0, 1.2, 0.91);
+        airdropMeshGroup.add(lightMesh);
+
+        // 4. Parachute Dome
+        const paraGeo = new THREE.SphereGeometry(2.5, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2);
+        const paraMat = new THREE.MeshPhongMaterial({
+          color: 0xffaa00,
+          side: THREE.DoubleSide
+        });
+        const paraMesh = new THREE.Mesh(paraGeo, paraMat);
+        paraMesh.name = "parachute";
+        paraMesh.position.y = 4.5;
+        airdropMeshGroup.add(paraMesh);
+
+        // 5. Parachute Lines
+        const lineMat = new THREE.LineBasicMaterial({ color: 0xcccccc });
+        const points = [
+          new THREE.Vector3(0, 1.8, 0), new THREE.Vector3(-1.8, 4.5, 0),
+          new THREE.Vector3(0, 1.8, 0), new THREE.Vector3(1.8, 4.5, 0),
+          new THREE.Vector3(0, 1.8, 0), new THREE.Vector3(0, 4.5, -1.8),
+          new THREE.Vector3(0, 1.8, 0), new THREE.Vector3(0, 4.5, 1.8)
+        ];
+        const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+        const linesMesh = new THREE.LineSegments(lineGeo, lineMat);
+        linesMesh.name = "parachuteLines";
+        airdropMeshGroup.add(linesMesh);
+
+        const parachuteVisible = (data.state === "falling");
+        paraMesh.visible = parachuteVisible;
+        linesMesh.visible = parachuteVisible;
+
+        if (data.state === "opened") {
+          crateMat.color.setHex(0x333333);
+        }
+      }
+
+      function removeAirdropMesh() {
+        if (airdropMeshGroup) {
+          scene.remove(airdropMeshGroup);
+          airdropMeshGroup.traverse(child => {
+            if (child.geometry) child.geometry.dispose();
+            if (child.material) {
+              if (Array.isArray(child.material)) {
+                child.material.forEach(m => m.dispose());
+              } else {
+                child.material.dispose();
+              }
+            }
+          });
+          airdropMeshGroup = null;
+        }
+        airdropSmokeParticles.forEach(p => {
+          scene.remove(p.mesh);
+          p.mesh.geometry.dispose();
+          p.mesh.material.dispose();
+        });
+        airdropSmokeParticles = [];
+      }
 
       // Helper to resolve raw GitHub URL for video or icon links
       function resolveUrl(url) {
@@ -1853,9 +2141,9 @@
         });
       }
 
-      // Load character texture
+      // Load character texture using the saved skin URL
       let lobbyOriginalTexture = null;
-      loadSkinTexture(IMG_PLAYER, tex => {
+      loadSkinTexture(selectedSkinUrl, tex => {
         lobbyPlayerMat.map = tex;
         lobbyPlayerMat.needsUpdate = true;
         lobbyOriginalTexture = tex;
@@ -1879,9 +2167,32 @@
         console.error("Error loading skins from Firebase:", err);
       });
 
+      function fadeOutAudio(audio, duration = 300) {
+        if (!audio) return;
+        const startVolume = audio.volume;
+        const fadeInterval = 20; // step every 20ms
+        const steps = duration / fadeInterval;
+        const volStep = startVolume / steps;
+
+        let count = 0;
+        const interval = setInterval(() => {
+          count++;
+          if (audio.volume > volStep) {
+            audio.volume -= volStep;
+          } else {
+            audio.volume = 0;
+          }
+
+          if (count >= steps || audio.volume <= 0) {
+            clearInterval(interval);
+            audio.pause();
+          }
+        }, fadeInterval);
+      }
+
       function populateSkinSelect(skins) {
-        const listContainer = document.getElementById('skinDropdownList');
-        if (!listContainer) return;
+        const gridContainer = document.getElementById('lobbySkinsGrid');
+        if (!gridContainer) return;
 
         // Helper to check if icon is image URL or emoji
         function getIconHtml(icon) {
@@ -1893,59 +2204,78 @@
           return icon;
         }
 
-        // Standard default skin option
-        let html = `
-          <div class="mode-option active" data-value="${IMG_PLAYER}" data-name="Default" data-audio="yespis.mp3" style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
-            <span class="mode-icon" style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px;">${getIconHtml("https://p7.hiclipart.com/preview/52/626/377/nicolas-maduro-broadcaster-caracas-el-mundo-singer-kersti-kaljulaid.jpg")}</span> Default
+        // Populate the right skins panel grid
+        let gridHtml = `
+          <div class="skin-card active" data-value="${IMG_PLAYER}" data-name="Default" data-audio="yespis.mp3">
+            <div class="skin-card-icon">${getIconHtml("https://p7.hiclipart.com/preview/52/626/377/nicolas-maduro-broadcaster-caracas-el-mundo-singer-kersti-kaljulaid.jpg")}</div>
+            <div class="skin-card-name">Default</div>
           </div>
         `;
 
         skins.forEach(skin => {
-          html += `
-            <div class="mode-option" data-value="${skin.image}" data-name="${skin.name}" data-audio="${skin.audio || ''}" style="margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
-              <span class="mode-icon" style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px;">${getIconHtml(skin.icon)}</span> ${skin.name}
+          gridHtml += `
+            <div class="skin-card" data-value="${skin.image}" data-name="${skin.name}" data-audio="${skin.audio || ''}">
+              <div class="skin-card-icon">${getIconHtml(skin.icon)}</div>
+              <div class="skin-card-name">${skin.name}</div>
             </div>
           `;
         });
 
-        listContainer.innerHTML = html;
+        gridContainer.innerHTML = gridHtml;
 
-        // Add click listeners to options
-        listContainer.querySelectorAll('.mode-option').forEach(btn => {
-          btn.addEventListener('click', (e) => {
+        // Update active skin class in grid based on saved setting
+        let foundActive = false;
+        gridContainer.querySelectorAll('.skin-card').forEach(card => {
+          if (card.getAttribute('data-name') === selectedSkinName) {
+            card.classList.add('active');
+            foundActive = true;
+
+            // Save the icon layout in localStorage
+            const iconSpan = card.querySelector('.skin-card-icon');
+            if (iconSpan) {
+              localStorage.setItem('zw_skinIcon', iconSpan.innerHTML);
+            }
+          } else {
+            card.classList.remove('active');
+          }
+        });
+
+        if (!foundActive) {
+          const defaultCard = gridContainer.querySelector('[data-name="Default"]');
+          if (defaultCard) defaultCard.classList.add('active');
+        }
+
+        // Add click listeners to cards
+        gridContainer.querySelectorAll('.skin-card').forEach(card => {
+          card.addEventListener('click', (e) => {
             e.stopPropagation();
-            const val = btn.getAttribute('data-value');
+            const val = card.getAttribute('data-value');
             selectedSkinUrl = val;
-            selectedSkinName = btn.getAttribute('data-name');
+            selectedSkinName = card.getAttribute('data-name');
 
             // Play character audio phrase if configured
-            const audioPath = btn.getAttribute('data-audio');
+            const audioPath = card.getAttribute('data-audio');
             if (audioPath) {
+              if (currentLobbyAudio) {
+                fadeOutAudio(currentLobbyAudio, 300);
+              }
               const audioUrl = resolveUrl(audioPath);
               const snd = new Audio(audioUrl);
               snd.volume = 0.6;
               snd.play().catch(e => console.log("Failed to play character sound phrase:", e));
+              currentLobbyAudio = snd;
             }
 
-            // Update button text and icon
-            const iconSpan = btn.querySelector('.mode-icon');
-            const currentSkinIcon = document.getElementById('currentSkinIcon');
-            const currentSkinText = document.getElementById('currentSkinText');
-            if (currentSkinIcon && currentSkinText) {
-              currentSkinIcon.innerHTML = iconSpan.innerHTML;
-              currentSkinText.textContent = btn.textContent.trim();
-            }
+            // Update active state in grid
+            gridContainer.querySelectorAll('.skin-card').forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
 
-            // Update active state in list
-            listContainer.querySelectorAll('.mode-option').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            // Close dropdown
-            const skinSelectBtn = document.getElementById('skinSelectBtn');
-            const skinDropdownList = document.getElementById('skinDropdownList');
-            if (skinDropdownList && skinSelectBtn) {
-              skinDropdownList.classList.remove('active');
-              skinSelectBtn.classList.remove('open');
+            // Save skin settings to localStorage
+            const iconSpan = card.querySelector('.skin-card-icon');
+            localStorage.setItem('zw_skinUrl', selectedSkinUrl);
+            localStorage.setItem('zw_skinName', selectedSkinName);
+            if (iconSpan) {
+              localStorage.setItem('zw_skinIcon', iconSpan.innerHTML);
             }
 
             // Update 3D preview
@@ -2154,7 +2484,7 @@
       }
 
       function openEmoteWheel() {
-        if (dead) return;
+        if (dead || brState === 'in_plane' || brState === 'falling') return;
 
         // Filter emotes based on current skin name
         const filtered = RAW_EMOTE_LIST.filter(emote => {
@@ -2335,6 +2665,7 @@
       }
 
       function playEmote(emote, isJoiner = false, initiatorOp = null) {
+        if (dead || brState === 'in_plane' || brState === 'falling') return;
         const videoPath = getEmoteVideoForCharacter(emote, selectedSkinName, isJoiner);
         if (!videoPath) return;
 
@@ -2519,6 +2850,7 @@
           return;
         }
         myName = n;
+        localStorage.setItem('zw_playerName', n);
         myId = rng();
         inLobby = false;
         document.getElementById('loginScreen').style.display = 'none';
@@ -2795,7 +3127,7 @@
 
       function brLand() {
         brState = 'none';
-        camera.position.y = 1.5;
+        camera.position.y = Math.max(1.5, camera.position.y);
         velocityY = 0;
         onGround = true;
         brAltitudeEl.style.display = 'none';
@@ -2848,8 +3180,10 @@
       const mapObjects = [];
       const particles = []; // active bullet impact debris particles
       const tracers = [];   // active sniper tracer lines
+      const projectiles = []; // active bazooka projectiles (rockets)
       let showWireframes = false;
       let redSpawns = [], blueSpawns = [];
+      let airdropSpawns = [];
       let editorPlaneStart = null, editorPlaneEnd = null;
       let firstSpawnDone = false;
 
@@ -2871,17 +3205,21 @@
       function clearMapObjects() {
         mapObjects.forEach(m => scene.remove(m));
         mapObjects.length = 0;
+        airdropSpawns = [];
       }
 
-      function spawnTracer(startPos, endPos) {
+      function spawnTracer(startPos, endPos, isMythic = false) {
         const dir = new THREE.Vector3().subVectors(endPos, startPos);
         const len = dir.length();
         const mid = new THREE.Vector3().addVectors(startPos, endPos).multiplyScalar(0.5);
 
+        const colorCore = isMythic ? 0xd020ff : 0xffee44;
+        const colorGlow = isMythic ? 0xff88ff : 0xffff88;
+
         // Bright core cylinder (slightly thicker: 0.05 radius)
         const geo = new THREE.CylinderGeometry(0.05, 0.05, len, 4, 1);
         const mat = new THREE.MeshBasicMaterial({
-          color: 0xffee44,
+          color: colorCore,
           transparent: true,
           opacity: 1.0,
           depthWrite: false
@@ -2898,7 +3236,7 @@
         // Outer glow cylinder (wider, softer: 0.20 radius)
         const glowGeo = new THREE.CylinderGeometry(0.20, 0.20, len, 6, 1);
         const glowMat = new THREE.MeshBasicMaterial({
-          color: 0xffff88,
+          color: colorGlow,
           transparent: true,
           opacity: 0.4,
           depthWrite: false
@@ -2908,6 +3246,138 @@
         glow.quaternion.copy(core.quaternion);
         scene.add(glow);
         tracers.push({ mesh: glow, life: 1.0, decay: 0.009 }); // Fades in ~1.8 seconds (at 60fps)
+      }
+
+      function createRocketMesh(dir) {
+        const group = new THREE.Group();
+
+        // Rocket body (cylinder)
+        const bodyGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.5, 8);
+        const bodyMat = new THREE.MeshBasicMaterial({ color: 0x555555 });
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        body.position.set(0, 0, 0);
+        group.add(body);
+
+        // Rocket tip (cone)
+        const tipGeo = new THREE.ConeGeometry(0.08, 0.2, 8);
+        const tipMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const tip = new THREE.Mesh(tipGeo, tipMat);
+        tip.position.set(0, 0.35, 0);
+        group.add(tip);
+
+        // Fins (thin boxes at the back)
+        const finGeo = new THREE.BoxGeometry(0.25, 0.15, 0.02);
+        const finMat = new THREE.MeshBasicMaterial({ color: 0x222222 });
+        const fin1 = new THREE.Mesh(finGeo, finMat);
+        fin1.position.set(0, -0.2, 0);
+        group.add(fin1);
+
+        const fin2 = fin1.clone();
+        fin2.rotation.y = Math.PI / 2;
+        group.add(fin2);
+
+        // Orient group along target direction (Cylinder is along Y, so align local Y with dir)
+        group.quaternion.setFromUnitVectors(
+          new THREE.Vector3(0, 1, 0),
+          dir.clone().normalize()
+        );
+
+        return group;
+      }
+
+      function spawnExplosion(point) {
+        // Spawn 65 explosion particles for a massive, eye-catching burst!
+        const particleCount = 65;
+
+        for (let i = 0; i < particleCount; i++) {
+          // Diverse sizes for realistic volumetric feel
+          const size = 0.15 + Math.random() * 0.45; // 0.15 to 0.60 units
+          const geo = new THREE.BoxGeometry(size, size, size);
+
+          // Color distribution: bright core, hot fire, dark smoke
+          let color;
+          const rand = Math.random();
+          if (rand < 0.2) {
+            color = 0xffffff; // Bright white hot core
+          } else if (rand < 0.5) {
+            color = 0xffaa00; // Vivid yellow-orange
+          } else if (rand < 0.8) {
+            color = 0xff3300; // Intense red-orange
+          } else {
+            color = 0x333333; // Dark charcoal smoke
+          }
+
+          const mat = new THREE.MeshBasicMaterial({
+            color: color,
+            transparent: true,
+            opacity: 1.0
+          });
+          const mesh = new THREE.Mesh(geo, mat);
+          mesh.position.copy(point);
+          scene.add(mesh);
+
+          // Velocities: some fast spark-like particles, some slow-swirling fire/smoke
+          const speedFactor = rand < 0.3 ? 0.45 : 0.22;
+          const velocity = new THREE.Vector3(
+            (Math.random() - 0.5) * speedFactor,
+            (Math.random() - 0.5) * speedFactor + 0.06, // upward rise
+            (Math.random() - 0.5) * speedFactor
+          );
+
+          particles.push({
+            mesh: mesh,
+            velocity: velocity,
+            life: 1.2 + Math.random() * 0.4, // lasts longer
+            decay: 0.012 + Math.random() * 0.015 // slower fading
+          });
+        }
+      }
+
+      function spawnRocketProjectile(start, end, targetId, dmg, isRemote) {
+        const dir = new THREE.Vector3().subVectors(end, start);
+        const len = dir.length();
+        const normalizedDir = dir.clone().normalize();
+
+        const rocketMesh = createRocketMesh(normalizedDir);
+        rocketMesh.position.copy(start);
+        scene.add(rocketMesh);
+
+        projectiles.push({
+          mesh: rocketMesh,
+          start: start.clone(),
+          end: end.clone(),
+          dir: normalizedDir,
+          speed: 0.8, // Adjust speed to be fast but clearly visible! E.g. 0.8 units per frame (~48 units/sec)
+          distanceTraveled: 0,
+          totalDistance: len,
+          onImpact: () => {
+            spawnExplosion(end);
+
+            // Play explosion sound (can use bazooka sound or separate, but since we are already at the target point, sound spatialization is nice)
+            const expSnd = new Audio('https://raw.githubusercontent.com/yoyoyogogo/png/main/bazooka.mp3');
+            expSnd.volume = Math.max(0, 0.4 - camera.position.distanceTo(end) * 0.005);
+            if (expSnd.volume > 0.05) {
+              expSnd.play().catch(() => { });
+            }
+
+            // Only deal damage if it's our own rocket (local player shot)
+            if (!isRemote && targetId) {
+              set(ref(db, `fps/hits_${gameMode}/${targetId}`), {
+                dmg,
+                from: myName,
+                team: gameMode === 'rvb' ? selectedTeam : null,
+                weapon: 'Bazooka',
+                t: Date.now()
+              });
+
+              // Project hit point to screen for damage number
+              const sp2 = end.clone().project(camera);
+              const sx = (sp2.x * .5 + .5) * GAME_W;
+              const sy = (1 - (sp2.y * .5 + .5)) * GAME_H;
+              spawnDmgNum(dmg, sx, sy, dmg >= 22);
+            }
+          }
+        });
       }
 
       function spawnDebris(point, normal, color) {
@@ -2963,6 +3433,11 @@
             }
             if (type === 'plane_end') {
               editorPlaneEnd = b;
+              return;
+            }
+            if (type === 'airdrop_spawn') {
+              airdropSpawns.push(b);
+              console.log("Parsed Airdrop Spawn from map data:", b, "Total spawns:", airdropSpawns.length);
               return;
             }
             const geo = new THREE.BoxGeometry(b.w || 2, b.h || 2, b.d || 2);
@@ -3298,12 +3773,18 @@
               }
             }
 
-            // Check for new sniper shots from this player
+            // Check for new shots from this player
             if (p.lastShot && p.lastShot.t > (op.lastShotTime || 0)) {
               op.lastShotTime = p.lastShot.t;
               const start = new THREE.Vector3(p.lastShot.start.x, p.lastShot.start.y, p.lastShot.start.z);
               const end = new THREE.Vector3(p.lastShot.end.x, p.lastShot.end.y, p.lastShot.end.z);
-              spawnTracer(start, end);
+
+              if (p.lastShot.weapon === 'Bazooka') {
+                spawnRocketProjectile(start, end, null, 0, true);
+              } else {
+                const isMythic = (p.lastShot.weapon === 'Fusil Mítico');
+                spawnTracer(start, end, isMythic);
+              }
             }
           });
           Object.keys(otherPlayers).forEach(id => { if (!seen.has(id)) removeOtherPlayer(id); });
@@ -3385,6 +3866,111 @@
               startMatchFromLobby();
             }
           }
+        });
+
+        /* ══ AIRDROP MULTIPLAYER & HOST LOGIC ══ */
+        // Listen to active mode players list to determine current host
+        onValue(ref(db, 'fps/players_' + gameMode), snap => {
+          if (inLobby) return;
+          const players = snap.val() || {};
+          const playerIds = Object.keys(players).sort();
+          currentHostId = playerIds[0] || null;
+        });
+
+        // Listen to Airdrop data
+        onValue(ref(db, 'fps/airdrop_' + gameMode), snap => {
+          if (inLobby) return;
+          const data = snap.val();
+
+          if (!data) {
+            removeAirdropMesh();
+            currentAirdropData = null;
+            return;
+          }
+
+          // Reset local Y to start fall height if it's a new falling airdrop
+          if (data.state === 'falling' && (!currentAirdropData || currentAirdropData.t !== data.t)) {
+            localAirdropY = data.y;
+          }
+
+          currentAirdropData = data;
+
+          if (!airdropMeshGroup) {
+            createAirdropMesh(data);
+          } else {
+            // Update visual state if opened
+            if (data.state === 'opened') {
+              airdropMeshGroup.traverse(child => {
+                if (child.isMesh && child.name === 'crate') {
+                  child.material.color.setHex(0x333333);
+                }
+                if (child.name === 'parachute' || child.name === 'parachuteLines') {
+                  child.visible = false;
+                }
+              });
+              // Stop local smoke signal
+              airdropSmokeParticles.forEach(p => scene.remove(p.mesh));
+              airdropSmokeParticles = [];
+            } else if (data.state === 'landed') {
+              airdropMeshGroup.traverse(child => {
+                if (child.name === 'parachute' || child.name === 'parachuteLines') {
+                  child.visible = false;
+                }
+              });
+            }
+          }
+        });
+
+        // Host check interval to periodically spawn airdrops
+        let airdropCheckInterval = setInterval(() => {
+          if (inLobby || dead) return;
+          if (gameMode === 'br' && brState !== 'none') return; // Only spawn in active match
+          if (!myId || !currentHostId || currentHostId !== myId) return; // Only host spawns
+
+          get(ref(db, 'fps/airdrop_' + gameMode)).then(snap => {
+            const data = snap.val();
+
+            let shouldSpawn = !data;
+            if (data) {
+              if (data.state === 'opened' && Date.now() - data.t > 45000) {
+                shouldSpawn = true;
+              } else if (data.state !== 'opened' && airdropSpawns.length > 0) {
+                // Check if current data coordinates match any designed spawn
+                const matchesAny = airdropSpawns.some(spawn =>
+                  Math.abs(spawn.x - data.x) < 0.1 && Math.abs(spawn.z - data.z) < 0.1
+                );
+                if (!matchesAny) {
+                  shouldSpawn = true; // Overwrite random legacy airdrop with the designed coordinates!
+                }
+              }
+            }
+
+            if (shouldSpawn) {
+              let rx, rz;
+              if (airdropSpawns.length > 0) {
+                const spawn = airdropSpawns[Math.floor(Math.random() * airdropSpawns.length)];
+                rx = spawn.x;
+                rz = spawn.z;
+              } else {
+                rx = (Math.random() - 0.5) * 160;
+                rz = (Math.random() - 0.5) * 160;
+              }
+              const landY = getGroundHeight(rx, rz);
+              set(ref(db, 'fps/airdrop_' + gameMode), {
+                x: +rx.toFixed(2),
+                y: 50.0,
+                z: +rz.toFixed(2),
+                landY: +landY.toFixed(2),
+                state: 'falling',
+                t: Date.now()
+              });
+            }
+          });
+        }, 12000); // Check every 12 seconds
+
+        // Clean up interval on disconnect/unload
+        window.addEventListener('beforeunload', () => {
+          clearInterval(airdropCheckInterval);
         });
       }
 
@@ -3494,6 +4080,15 @@
       document.getElementById('respawnBtn').addEventListener('click', () => {
         myHp = MAX_HP; dead = false; updateHealthUI();
         brCleanup(); pitch = 0;
+
+        // Reset mythic weapon status on death/respawn
+        hasMythicWeapon = false;
+        const ws4 = document.getElementById('ws4');
+        if (ws4) ws4.style.display = 'none';
+        if (currentWeaponIdx === 4) {
+          currentWeaponIdx = 0;
+          updateWeaponUI();
+        }
         if (gameMode === 'br') {
           listenToMap('lobby');
           initLobby();
@@ -3523,7 +4118,8 @@
         snd.volume = 0.4;
         snd.play().catch(() => { });
 
-        // Start fading out after 250ms, taking ~100ms to reach 0 volume (plays more of the sound)
+        // Start fading out after sndFadeDelay (defaults to 250ms), taking ~100ms to reach 0 volume (plays more of the sound)
+        const fadeDelay = w.sndFadeDelay !== undefined ? w.sndFadeDelay : 250;
         setTimeout(() => {
           let fadeInterval = setInterval(() => {
             if (snd.volume > 0.04) {
@@ -3534,7 +4130,7 @@
               clearInterval(fadeInterval);
             }
           }, 10);
-        }, 250);
+        }, fadeDelay);
 
         raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
 
@@ -3577,28 +4173,36 @@
           const op = otherPlayers[bestHit.id];
           if (!op) return;
           const w = curWeapon();
-          const dmg = w.damage[0] + Math.floor(Math.random() * (w.damage[1] - w.damage[0] + 1));
-          set(ref(db, `fps/hits_${gameMode}/${bestHit.id}`), {
-            dmg,
-            from: myName,
-            team: gameMode === 'rvb' ? selectedTeam : null,
-            weapon: w.name,
-            t: Date.now()
-          });
+          if (w.name !== 'Bazooka') {
+            const dmg = w.damage[0] + Math.floor(Math.random() * (w.damage[1] - w.damage[0] + 1));
+            set(ref(db, `fps/hits_${gameMode}/${bestHit.id}`), {
+              dmg,
+              from: myName,
+              team: gameMode === 'rvb' ? selectedTeam : null,
+              weapon: w.name,
+              t: Date.now()
+            });
+
+            // Project hit point to screen for damage number
+            const sp2 = bestHit.point.clone().project(camera);
+            const sx = (sp2.x * .5 + .5) * GAME_W;
+            const sy = (1 - (sp2.y * .5 + .5)) * GAME_H;
+            spawnDmgNum(dmg, sx, sy, dmg >= 22);
+
+            if (debugMode) {
+              const d = camera.position.distanceTo(op.group.position);
+              document.getElementById('dbHit').textContent =
+                `LAST HIT: ${op.data.name || bestHit.id} -${dmg}hp @ ${d.toFixed(1)}u${dmg >= 22 ? ' 💥CRIT' : ''}`;
+            }
+          } else {
+            if (debugMode) {
+              const d = camera.position.distanceTo(op.group.position);
+              document.getElementById('dbHit').textContent =
+                `LAST HIT (BAZOOKA ROCKET SHOT): ${op.data.name || bestHit.id} @ ${d.toFixed(1)}u`;
+            }
+          }
 
           tracerEnd = bestHit.point;
-
-          // Project hit point to screen for damage number
-          const sp2 = bestHit.point.clone().project(camera);
-          const sx = (sp2.x * .5 + .5) * GAME_W;
-          const sy = (1 - (sp2.y * .5 + .5)) * GAME_H;
-          spawnDmgNum(dmg, sx, sy, dmg >= 22);
-
-          if (debugMode) {
-            const d = camera.position.distanceTo(op.group.position);
-            document.getElementById('dbHit').textContent =
-              `LAST HIT: ${op.data.name || bestHit.id} -${dmg}hp @ ${d.toFixed(1)}u${dmg >= 22 ? ' 💥CRIT' : ''}`;
-          }
         } else {
           if (debugMode) {
             document.getElementById('dbHit').textContent = 'LAST HIT: MISS ✗';
@@ -3606,25 +4210,36 @@
           // If it hit a block instead of a player, spawn block impact particles
           if (targetBlockMesh) {
             tracerEnd = blockHitPoint;
-            const col = targetBlockMesh.material.color ? targetBlockMesh.material.color.getHex() : 0x888888;
-            const worldNormal = blockHitNormal.clone();
-            worldNormal.transformDirection(targetBlockMesh.matrixWorld);
-            spawnDebris(blockHitPoint, worldNormal, col);
+            if (curWeapon().name !== 'Bazooka') {
+              const col = targetBlockMesh.material.color ? targetBlockMesh.material.color.getHex() : 0x888888;
+              const worldNormal = blockHitNormal.clone();
+              worldNormal.transformDirection(targetBlockMesh.matrixWorld);
+              spawnDebris(blockHitPoint, worldNormal, col);
+            }
           }
         }
 
-        // Spawn sniper tracer line
-        if (curWeapon().name === 'Sniper') {
+        // Spawn sniper/mythic tracer line or bazooka rocket
+        const currentW = curWeapon();
+        if (currentW.name === 'Sniper' || currentW.name === 'Bazooka' || currentW.name === 'Fusil Mítico') {
           const dir = new THREE.Vector3();
           camera.getWorldDirection(dir);
           const muzzle = camera.position.clone().add(dir.clone().multiplyScalar(1.5));
           const end = tracerEnd ? tracerEnd.clone() : muzzle.clone().add(dir.multiplyScalar(200));
-          spawnTracer(muzzle, end);
+
+          if (currentW.name === 'Sniper' || currentW.name === 'Fusil Mítico') {
+            spawnTracer(muzzle, end, currentW.isMythic);
+          } else {
+            // Spawn local rocket projectile
+            const dmg = currentW.damage[0] + Math.floor(Math.random() * (currentW.damage[1] - currentW.damage[0] + 1));
+            spawnRocketProjectile(muzzle, end, bestHit ? bestHit.id : null, dmg, false);
+          }
 
           // Publish the shot details to Firebase so other players see it
           myLastShot = {
             start: { x: +muzzle.x.toFixed(2), y: +muzzle.y.toFixed(2), z: +muzzle.z.toFixed(2) },
             end: { x: +end.x.toFixed(2), y: +end.y.toFixed(2), z: +end.z.toFixed(2) },
+            weapon: currentW.name,
             t: Date.now()
           };
           publishPos();
@@ -3800,6 +4415,7 @@
         if (brState === 'in_plane' || brState === 'falling') return;
         if (idx === currentWeaponIdx) return;
         if (idx < 0 || idx >= WEAPONS.length) return;
+        if (idx === 4 && !hasMythicWeapon) return;
         if (switching) return;
         switching = true;
 
@@ -3876,13 +4492,16 @@
         if (selectedScreenMode === 'full') {
           GAME_W = window.innerWidth;
           GAME_H = window.innerHeight;
-          camera.aspect = GAME_W / GAME_H;
-          camera.updateProjectionMatrix();
-          renderer.setSize(GAME_W, GAME_H);
-          debugCanvas.width = GAME_W;
-          debugCanvas.height = GAME_H;
-          updateWeaponUI();
+        } else {
+          GAME_W = 800;
+          GAME_H = 560;
         }
+        camera.aspect = GAME_W / GAME_H;
+        camera.updateProjectionMatrix();
+        renderer.setSize(GAME_W, GAME_H);
+        debugCanvas.width = GAME_W;
+        debugCanvas.height = GAME_H;
+        updateWeaponUI();
       });
 
       /* ── INPUT ── */
@@ -3946,8 +4565,43 @@
         }
       }
 
+      function lootAirdrop() {
+        if (!currentAirdropData || currentAirdropData.state === 'opened') return;
+        const dist = camera.position.distanceTo(new THREE.Vector3(currentAirdropData.x, localAirdropY, currentAirdropData.z));
+        if (dist > 3.5) return;
+
+        // Update database state to opened
+        set(ref(db, 'fps/airdrop_' + gameMode), {
+          ...currentAirdropData,
+          state: 'opened',
+          openedBy: myName,
+          t: Date.now()
+        });
+
+        // Refill health
+        myHp = MAX_HP;
+        updateHealthUI();
+        publishPos();
+
+        // Unlock mythic weapon
+        hasMythicWeapon = true;
+        const ws4 = document.getElementById('ws4');
+        if (ws4) ws4.style.display = 'flex';
+
+        switchWeapon(4); // Switch to slot 4 (Fusil Mítico)
+
+        // Play loot sound
+        const lootSnd = new Audio(SND_DOUBLEKILL);
+        lootSnd.volume = 0.6;
+        lootSnd.play().catch(() => { });
+
+        // Broadcast to killfeed
+        broadcastKill(myName, "el Airdrop", gameMode === 'rvb' ? selectedTeam : null, "SAQUEADO 📦");
+      }
+
       window.addEventListener('keydown', e => {
         if (e.key.toLowerCase() === 'b' || e.key.toLowerCase() === 'g') {
+          if (brState === 'in_plane' || brState === 'falling') return;
           if (!inLobby && !emoteIsPlaying && closestSharedEmoteCandidate) {
             playEmote(closestSharedEmoteCandidate, true, closestSharedEmoteInitiator);
             return;
@@ -3970,11 +4624,26 @@
         if (e.key.toLowerCase() === 'l') { toggleDebug(); return; }
         if (e.key.toLowerCase() === 'k') { toggleAimbot(); return; }
         if (e.key.toLowerCase() === 'u') { toggleWireframes(); return; }
-        if (e.key.toLowerCase() === 'e') { brEject(); return; }
+        if (e.key.toLowerCase() === 'e') {
+          if (brState === 'in_plane') {
+            brEject();
+            return;
+          }
+          if (currentAirdropData && currentAirdropData.state !== 'opened') {
+            const dist = camera.position.distanceTo(new THREE.Vector3(currentAirdropData.x, localAirdropY, currentAirdropData.z));
+            if (dist <= 3.5) {
+              lootAirdrop();
+              return;
+            }
+          }
+          return;
+        }
         if (e.key.toLowerCase() === 'j') { triggerBrStart(); return; }
         if (e.key === '1') { switchWeapon(0); return; }
         if (e.key === '2') { switchWeapon(1); return; }
         if (e.key === '3') { switchWeapon(2); return; }
+        if (e.key === '4') { switchWeapon(3); return; }
+        if (e.key === '5' && hasMythicWeapon) { switchWeapon(4); return; }
         keys[e.key.toLowerCase()] = true;
         if ([' '].includes(e.key)) e.preventDefault();
       });
@@ -4101,10 +4770,30 @@
           const steer = BR_FALL_STEER;
           const fwd = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
           const rgt = new THREE.Vector3(Math.sin(yaw - Math.PI / 2), 0, Math.cos(yaw - Math.PI / 2));
-          if (keys['w']) { camera.position.x -= fwd.x * steer; camera.position.z -= fwd.z * steer; }
-          if (keys['s']) { camera.position.x += fwd.x * steer; camera.position.z += fwd.z * steer; }
-          if (keys['a']) { camera.position.x += rgt.x * steer; camera.position.z += rgt.z * steer; }
-          if (keys['d']) { camera.position.x -= rgt.x * steer; camera.position.z -= rgt.z * steer; }
+
+          const prevX = camera.position.x;
+          const prevZ = camera.position.z;
+          const prevY = camera.position.y;
+
+          let moveX = 0;
+          if (keys['w']) { moveX -= fwd.x * steer; }
+          if (keys['s']) { moveX += fwd.x * steer; }
+          if (keys['a']) { moveX += rgt.x * steer; }
+          if (keys['d']) { moveX -= rgt.x * steer; }
+          camera.position.x += moveX;
+          if (checkPlayerCollision(camera.position)) {
+            camera.position.x = prevX;
+          }
+
+          let moveZ = 0;
+          if (keys['w']) { moveZ -= fwd.z * steer; }
+          if (keys['s']) { moveZ += fwd.z * steer; }
+          if (keys['a']) { moveZ += rgt.z * steer; }
+          if (keys['d']) { moveZ -= rgt.z * steer; }
+          camera.position.z += moveZ;
+          if (checkPlayerCollision(camera.position)) {
+            camera.position.z = prevZ;
+          }
 
           brFallVelocityY += BR_FALL_GRAVITY;
           if (brFallVelocityY > BR_FALL_MAX_SPEED) brFallVelocityY = BR_FALL_MAX_SPEED;
@@ -4116,6 +4805,9 @@
 
           // Landing check
           if (camera.position.y <= 1.5) {
+            brLand();
+          } else if (checkPlayerCollision(camera.position)) {
+            camera.position.y = prevY;
             brLand();
           }
           return;
@@ -4262,6 +4954,125 @@
 
         if (!inLobby) maybePublish();
 
+        /* ══ AIRDROP RENDERING & UI UPDATES ══ */
+        if (currentAirdropData) {
+          // Falling logic
+          if (currentAirdropData.state === 'falling' && localAirdropY > currentAirdropData.landY) {
+            if (localAirdropY > currentAirdropData.landY) {
+              localAirdropY -= 0.15; // fall speed
+              if (localAirdropY <= currentAirdropData.landY) {
+                localAirdropY = currentAirdropData.landY;
+                if (isHost()) {
+                  set(ref(db, 'fps/airdrop_' + gameMode + '/state'), 'landed');
+                }
+              }
+            }
+            if (airdropMeshGroup) {
+              airdropMeshGroup.position.set(currentAirdropData.x, localAirdropY, currentAirdropData.z);
+              const para = airdropMeshGroup.getObjectByName('parachute');
+              const lines = airdropMeshGroup.getObjectByName('parachuteLines');
+              if (para) para.visible = true;
+              if (lines) lines.visible = true;
+            }
+          } else {
+            localAirdropY = currentAirdropData.landY;
+            if (airdropMeshGroup) {
+              airdropMeshGroup.position.set(currentAirdropData.x, localAirdropY, currentAirdropData.z);
+              const para = airdropMeshGroup.getObjectByName('parachute');
+              const lines = airdropMeshGroup.getObjectByName('parachuteLines');
+              if (para) para.visible = false;
+              if (lines) lines.visible = false;
+            }
+          }
+
+          // Green smoke signal emitter
+          if (currentAirdropData.state === 'landed') {
+            if (Math.random() < 0.12) {
+              const smokeSize = 0.2 + Math.random() * 0.35;
+              const smokeGeo = new THREE.BoxGeometry(smokeSize, smokeSize, smokeSize);
+              const greenMat = new THREE.MeshBasicMaterial({
+                color: 0x44ff44,
+                transparent: true,
+                opacity: 0.65
+              });
+              const smokeMesh = new THREE.Mesh(smokeGeo, greenMat);
+              smokeMesh.position.set(
+                currentAirdropData.x + (Math.random() - 0.5) * 1.0,
+                localAirdropY + 1.0,
+                currentAirdropData.z + (Math.random() - 0.5) * 1.0
+              );
+              scene.add(smokeMesh);
+
+              airdropSmokeParticles.push({
+                mesh: smokeMesh,
+                velocity: new THREE.Vector3(
+                  (Math.random() - 0.5) * 0.03,
+                  0.04 + Math.random() * 0.04,
+                  (Math.random() - 0.5) * 0.03
+                ),
+                life: 1.0,
+                decay: 0.012 + Math.random() * 0.008
+              });
+            }
+          }
+
+          // Update green smoke particles
+          for (let i = airdropSmokeParticles.length - 1; i >= 0; i--) {
+            const p = airdropSmokeParticles[i];
+            p.mesh.position.add(p.velocity);
+            p.life -= p.decay;
+            p.mesh.scale.setScalar(p.life);
+            p.mesh.material.opacity = p.life * 0.65;
+            if (p.life <= 0) {
+              scene.remove(p.mesh);
+              p.mesh.geometry.dispose();
+              p.mesh.material.dispose();
+              airdropSmokeParticles.splice(i, 1);
+            }
+          }
+
+          // Projection and indicator logic
+          if (currentAirdropData.state !== 'opened') {
+            const dist = camera.position.distanceTo(new THREE.Vector3(currentAirdropData.x, localAirdropY, currentAirdropData.z));
+            const airdropPos3D = new THREE.Vector3(currentAirdropData.x, localAirdropY + 1.2, currentAirdropData.z);
+            const projected = airdropPos3D.clone().project(camera);
+            const isBehind = (projected.z >= 1);
+
+            const markerEl = document.getElementById('airdropMarker');
+            if (markerEl) {
+              if (!isBehind) {
+                const sx = (projected.x * 0.5 + 0.5) * GAME_W;
+                const sy = (1 - (projected.y * 0.5 + 0.5)) * GAME_H;
+                markerEl.style.display = 'block';
+                markerEl.style.left = sx + 'px';
+                markerEl.style.top = sy + 'px';
+                document.getElementById('airdropDistText').textContent = Math.round(dist) + 'm';
+              } else {
+                markerEl.style.display = 'none';
+              }
+            }
+
+            const promptEl = document.getElementById('airdropPrompt');
+            if (promptEl) {
+              if (dist <= 3.5 && !dead) {
+                promptEl.style.display = 'block';
+              } else {
+                promptEl.style.display = 'none';
+              }
+            }
+          } else {
+            const markerEl = document.getElementById('airdropMarker');
+            const promptEl = document.getElementById('airdropPrompt');
+            if (markerEl) markerEl.style.display = 'none';
+            if (promptEl) promptEl.style.display = 'none';
+          }
+        } else {
+          const markerEl = document.getElementById('airdropMarker');
+          const promptEl = document.getElementById('airdropPrompt');
+          if (markerEl) markerEl.style.display = 'none';
+          if (promptEl) promptEl.style.display = 'none';
+        }
+
         // Update debris particles
         for (let i = particles.length - 1; i >= 0; i--) {
           const p = particles[i];
@@ -4287,6 +5098,61 @@
             t.mesh.geometry.dispose();
             t.mesh.material.dispose();
             tracers.splice(i, 1);
+          }
+        }
+
+        // Update projectiles
+        for (let i = projectiles.length - 1; i >= 0; i--) {
+          const p = projectiles[i];
+          p.distanceTraveled += p.speed;
+          if (p.distanceTraveled >= p.totalDistance) {
+            // Hit!
+            p.mesh.position.copy(p.end);
+            p.onImpact();
+            scene.remove(p.mesh);
+            p.mesh.traverse(child => {
+              if (child.isMesh) {
+                child.geometry.dispose();
+                child.material.dispose();
+              }
+            });
+            projectiles.splice(i, 1);
+          } else {
+            // Move mesh forward
+            const newPos = p.start.clone().addScaledVector(p.dir, p.distanceTraveled);
+            p.mesh.position.copy(newPos);
+
+            // Spawn thick smoke trail particle
+            if (Math.random() < 0.8) {
+              const smokeSize = 0.12 + Math.random() * 0.2; // 0.12 to 0.32 size
+              const smokeGeo = new THREE.BoxGeometry(smokeSize, smokeSize, smokeSize);
+
+              // Fade from light grey to dark grey
+              const greyVal = Math.floor(60 + Math.random() * 60);
+              const color = (greyVal << 16) | (greyVal << 8) | greyVal;
+
+              const smokeMat = new THREE.MeshBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0.7
+              });
+              const smokeMesh = new THREE.Mesh(smokeGeo, smokeMat);
+
+              // Slight offset behind the rocket for better aesthetic
+              smokeMesh.position.copy(newPos).addScaledVector(p.dir, -0.3);
+              scene.add(smokeMesh);
+
+              particles.push({
+                mesh: smokeMesh,
+                velocity: new THREE.Vector3(
+                  (Math.random() - 0.5) * 0.03,
+                  (Math.random() - 0.5) * 0.03 + 0.01, // slow rising smoke!
+                  (Math.random() - 0.5) * 0.03
+                ),
+                life: 1.5, // starts with higher life
+                decay: 0.008 + Math.random() * 0.008 // decays much slower!
+              });
+            }
           }
         }
 
