@@ -1694,18 +1694,26 @@
     function updateOnlineCount() {
       document.getElementById('onlineCount').textContent = normalCount + brCount + rvbCount;
     }
-    onValue(ref(db, 'fps/players_normal'), snap => {
-      normalCount = Object.keys(snap.val() || {}).length;
-      updateOnlineCount();
-    });
-    onValue(ref(db, 'fps/players_br'), snap => {
-      brCount = Object.keys(snap.val() || {}).length;
-      updateOnlineCount();
-    });
-    onValue(ref(db, 'fps/players_rvb'), snap => {
-      rvbCount = Object.keys(snap.val() || {}).length;
-      updateOnlineCount();
-    });
+    /* Optimización: usar get() periódico en vez de onValue para el conteo.
+       onValue suscribía a TODOS los datos de jugadores (posiciones, skins, etc.)
+       y se disparaba con cada movimiento de cada jugador, saturando la red.
+       Ahora solo consultamos los conteos cada 15 segundos. */
+    function fetchPlayerCounts() {
+      get(ref(db, 'fps/players_normal')).then(snap => {
+        normalCount = Object.keys(snap.val() || {}).length;
+        updateOnlineCount();
+      }).catch(() => {});
+      get(ref(db, 'fps/players_br')).then(snap => {
+        brCount = Object.keys(snap.val() || {}).length;
+        updateOnlineCount();
+      }).catch(() => {});
+      get(ref(db, 'fps/players_rvb')).then(snap => {
+        rvbCount = Object.keys(snap.val() || {}).length;
+        updateOnlineCount();
+      }).catch(() => {});
+    }
+    fetchPlayerCounts();
+    setInterval(fetchPlayerCounts, 15000);
 
     /* ══ LOGIN ══ */
     let myId = '', myName = '', selectedMode = 'normal', selectedScreenMode = 'windowed';
@@ -2349,35 +2357,53 @@
         return '';
       }
 
+      /* Optimización: descarga lazy de videos de emotes.
+         Antes se descargaban TODOS los videos de golpe al cargar la página,
+         saturando la red y causando lag. Ahora se descargan uno por uno
+         con pausas de 2 segundos entre cada descarga. */
+      let preFetchQueue = [];
+      let preFetchRunning = false;
+
       function preFetchVideos() {
+        const seen = new Set();
         RAW_EMOTE_LIST.forEach(emote => {
           const videos = [];
           if (emote.characterVideos) {
-            Object.values(emote.characterVideos).forEach(v => {
-              if (v) videos.push(v);
-            });
+            Object.values(emote.characterVideos).forEach(v => { if (v) videos.push(v); });
           }
           if (emote.characterVideosJoin) {
-            Object.values(emote.characterVideosJoin).forEach(v => {
-              if (v) videos.push(v);
-            });
+            Object.values(emote.characterVideosJoin).forEach(v => { if (v) videos.push(v); });
           }
-          if (emote.video) {
-            videos.push(emote.video);
-          }
+          if (emote.video) videos.push(emote.video);
+
           videos.forEach(video => {
             const resolved = resolveUrl(video);
-            if (emoteBlobUrls[resolved]) return;
-
-            fetch(resolved)
-              .then(r => r.blob())
-              .then(blob => {
-                const videoBlob = new Blob([blob], { type: 'video/webm' });
-                emoteBlobUrls[resolved] = URL.createObjectURL(videoBlob);
-              })
-              .catch(() => { });
+            if (!seen.has(resolved) && !emoteBlobUrls[resolved]) {
+              seen.add(resolved);
+              preFetchQueue.push(resolved);
+            }
           });
         });
+        if (!preFetchRunning) processPreFetchQueue();
+      }
+
+      function processPreFetchQueue() {
+        if (preFetchQueue.length === 0) { preFetchRunning = false; return; }
+        preFetchRunning = true;
+        const url = preFetchQueue.shift();
+        if (emoteBlobUrls[url]) {
+          setTimeout(processPreFetchQueue, 100);
+          return;
+        }
+        fetch(url)
+          .then(r => r.blob())
+          .then(blob => {
+            emoteBlobUrls[url] = URL.createObjectURL(new Blob([blob], { type: 'video/webm' }));
+          })
+          .catch(() => { })
+          .finally(() => {
+            setTimeout(processPreFetchQueue, 2000);
+          });
       }
 
       function getSectorPath(cx, cy, rInner, rOuter, startAngle, endAngle) {
@@ -3611,7 +3637,7 @@
       let myLastShot = null;
 
       function publishPos() {
-        if (inLobby) return;
+        if (inLobby || !myRef) return;
         const pos = emoteIsPlaying ? playerPhysicalPos : camera.position;
         set(myRef, {
           name: myName,
