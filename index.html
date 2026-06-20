@@ -61,7 +61,7 @@ canvas{display:block}
 .ws-slot{background:rgba(0,0,0,.55);border:1px solid #ffffff22;border-radius:6px;padding:6px 14px;color:#888;font-size:10px;letter-spacing:1px;text-transform:uppercase;transition:all .2s;display:flex;align-items:center;gap:6px;white-space:nowrap}
 .ws-slot.active{border-color:#ff4444;color:#ff4444;background:rgba(255,68,68,.1);box-shadow:0 0 12px #ff444433}
 .ws-key{background:rgba(255,255,255,.1);border-radius:3px;padding:1px 5px;font-size:9px;color:#aaa}
-#ws4.ws-slot{border-color:#ffaa00!important;color:#ffaa00!important;background:rgba(255,170,0,.08)!important;text-shadow:0 0 8px rgba(255,170,0,.6);box-shadow:0 0 15px rgba(255,170,0,.25);animation:goldGlow 1.5s ease-in-out infinite alternate}
+#ws5.ws-slot{border-color:#ffaa00!important;color:#ffaa00!important;background:rgba(255,170,0,.08)!important;text-shadow:0 0 8px rgba(255,170,0,.6);box-shadow:0 0 15px rgba(255,170,0,.25);animation:goldGlow 1.5s ease-in-out infinite alternate}
 @keyframes goldGlow{from{box-shadow:0 0 8px rgba(255,170,0,.25);border-color:#ffaa00}to{box-shadow:0 0 20px rgba(255,170,0,.6);border-color:#ffe600}}
 
 /* HUD */
@@ -76,7 +76,7 @@ canvas{display:block}
 .pl-dot{width:6px;height:6px;background:#44ff44;border-radius:50%;box-shadow:0 0 6px #44ff44;flex-shrink:0}
 .pl-dot.me{background:#ff4444;box-shadow:0 0 6px #ff4444}
 .pl-hp{color:#aaa;font-size:10px}
-#myName{position:absolute;top:12px;left:12px;background:rgba(0,0,0,.6);border:1px solid #ff444433;border-radius:6px;padding:8px 14px;color:#ff4444;font-size:12px;letter-spacing:2px}
+#myName{position:absolute;top:154px;left:12px;background:rgba(0,0,0,.6);border:1px solid #ff444433;border-radius:6px;padding:8px 14px;color:#ff4444;font-size:12px;letter-spacing:2px}
 #instructions{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.5);border-radius:6px;padding:5px 12px;color:#555;font-size:10px;letter-spacing:1px;white-space:nowrap}
 
 /* LOCK OVERLAY */
@@ -109,7 +109,7 @@ canvas{display:block}
 @keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}60%{opacity:1;transform:translateY(-40px) scale(1.1)}100%{opacity:0;transform:translateY(-70px) scale(.8)}}
 
 /* KILL FEED */
-#killFeed{position:absolute;top:60px;left:12px;display:flex;flex-direction:column;gap:4px;pointer-events:none;z-index:20;max-height:300px;overflow:hidden}
+#killFeed{position:absolute;top:198px;left:12px;display:flex;flex-direction:column;gap:4px;pointer-events:none;z-index:20;max-height:300px;overflow:hidden}
 .kf-entry{display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.72);border-left:3px solid #ff4444;border-radius:0 4px 4px 0;padding:5px 12px 5px 8px;font-size:11px;letter-spacing:1px;white-space:nowrap;animation:kfSlideIn .3s ease-out forwards;opacity:0;transform:translateX(-40px)}
 .kf-entry.fade-out{animation:kfFadeOut .5s ease-in forwards}
 .kf-entry.me-kill{border-left-color:#ffcc00;background:rgba(255,204,0,.08)}
@@ -255,6 +255,18 @@ canvas{display:block}
 .btn-confirm-create{background:linear-gradient(135deg,#ffe600,#ffaa00);border:none;border-radius:10px;padding:12px 30px;color:#000;font-family:'Courier New',monospace;font-size:.9em;font-weight:900;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:all .2s;box-shadow:0 0 25px rgba(255,200,0,.3);opacity:.4;pointer-events:none}
 .btn-confirm-create.ready{opacity:1;pointer-events:auto}
 .btn-confirm-create.ready:hover{transform:scale(1.05) translateY(-2px);box-shadow:0 0 40px rgba(255,200,0,.6)}
+
+/* MINIMAP */
+#minimapContainer{position:absolute;top:12px;left:12px;width:130px;height:130px;border-radius:50%;border:2px solid rgba(255,68,68,0.4);background:rgba(10,10,15,0.85);box-shadow:0 0 20px rgba(0,0,0,0.7),inset 0 0 15px rgba(255,68,68,0.15);backdrop-filter:blur(8px);overflow:hidden;z-index:100;pointer-events:none;transition:width 0.35s cubic-bezier(0.19,1,0.22,1),height 0.35s cubic-bezier(0.19,1,0.22,1),top 0.35s cubic-bezier(0.19,1,0.22,1),left 0.35s cubic-bezier(0.19,1,0.22,1),transform 0.35s cubic-bezier(0.19,1,0.22,1),border-radius 0.35s cubic-bezier(0.19,1,0.22,1),border-color 0.35s,box-shadow 0.35s}
+#minimapContainer.expanded{top:50%;left:50%;width:500px;height:500px;transform:translate(-50%,-50%);border-radius:12px;pointer-events:auto;border-color:rgba(255,170,0,0.5);box-shadow:0 15px 50px rgba(0,0,0,0.8),inset 0 0 30px rgba(255,170,0,0.1)}
+#minimapCanvas{position:absolute;top:0;left:0;width:100%;height:100%}
+#minimapGridOverlay{position:absolute;inset:0;background:radial-gradient(circle,transparent 40%,rgba(10,10,15,0.4) 100%),linear-gradient(rgba(255,68,68,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,68,68,0.05) 1px,transparent 1px);background-size:100% 100%,15px 15px,15px 15px;background-position:center;pointer-events:none;opacity:0.85}
+#minimapCompass{position:absolute;inset:0;pointer-events:none;z-index:101;font-family:'Courier New',monospace;font-weight:bold;font-size:9px;color:rgba(255,255,255,0.5)}
+#minimapCompass span{position:absolute;transform:translate(-50%,-50%)}
+#minimapCompass .dir-n{top:10px;left:50%;color:#ff4444}
+#minimapCompass .dir-e{top:50%;left:calc(100% - 10px)}
+#minimapCompass .dir-s{top:calc(100% - 10px);left:50%}
+#minimapCompass .dir-w{top:50%;left:10px}
 </style>
 </head>
 <body>
@@ -371,6 +383,7 @@ canvas{display:block}
       <div id="dbWireframe" style="color:#ff4444;cursor:pointer;user-select:none">BORDES: OFF [U]</div>
       <div id="dbShadows" style="color:#ff4444;cursor:pointer;user-select:none">SOMBRAS: OFF [O]</div>
       <div id="dbSky" style="color:#ff4444;cursor:pointer;user-select:none">CIELO:    OFF [P]</div>
+      <div id="dbMinimap" style="color:#00ff44;cursor:pointer;user-select:none">MINIMAPA: ON [I]</div>
     </div>
   </div>
 
@@ -434,6 +447,16 @@ canvas{display:block}
 
   <!-- HUD -->
   <div id="hud">
+    <div id="minimapContainer">
+      <canvas id="minimapCanvas" width="500" height="500"></canvas>
+      <div id="minimapGridOverlay"></div>
+      <div id="minimapCompass">
+        <span class="dir-n">N</span>
+        <span class="dir-e">E</span>
+        <span class="dir-s">S</span>
+        <span class="dir-w">W</span>
+      </div>
+    </div>
     <div id="myName"></div>
     <div id="playerList">
       <div class="pl-title">◉ Jugadores</div>
@@ -448,9 +471,10 @@ canvas{display:block}
       <div class="ws-slot" id="ws1"><span class="ws-key">2</span> Sniper</div>
       <div class="ws-slot" id="ws2"><span class="ws-key">3</span> Pistola</div>
       <div class="ws-slot" id="ws3"><span class="ws-key">4</span> Bazooka</div>
-      <div class="ws-slot" id="ws4" style="display:none"><span class="ws-key">5</span> Fusil Mítico</div>
+      <div class="ws-slot" id="ws4"><span class="ws-key">5</span> Escopeta</div>
+      <div class="ws-slot" id="ws5" style="display:none"><span class="ws-key">6</span> Ametralladora</div>
     </div>
-    <div id="instructions">WASD · Shift:sprint · Espacio:saltar · Clic der:apuntar · Clic izq:disparar · 1-4:armas · L:debug</div>
+    <div id="instructions">WASD · Shift:sprint · Espacio:saltar · Clic der:apuntar · Clic izq:disparar · 1-5:armas · L:debug</div>
   </div>
 </div>
 
@@ -481,11 +505,12 @@ const SND_TRIPLEKILL = "https://raw.githubusercontent.com/yoyoyogogo/png/main/tr
 const SND_QUADKILL   = "https://raw.githubusercontent.com/yoyoyogogo/png/main/cuatrokill.mp3";
 
 const WEAPONS = [
-  { name:'Rifle',      imgIdle:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun1.png',   imgAim:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun1.5.png', damage:[15,25], fireRate:130,  fovNormal:75, fovAim:60,  useScope:false },
-  { name:'Sniper',     imgIdle:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun2.png',   imgAim:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun2.png',   damage:[45,70], fireRate:1100, fovNormal:75, fovAim:30,  useScope:true  },
-  { name:'Pistola',    imgIdle:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun3.png',   imgAim:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun3.5.png', damage:[15,25], fireRate:300,  fovNormal:75, fovAim:60,  useScope:false, sndShoot:'https://raw.githubusercontent.com/yoyoyogogo/png/main/disparopistola2.mp3' },
-  { name:'Bazooka',    imgIdle:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun4.png',   imgAim:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun4.5.png', damage:[60,90], fireRate:1500, fovNormal:75, fovAim:55,  useScope:false, sndShoot:'https://raw.githubusercontent.com/yoyoyogogo/png/main/bazooka.mp3', sndFadeDelay:1000 },
-  { name:'Fusil Mítico', imgIdle:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun1.png', imgAim:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun1.5.png', damage:[35,55], fireRate:95,   fovNormal:75, fovAim:50,  useScope:false, sndShoot:'https://raw.githubusercontent.com/yoyoyogogo/png/main/disparopistola.mp3', isMythic:true }
+  { name:'Rifle',      imgIdle:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun1.png',   imgAim:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun1.5.png', damage:[15,25], fireRate:130,  fovNormal:75, fovAim:60,  useScope:false, sndShoot:'https://raw.githubusercontent.com/yoyoyogogo/png/main/disparopistola.mp3', sndFadeDelay:400 },
+  { name:'Sniper',     imgIdle:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun2.png',   imgAim:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun2.png',   damage:[45,70], fireRate:1100, fovNormal:75, fovAim:30,  useScope:true,  sndShoot:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun5.mp3', sndFadeDelay:1500 },
+  { name:'Pistola',    imgIdle:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun3.png',   imgAim:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun3.5.png', damage:[15,25], fireRate:300,  fovNormal:75, fovAim:60,  useScope:false, sndShoot:'https://raw.githubusercontent.com/yoyoyogogo/png/main/disparopistola2.mp3', sndFadeDelay:500 },
+  { name:'Bazooka',    imgIdle:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun4.png',   imgAim:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun4.5.png', damage:[60,90], fireRate:1500, fovNormal:75, fovAim:55,  useScope:false, sndShoot:'https://raw.githubusercontent.com/yoyoyogogo/png/main/bazooka.mp3', sndFadeDelay:1000, sndImpact:'https://raw.githubusercontent.com/yoyoyogogo/png/main/impacto.mp3' },
+  { name:'Escopeta',   imgIdle:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun6.png',   imgAim:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun6.5.png', damage:[35,55], fireRate:900,  fovNormal:75, fovAim:65,  useScope:false, sndShoot:'https://raw.githubusercontent.com/yoyoyogogo/png/main/disparoescopeta.mp3', sndFadeDelay:600 },
+  { name:'Ametralladora', imgIdle:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun5.png', imgAim:'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun5.5.png', damage:[35,55], fireRate:95,   fovNormal:75, fovAim:50,  useScope:false, sndShoot:'https://raw.githubusercontent.com/yoyoyogogo/png/main/disparopistola.mp3', isMythic:true, sndFadeDelay:400 }
 ];
 
 const MAX_HP = 200, QUAD_W = 1.8, QUAD_H = 2.4;
@@ -729,7 +754,8 @@ function initGame(){
   // Pre-initialize pools for weapon sounds
   [SND_SHOOT, 
    'https://raw.githubusercontent.com/yoyoyogogo/png/main/disparopistola2.mp3', 
-   'https://raw.githubusercontent.com/yoyoyogogo/png/main/bazooka.mp3'].forEach(url => getPooledAudio(url));
+   'https://raw.githubusercontent.com/yoyoyogogo/png/main/bazooka.mp3',
+   'https://raw.githubusercontent.com/yoyoyogogo/png/main/explosion.mp3'].forEach(url => getPooledAudio(url));
 
   const spawnPos=()=>({x:(Math.random()-.5)*60,z:(Math.random()-.5)*60});
 
@@ -1168,6 +1194,18 @@ function initGame(){
     document.getElementById('dbSky').style.color=skyOn?'#00ff44':'#ff4444';
   }
 
+  let minimapOn=true;
+  function toggleMinimapDebug(){
+    if(!debugMode) return; minimapOn=!minimapOn;
+    const container=document.getElementById('minimapContainer');
+    if(container) container.style.display=minimapOn?'block':'none';
+    const el=document.getElementById('dbMinimap');
+    if(el){
+      el.textContent=`MINIMAPA: ${minimapOn?'ON 🟢':'OFF'} [I]`;
+      el.style.color=minimapOn?'#00ff44':'#ff4444';
+    }
+  }
+
   function setBRFlightPath(){
     if(editorPlaneStart&&editorPlaneEnd){ brFlightStart.set(editorPlaneStart.x,editorPlaneStart.y??BR_PLANE_HEIGHT,editorPlaneStart.z); brFlightEnd.set(editorPlaneEnd.x,editorPlaneEnd.y??BR_PLANE_HEIGHT,editorPlaneEnd.z); }
     else{
@@ -1268,8 +1306,26 @@ function initGame(){
 
   function clearMapObjects(){ mapObjects.forEach(m=>scene.remove(m)); mapObjects.length=0; airdropSpawns=[]; Object.keys(structureGroups).forEach(k=>delete structureGroups[k]); }
 
-  function spawnTracer(start,end,isMythic=false){
+  function spawnTracer(start,end,isMythic=false,isShotgun=false){
     if (camera.position.distanceToSquared(start) > 10000 && camera.position.distanceToSquared(end) > 10000) return;
+    if(isShotgun){
+      const dir=new THREE.Vector3().subVectors(end,start),len=dir.length();
+      for(let i=0;i<6;i++){
+        const spread = 0.08;
+        const pelletEnd = end.clone().add(new THREE.Vector3(
+          (Math.random()-0.5)*len*spread,
+          (Math.random()-0.5)*len*spread,
+          (Math.random()-0.5)*len*spread
+        ));
+        const pDir=new THREE.Vector3().subVectors(pelletEnd,start),pLen=pDir.length(),pMid=new THREE.Vector3().addVectors(start,pelletEnd).multiplyScalar(.5);
+        [[.03,0xffee44,1.0,.012],[.12,0xffff88,.4,.018]].forEach(([r,col,op,dc])=>{
+          const m=new THREE.Mesh(geoTracer,new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:op,depthWrite:false}));
+          m.scale.set(r, pLen, r);
+          m.position.copy(pMid); m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),pDir.clone().normalize()); scene.add(m); tracers.push({mesh:m,life:1.0,decay:dc});
+        });
+      }
+      return;
+    }
     const dir=new THREE.Vector3().subVectors(end,start),len=dir.length(),mid=new THREE.Vector3().addVectors(start,end).multiplyScalar(.5);
     [[.05,isMythic?0xd020ff:0xffee44,1.0,.006],[.20,isMythic?0xff88ff:0xffff88,.4,.009]].forEach(([r,col,op,dc])=>{
       const m=new THREE.Mesh(geoTracer,new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:op,depthWrite:false}));
@@ -1301,27 +1357,36 @@ function initGame(){
   }
 
   function destroyStructureAt(ip){
-    const R=8; let hitGroupId=null, hit=null, best=Infinity;
-    const destroyedIds=new Set(Object.values(structureGroups).map(g=>g.destroyedGroupId).filter(Boolean));
-    Object.entries(structureGroups).forEach(([gid,grp])=>{
-      if(destroyedIds.has(gid)||destroyedStructures.has(gid)||!grp.destroyedGroupId||!structureGroups[grp.destroyedGroupId]) return;
-      grp.meshes.forEach(m=>{ if(!m.visible) return; const d=ip.distanceTo(m.position); if(d<R&&d<best){ best=d; hit=grp; hitGroupId=gid; }});
+    const R=8;
+    let blocksDestroyed=0;
+    mapObjects.forEach(m=>{
+      if(!m.visible) return;
+      if(m.userData?.destructible){
+        const d=ip.distanceTo(m.position);
+        if(d<R){
+          m.visible=false;
+          blocksDestroyed++;
+          const col=m.material.color?m.material.color.getHex():0x888888;
+          spawnDebris(m.position,new THREE.Vector3(0,1,0),col);
+        }
+      }
     });
-    if(!hit) return;
-    destroyedStructures.add(hitGroupId); hit.meshes.forEach(m=>m.visible=false);
-    structureGroups[hit.destroyedGroupId]?.meshes.forEach(m=>m.visible=true);
-    const orig=camera.position.clone(); let st=0;
-    const si=setInterval(()=>{ st++; const i=Math.max(0,.18-st*.012); camera.position.x=orig.x+(Math.random()-.5)*i; camera.position.y=orig.y+(Math.random()-.5)*i; camera.position.z=orig.z+(Math.random()-.5)*i; if(st>=15){ clearInterval(si); camera.position.copy(orig); }},16);
+    if(blocksDestroyed>0){
+      const orig=camera.position.clone(); let st=0;
+      const si=setInterval(()=>{ st++; const i=Math.max(0,.18-st*.012); camera.position.x=orig.x+(Math.random()-.5)*i; camera.position.y=orig.y+(Math.random()-.5)*i; camera.position.z=orig.z+(Math.random()-.5)*i; if(st>=15){ clearInterval(si); camera.position.copy(orig); }},16);
+    }
   }
 
   function spawnRocketProjectile(start,end,targetId,dmg,isRemote){
     if (isRemote && camera.position.distanceToSquared(start) > 10000 && camera.position.distanceToSquared(end) > 10000) return;
     const dir=new THREE.Vector3().subVectors(end,start),len=dir.length(),nd=dir.clone().normalize();
     const mesh=createRocketMesh(nd); mesh.position.copy(start); scene.add(mesh);
+    const bz = WEAPONS.find(w => w.name === 'Bazooka');
+    const impactSndUrl = (bz && bz.sndImpact) || 'https://raw.githubusercontent.com/yoyoyogogo/png/main/explosion.mp3';
     projectiles.push({mesh,start:start.clone(),end:end.clone(),dir:nd,speed:.8,distanceTraveled:0,totalDistance:len,
       onImpact:()=>{
         spawnExplosion(end); destroyStructureAt(end);
-        const es=new Audio('https://raw.githubusercontent.com/yoyoyogogo/png/main/bazooka.mp3');
+        const es=new Audio(impactSndUrl);
         es.volume=Math.max(0,.4-camera.position.distanceTo(end)*.005); if(es.volume>.05) es.play().catch(()=>{});
         if(!isRemote&&targetId){ set(ref(db,`fps/hits_${gameMode}/${targetId}`),{dmg,from:myName,team:gameMode==='rvb'?selectedTeam:null,weapon:'Bazooka',t:Date.now()}); const p2=end.clone().project(camera); spawnDmgNum(dmg,(p2.x*.5+.5)*GAME_W,(1-(p2.y*.5+.5))*GAME_H,dmg>=22); }
       }
@@ -1355,15 +1420,14 @@ function initGame(){
         mesh.castShadow = true;
         mesh.receiveShadow = true;
         if(b.groupId) mesh.userData.groupId=b.groupId;
+        mesh.userData.destructible = b.destructible === true;
         const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0x000000,transparent:true,opacity:.22})); edges.name='wireframe'; edges.visible=showWireframes; mesh.add(edges);
         scene.add(mesh);
         if(b.collision!==false){ mesh.updateMatrixWorld(true); mesh.geometry.computeBoundingBox(); mesh.userData.bbox=new THREE.Box3().setFromObject(mesh); mapObjects.push(mesh); }
       });
     }
-    if(data.groupMeta) Object.entries(data.groupMeta).forEach(([gid,meta])=>{ structureGroups[gid]={meshes:[],destroyedGroupId:meta.destroyedGroupId||'',name:meta.name||gid}; });
+    if(data.groupMeta) Object.entries(data.groupMeta).forEach(([gid,meta])=>{ structureGroups[gid]={meshes:[],name:meta.name||gid}; });
     scene.children.forEach(obj=>{ const gid=obj.userData?.groupId; if(gid&&structureGroups[gid]) structureGroups[gid].meshes.push(obj); });
-    const destroyedIds=new Set(Object.values(structureGroups).map(g=>g.destroyedGroupId).filter(Boolean));
-    destroyedIds.forEach(dgid=>structureGroups[dgid]?.meshes.forEach(m=>m.visible=false));
     if(gameMode==='rvb'&&!firstSpawnDone){ firstSpawnDone=true; const sp=getSpawnPosition(); camera.position.set(sp.x,sp.y,sp.z); }
   }
 
@@ -1505,15 +1569,14 @@ function initGame(){
           const start=new THREE.Vector3(p.lastShot.start.x,p.lastShot.start.y,p.lastShot.start.z);
           const end=new THREE.Vector3(p.lastShot.end.x,p.lastShot.end.y,p.lastShot.end.z);
           if(p.lastShot.weapon !== 'Bazooka'){
-            const sndUrl = p.lastShot.weapon === 'Pistola'
-              ? 'https://raw.githubusercontent.com/yoyoyogogo/png/main/disparopistola2.mp3'
-              : 'https://raw.githubusercontent.com/yoyoyogogo/png/main/disparopistola.mp3';
+            const wObj = WEAPONS.find(w => w.name === p.lastShot.weapon);
+            const sndUrl = (wObj && wObj.sndShoot) || SND_SHOOT;
             const snd = getPooledAudio(sndUrl);
             const dist = camera.position.distanceTo(start);
             snd.volume = Math.max(0, 0.4 - dist * 0.005);
             if(snd.volume > 0.05) snd.play().catch(()=>{});
           }
-          if(p.lastShot.weapon==='Bazooka') spawnRocketProjectile(start,end,null,0,true); else spawnTracer(start,end,p.lastShot.weapon==='Fusil Mítico');
+          if(p.lastShot.weapon==='Bazooka') spawnRocketProjectile(start,end,null,0,true); else spawnTracer(start,end,p.lastShot.weapon==='Ametralladora',p.lastShot.weapon==='Escopeta');
         }
       });
       Object.keys(otherPlayers).forEach(id=>{ if(!seen.has(id)) removeOtherPlayer(id); });
@@ -1999,8 +2062,8 @@ function initGame(){
 
   document.getElementById('respawnBtn').addEventListener('click',()=>{
     myHp=MAX_HP; dead=false; deathPos=null; updateHealthUI(); brCleanup(); pitch=0;
-    hasMythicWeapon=false; document.getElementById('ws4').style.display='none';
-    if(currentWeaponIdx===4){ currentWeaponIdx=0; updateWeaponUI(); }
+    hasMythicWeapon=false; document.getElementById('ws5').style.display='none';
+    if(currentWeaponIdx===5){ currentWeaponIdx=0; updateWeaponUI(); }
     if(gameMode==='br'){ listenToMap('lobby'); initLobby(); }
     else if(gameMode==='rvb'){ const sp=getSpawnPosition(); camera.position.set(sp.x,sp.y,sp.z); }
     else{ const s=spawnPos(); camera.position.set(s.x,1.5,s.z); }
@@ -2034,7 +2097,7 @@ function initGame(){
   function shoot(){
     if(dead) return;
     const w=curWeapon(), snd=getPooledAudio(w.sndShoot||SND_SHOOT); snd.volume=.4; snd.play().catch(()=>{});
-    const fd=w.sndFadeDelay!==undefined?w.sndFadeDelay:250;
+    const fd=w.sndFadeDelay!==undefined?w.sndFadeDelay:600;
     setTimeout(()=>{ const fi=setInterval(()=>{ if(snd.volume>.04) snd.volume=Math.max(0,snd.volume-.04); else{ snd.volume=0; snd.pause(); clearInterval(fi); }},10); },fd);
 
     raycaster.setFromCamera(new THREE.Vector2(0,0),camera);
@@ -2064,11 +2127,11 @@ function initGame(){
       if(targetBlockMesh){ tracerEnd=blockHitPoint; if(w.name!=='Bazooka'){ const c=targetBlockMesh.material.color?.getHex()||0x888888; const wn=blockHitNormal.clone().transformDirection(targetBlockMesh.matrixWorld); spawnDebris(blockHitPoint,wn,c); }}
     }
 
-    if(w.name==='Sniper'||w.name==='Bazooka'||w.name==='Fusil Mítico'){
+    if(w.name==='Sniper'||w.name==='Bazooka'||w.name==='Ametralladora'||w.name==='Escopeta'){
       const dir=new THREE.Vector3(); camera.getWorldDirection(dir);
       const muzzle=camera.position.clone().add(dir.clone().multiplyScalar(1.5));
       const end=tracerEnd?tracerEnd.clone():muzzle.clone().add(dir.multiplyScalar(200));
-      if(w.name==='Sniper'||w.name==='Fusil Mítico') spawnTracer(muzzle,end,w.isMythic);
+      if(w.name==='Sniper'||w.name==='Ametralladora'||w.name==='Escopeta') spawnTracer(muzzle,end,w.isMythic,w.name==='Escopeta');
       else{ const dmg=w.damage[0]+Math.floor(Math.random()*(w.damage[1]-w.damage[0]+1)); spawnRocketProjectile(muzzle,end,bestHit?bestHit.id:null,dmg,false); }
       myLastShot={start:{x:+muzzle.x.toFixed(2),y:+muzzle.y.toFixed(2),z:+muzzle.z.toFixed(2)},end:{x:+end.x.toFixed(2),y:+end.y.toFixed(2),z:+end.z.toFixed(2)},weapon:w.name,t:Date.now()};
       publishPos();
@@ -2127,6 +2190,165 @@ function initGame(){
     dbCtx.beginPath(); dbCtx.arc(GAME_W/2,GAME_H/2,3,0,Math.PI*2); dbCtx.fillStyle='#ffff00'; dbCtx.fill();
   }
 
+  const minimapCanvas=document.getElementById('minimapCanvas');
+  let mapExpanded=false;
+  let myMarker=null;
+  let marker3D=null;
+  
+  function toggleMap(){
+    if(inLobby||dead) return;
+    mapExpanded=!mapExpanded;
+    const container=document.getElementById('minimapContainer');
+    if(container) container.classList.toggle('expanded', mapExpanded);
+    const lockOverlay=document.getElementById('lockOverlay');
+    if(mapExpanded){
+      document.exitPointerLock();
+      if(lockOverlay) lockOverlay.style.display='none';
+    } else {
+      gameEl.requestPointerLock();
+      if(lockOverlay) lockOverlay.style.display='none';
+    }
+  }
+
+  function update3DMarker(x,z){
+    if(!marker3D){
+      const geo=new THREE.CylinderGeometry(0.15,0.15,200,8);
+      const mat=new THREE.MeshBasicMaterial({color:0xffaa00,transparent:true,opacity:0.4,depthWrite:false,side:THREE.DoubleSide});
+      marker3D=new THREE.Mesh(geo,mat);
+      scene.add(marker3D);
+      const ring=new THREE.Mesh(new THREE.RingGeometry(0.6,1.4,16),new THREE.MeshBasicMaterial({color:0xffaa00,side:THREE.DoubleSide,transparent:true,opacity:0.8}));
+      ring.rotation.x=-Math.PI/2; ring.position.y=-99.9; marker3D.add(ring);
+    }
+    marker3D.position.set(x,98,z); marker3D.visible=true;
+  }
+
+  minimapCanvas.addEventListener('mousedown',e=>{
+    if(!mapExpanded) return;
+    e.stopPropagation();
+    const rect=minimapCanvas.getBoundingClientRect();
+    const clickX=e.clientX-rect.left;
+    const clickY=e.clientY-rect.top;
+    const canvasX=(clickX/rect.width)*500;
+    const canvasY=(clickY/rect.height)*500;
+    
+    if(e.button===0){
+      const wx=canvasX-250;
+      const wz=canvasY-250;
+      myMarker={x:wx,z:wz};
+      update3DMarker(wx,wz);
+    } else if(e.button===2){
+      e.preventDefault();
+      myMarker=null;
+      if(marker3D) marker3D.visible=false;
+    }
+  });
+  
+  minimapCanvas.addEventListener('contextmenu',e=>{ if(mapExpanded) e.preventDefault(); });
+
+  function drawPlayerArrow(ctx, x, y, rot) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+    const arrowScale = mapExpanded ? 1.0 : 3.85;
+    ctx.scale(arrowScale, arrowScale);
+    ctx.fillStyle = '#ffff00'; ctx.shadowColor = 'rgba(255, 255, 0, 0.9)'; ctx.shadowBlur = 8 / arrowScale;
+    ctx.beginPath(); ctx.moveTo(0, -7); ctx.lineTo(-5, 5); ctx.lineTo(5, 5); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function updateMinimap(){
+    if(!minimapCanvas||inLobby) return;
+    const ctx=minimapCanvas.getContext('2d');
+    ctx.clearRect(0,0,500,500);
+    const scale=mapExpanded?1.0:5.0;
+    
+    ctx.save();
+    ctx.translate(250,250);
+    if(!mapExpanded) ctx.rotate(-yaw);
+    
+    // 1. Draw floor
+    ctx.fillStyle='rgba(79,154,69,0.08)';
+    let fx=mapExpanded?0:-camera.position.x;
+    let fz=mapExpanded?0:-camera.position.z;
+    ctx.fillRect(fx*scale-currentFloorW*scale/2,fz*scale-currentFloorD*scale/2,currentFloorW*scale,currentFloorD*scale);
+    ctx.strokeStyle='rgba(255,255,255,0.1)'; ctx.lineWidth=1;
+    ctx.strokeRect(fx*scale-currentFloorW*scale/2,fz*scale-currentFloorD*scale/2,currentFloorW*scale,currentFloorD*scale);
+    
+    // 2. Draw map objects/blocks
+    ctx.fillStyle='rgba(255,255,255,0.2)';
+    mapObjects.forEach(b=>{
+      if(!b.visible) return;
+      const w=b.geometry.parameters?b.geometry.parameters.width:2;
+      const d=b.geometry.parameters?b.geometry.parameters.depth:2;
+      const rx=mapExpanded?b.position.x:b.position.x-camera.position.x;
+      const rz=mapExpanded?b.position.z:b.position.z-camera.position.z;
+      if(!mapExpanded&&(Math.abs(rx)>80||Math.abs(rz)>80)) return;
+      ctx.fillRect(rx*scale-(w*scale)/2,rz*scale-(d*scale)/2,w*scale,d*scale);
+    });
+    
+    // 3. Draw other players
+    Object.entries(otherPlayers).forEach(([id,op])=>{
+      if(op.dead||!op.group.visible) return;
+      const rx=mapExpanded?op.group.position.x:op.group.position.x-camera.position.x;
+      const rz=mapExpanded?op.group.position.z:op.group.position.z-camera.position.z;
+      let col='#ff3333';
+      if(gameMode==='rvb') col=op.data.team===selectedTeam?'#4444ff':'#ff4444';
+      ctx.fillStyle=col;
+      ctx.beginPath(); ctx.arc(rx*scale,rz*scale,3.5*scale/1.3,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle='#ffffff'; ctx.lineWidth=0.5; ctx.stroke();
+    });
+    
+    // 4. Draw airdrop
+    if(currentAirdropData&&currentAirdropData.state!=='opened'){
+      const rx=mapExpanded?currentAirdropData.x:currentAirdropData.x-camera.position.x;
+      const rz=mapExpanded?currentAirdropData.z:currentAirdropData.z-camera.position.z;
+      ctx.fillStyle='#ffaa00'; ctx.fillRect(rx*scale-4*scale,rz*scale-4*scale,8*scale,8*scale);
+      ctx.strokeStyle='#ffffff'; ctx.lineWidth=1; ctx.strokeRect(rx*scale-4*scale,rz*scale-4*scale,8*scale,8*scale);
+    }
+    
+    // 5. Draw player arrow
+    if(mapExpanded) drawPlayerArrow(ctx,camera.position.x*scale,camera.position.z*scale,-yaw);
+    else drawPlayerArrow(ctx,0,0,0);
+    
+    // 6. Draw marker
+    if(myMarker){
+      ctx.save();
+      let mx=mapExpanded?myMarker.x:(myMarker.x-camera.position.x)*scale;
+      let mz=mapExpanded?myMarker.z:(myMarker.z-camera.position.z)*scale;
+      ctx.translate(mx,mz);
+      const pinScale=mapExpanded?1.0:4.0;
+      ctx.scale(pinScale,pinScale);
+      ctx.fillStyle='#ffaa00'; ctx.shadowColor='rgba(255,170,0,0.9)'; ctx.shadowBlur=10;
+      ctx.beginPath(); ctx.arc(0,-8,5,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-5,-8); ctx.lineTo(0,0); ctx.lineTo(5,-8); ctx.closePath(); ctx.fill();
+      ctx.shadowBlur=0; ctx.fillStyle='#ff3333';
+      ctx.beginPath(); ctx.arc(0,-8,2,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+    }
+    
+    ctx.restore();
+    
+    // 7. Radar sweep (small map only)
+    if(!mapExpanded){
+      const now=Date.now();
+      const sweepAngle=(now*0.0018)%(Math.PI*2);
+      ctx.save(); ctx.translate(250,250);
+      const sweepGrad=ctx.createRadialGradient(0,0,5,0,0,250);
+      sweepGrad.addColorStop(0,'rgba(255,68,68,0.15)');
+      sweepGrad.addColorStop(1,'rgba(255,68,68,0.0)');
+      ctx.fillStyle=sweepGrad;
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,250,sweepAngle-0.25,sweepAngle); ctx.lineTo(0,0); ctx.fill();
+      ctx.strokeStyle='rgba(255,68,68,0.25)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(sweepAngle)*250,Math.sin(sweepAngle)*250); ctx.stroke();
+      ctx.restore();
+    }
+    
+    // 8. Compass
+    const compass=document.getElementById('minimapCompass');
+    if(compass){
+      const rot=mapExpanded?0:-yaw*180/Math.PI;
+      compass.style.transform='rotate('+rot+'deg)';
+    }
+  }
+
   /* ── WEAPON UI ── */
   const weapon=document.getElementById('weapon'), flash=document.getElementById('flash');
   const crosshair=document.getElementById('crosshair'), scopeOverlay=document.getElementById('scopeOverlay');
@@ -2137,7 +2359,7 @@ function initGame(){
 
   function switchWeapon(idx){
     if(brState==='in_plane'||brState==='falling') return; if(idx===currentWeaponIdx||idx<0||idx>=WEAPONS.length) return;
-    if(idx===4&&!hasMythicWeapon) return; if(switching) return; switching=true;
+    if(idx===5&&!hasMythicWeapon) return; if(switching) return; switching=true;
     isShooting=false; if(shootTimeout){ clearTimeout(shootTimeout); shootTimeout=null; }
     aiming=false; scopeOverlay.classList.remove('active'); weapon.style.opacity='1'; targetFov=curWeapon().fovNormal;
     weapon.style.transition='transform .12s ease-in'; weapon.style.transform='translateY(180px)';
@@ -2199,12 +2421,13 @@ function initGame(){
     if(dist2d>3.5) return;
     set(ref(db,'fps/airdrop_'+gameMode),{...currentAirdropData,state:'opened',openedBy:myName,t:Date.now()});
     myHp=MAX_HP; updateHealthUI(); publishPos();
-    hasMythicWeapon=true; document.getElementById('ws4').style.display='flex'; switchWeapon(4);
+    hasMythicWeapon=true; document.getElementById('ws5').style.display='flex'; switchWeapon(5);
     const ls=new Audio(SND_DOUBLEKILL); ls.volume=.6; ls.play().catch(()=>{});
     broadcastKill(myName,'el Airdrop',gameMode==='rvb'?selectedTeam:null,'SAQUEADO 📦');
   }
 
   window.addEventListener('keydown',e=>{
+    if(e.key.toLowerCase()==='m'){ toggleMap(); return; }
     if(e.key.toLowerCase()==='b'||e.key.toLowerCase()==='g'){
       if(brState==='in_plane'||brState==='falling') return;
       if(!inLobby&&!emoteIsPlaying&&closestSharedEmoteCandidate){ playEmote(closestSharedEmoteCandidate,true,closestSharedEmoteInitiator); return; }
@@ -2216,6 +2439,7 @@ function initGame(){
     if(e.key.toLowerCase()==='u'){ toggleWireframes(); return; }
     if(e.key.toLowerCase()==='o'){ toggleShadows(); return; }
     if(e.key.toLowerCase()==='p'){ toggleSky(); return; }
+    if(e.key.toLowerCase()==='i'){ toggleMinimapDebug(); return; }
     if(e.key.toLowerCase()==='e'){
       if(brState==='in_plane'){ brEject(); return; }
       if(currentAirdropData?.state!=='opened'){
@@ -2225,7 +2449,7 @@ function initGame(){
       return;
     }
     if(e.key.toLowerCase()==='j'){ triggerBrStart(); return; }
-    const wKey={'1':0,'2':1,'3':2,'4':3,'5':4}[e.key]; if(wKey!==undefined){ switchWeapon(parseInt(wKey)); return; }
+    const wKey={'1':0,'2':1,'3':2,'4':3,'5':4,'6':5}[e.key]; if(wKey!==undefined){ switchWeapon(parseInt(wKey)); return; }
     keys[e.key.toLowerCase()]=true; if(e.key===' ') e.preventDefault();
   });
   window.addEventListener('keyup',e=>{ keys[e.key.toLowerCase()]=false; });
@@ -2234,11 +2458,12 @@ function initGame(){
   document.getElementById('dbWireframe').addEventListener('click',toggleWireframes);
   document.getElementById('dbShadows').addEventListener('click',toggleShadows);
   document.getElementById('dbSky').addEventListener('click',toggleSky);
+  document.getElementById('dbMinimap').addEventListener('click',toggleMinimapDebug);
 
   const lockOverlay=document.getElementById('lockOverlay');
-  gameEl.addEventListener('click',()=>{ if(!dead&&!inLobby) gameEl.requestPointerLock(); });
+  gameEl.addEventListener('click',()=>{ if(!dead&&!inLobby&&!mapExpanded) gameEl.requestPointerLock(); });
   document.addEventListener('pointerlockchange',()=>{
-    if(inLobby||emoteWheel.classList.contains('active')||(dead&&gameMode==='br')){ lockOverlay.style.display='none'; return; }
+    if(inLobby||emoteWheel.classList.contains('active')||(dead&&gameMode==='br')||mapExpanded){ lockOverlay.style.display='none'; return; }
     lockOverlay.style.display=document.pointerLockElement===gameEl?'none':'flex';
   });
   document.addEventListener('mousemove',e=>{ if(document.pointerLockElement!==gameEl||dead||brState==='in_plane') return; yaw-=e.movementX*.002; pitch-=e.movementY*.002; pitch=Math.max(-Math.PI/2,Math.min(Math.PI/2,pitch)); });
@@ -2256,7 +2481,7 @@ function initGame(){
   function attemptAutoFire(){
     if(!isShooting||dead||brState==='in_plane'||brState==='falling'||brState==='lobby'||switching) return;
     const w=curWeapon(),now=Date.now();
-    if(now-lastShot>=w.fireRate){ lastShot=now; triggerSingleShot(w); if(w.name==='Rifle') shootTimeout=setTimeout(attemptAutoFire,w.fireRate); else isShooting=false; }
+    if(now-lastShot>=w.fireRate){ lastShot=now; triggerSingleShot(w); if(w.name==='Rifle'||w.name==='Ametralladora') shootTimeout=setTimeout(attemptAutoFire,w.fireRate); else isShooting=false; }
     else shootTimeout=setTimeout(attemptAutoFire,w.fireRate-(now-lastShot));
   }
 
@@ -2272,6 +2497,7 @@ function initGame(){
   function checkPlayerCollision(pos){
     const pb=new THREE.Box3(new THREE.Vector3(pos.x-.4,pos.y-1.5,pos.z-.4),new THREE.Vector3(pos.x+.4,pos.y+.3,pos.z+.4));
     return mapObjects.some(b=>{
+      if(!b.visible) return false;
       if(!b.userData.bbox) return false;
       const w = b.geometry.parameters ? b.geometry.parameters.width : 2;
       const d = b.geometry.parameters ? b.geometry.parameters.depth : 2;
@@ -2510,7 +2736,7 @@ function initGame(){
     if(spe){ if(foundCand){ document.getElementById('sharedEmoteName').textContent=foundCand.name; spe.style.display='block'; } else spe.style.display='none'; }
 
     renderer.render(scene,camera);
-    updateDebugInfo(); drawDebugOverlay();
+    updateDebugInfo(); drawDebugOverlay(); updateMinimap();
   }
   animate();
   window.addEventListener('beforeunload',()=>{ if(myRef) remove(myRef); });

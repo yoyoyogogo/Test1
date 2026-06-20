@@ -351,6 +351,304 @@
       cursor: crosshair;
     }
 
+    /* ═══════ RIGHT GROUPS PANEL ═══════ */
+    #groupsPanel {
+      width: 260px;
+      min-width: 260px;
+      background: #0d1117;
+      border-left: 1px solid #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 100;
+    }
+    #groupsPanel .gp-header {
+      padding: 16px 14px 10px;
+      border-bottom: 1px solid #1a1a2e;
+      background: linear-gradient(180deg, rgba(255,230,0,.06) 0%, transparent 100%);
+    }
+    #groupsPanel .gp-title {
+      color: #ffe600;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #groupsPanel .gp-title::before {
+      content: '';
+      width: 3px;
+      height: 14px;
+      background: #ffe600;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    #groupsPanel .gp-subtitle {
+      color: #556;
+      font-size: 9px;
+      letter-spacing: 1.5px;
+      margin-top: 4px;
+    }
+    #groupsList {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    #groupsList::-webkit-scrollbar { width: 4px; }
+    #groupsList::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+    .gp-empty {
+      color: #445;
+      font-size: 10px;
+      text-align: center;
+      padding: 24px 10px;
+      letter-spacing: 1px;
+      line-height: 1.6;
+    }
+    /* Folder Styles */
+    .gp-folder {
+      border: 1px solid #2a2a3a;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: rgba(255,255,255,0.02);
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+    .gp-folder.gp-selected {
+      border-color: #ffe60066;
+      background: rgba(255,230,0,0.02);
+    }
+    .gp-folder-header {
+      padding: 8px 10px;
+      background: rgba(255,255,255,0.04);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .gp-folder-header:hover {
+      background: rgba(255,255,255,0.08);
+    }
+    .gp-folder-icon {
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .gp-folder-name-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      font-weight: bold;
+      outline: none;
+      padding: 2px 4px;
+      min-width: 0;
+    }
+    .gp-folder-name-input:focus {
+      background: rgba(255,255,255,0.08);
+      border-radius: 3px;
+    }
+    .gp-folder-contents {
+      padding: 6px 8px 8px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      border-top: 1px solid rgba(255,255,255,0.03);
+      background: rgba(0,0,0,0.15);
+    }
+    .gp-folder.collapsed .gp-folder-contents {
+      display: none;
+    }
+    .gp-sub-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 8px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid #1a1a2e;
+      border-radius: 4px;
+      font-size: 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      color: #aaa;
+    }
+    .gp-sub-item:hover {
+      border-color: #ffe60044;
+      background: rgba(255,230,0,0.04);
+      color: #fff;
+    }
+    .gp-sub-item.active {
+      border-color: #ffe600;
+      background: rgba(255,230,0,0.08);
+      color: #ffe600;
+      font-weight: bold;
+    }
+    .gp-folder-actions {
+      display: flex;
+      gap: 4px;
+      margin-left: auto;
+      align-items: center;
+    }
+    .gp-mini-btn {
+      padding: 2px 5px;
+      font-size: 9px;
+      border-radius: 3px;
+      border: 1px solid #333;
+      background: #111;
+      color: #aaa;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      line-height: 1;
+    }
+    .gp-mini-btn:hover {
+      border-color: #ff4444;
+      color: #ff4444;
+    }
+    .gp-mini-btn.sel {
+      border-color: #ffe600;
+      color: #ffe600;
+    }
+    .gp-mini-btn.sel:hover {
+      border-color: #ffcc00;
+      color: #ffcc00;
+      background: rgba(255,230,0,0.1);
+    }
+    .gp-item {
+      background: rgba(255,255,255,.03);
+      border: 1px solid #1e1e2e;
+      border-radius: 8px;
+      padding: 10px 10px 8px;
+      transition: border-color .2s;
+    }
+    .gp-item:hover { border-color: #2a2a4a; }
+    .gp-item.gp-selected { border-color: #ffe60066; background: rgba(255,230,0,.04); }
+    .gp-item-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 7px;
+    }
+    .gp-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      box-shadow: 0 0 6px currentColor;
+    }
+    .gp-name-input {
+      flex: 1;
+      background: rgba(255,255,255,.06);
+      border: 1px solid #2a2a3a;
+      border-radius: 4px;
+      padding: 4px 7px;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      outline: none;
+      transition: border-color .2s;
+      min-width: 0;
+    }
+    .gp-name-input:focus { border-color: #ffe600; }
+    .gp-count {
+      background: rgba(255,255,255,.08);
+      border-radius: 10px;
+      padding: 2px 7px;
+      font-size: 9px;
+      color: #888;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .gp-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      margin-bottom: 7px;
+    }
+    .gp-btn {
+      padding: 5px 0;
+      border: none;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .gp-btn-sel {
+      background: rgba(255,230,0,.1);
+      color: #ffe600;
+      border: 1px solid #ffe60033;
+    }
+    .gp-btn-sel:hover { background: rgba(255,230,0,.2); }
+    .gp-btn-del {
+      background: rgba(255,50,50,.1);
+      color: #ff6666;
+      border: 1px solid #ff444422;
+    }
+    .gp-btn-del:hover { background: rgba(255,50,50,.2); }
+    .gp-destroyed-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .gp-destroyed-label {
+      font-size: 9px;
+      color: #667;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .gp-destroyed-label span { color: #ff6644; }
+    .gp-destroyed-sel {
+      flex: 1;
+      background: rgba(255,255,255,.04);
+      border: 1px solid #2a2a3a;
+      border-radius: 4px;
+      padding: 4px 6px;
+      color: #aaa;
+      font-family: 'Courier New', monospace;
+      font-size: 9px;
+      outline: none;
+      transition: border-color .2s;
+      min-width: 0;
+    }
+    .gp-destroyed-sel:focus { border-color: #ff6644; }
+    .gp-btn-clone {
+      background: linear-gradient(135deg, rgba(255,102,68,.12), rgba(255,150,50,.08));
+      color: #ff9955;
+      border: 1px solid #ff663322;
+      grid-column: 1 / -1;
+    }
+    .gp-btn-clone:hover { background: rgba(255,120,60,.25); }
+    .gp-btn-preview {
+      background: rgba(0,200,255,.1);
+      color: #00ccff;
+      border: 1px solid #00ccff33;
+      grid-column: 1 / -1;
+    }
+    .gp-btn-preview:hover { background: rgba(0,200,255,.2); }
+    .gp-btn-preview.active {
+      background: rgba(255,80,40,.15);
+      color: #ff6644;
+      border-color: #ff664433;
+    }
+    .gp-btn-preview.active:hover { background: rgba(255,80,40,.25); }
+    .gp-destroyed-link {
+      font-size: 9px;
+      color: #445;
+      letter-spacing: 1px;
+      padding: 3px 0 2px;
+      text-align: center;
+    }
+    .gp-destroyed-link b { color: #ff9955; }
+
     #editorArea canvas {
       display: block;
       width: 100%;
@@ -448,6 +746,35 @@
       pointer-events: none;
       z-index: 10;
     }
+
+    /* ═══════ SELECTION & GROUPS ═══════ */
+    .struct-panel-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #888;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .struct-panel-info span {
+      color: #ffe600;
+    }
+    .struct-btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+    }
+
+    /* ═══════ RUBBER BAND SELECTION ═══════ */
+    #rubberBand {
+      position: absolute;
+      border: 1.5px solid #ffe600;
+      background: rgba(255, 230, 0, 0.08);
+      pointer-events: none;
+      display: none;
+      z-index: 200;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.4) inset;
+    }
   </style>
 </head>
 
@@ -466,6 +793,10 @@
         <button class="toggle-btn" id="mapModeBR" onclick="setMapMode('br')">🪂 BR</button>
         <button class="toggle-btn" id="mapModeLobby" onclick="setMapMode('lobby')">🏰 Lobby</button>
         <button class="toggle-btn" id="mapModeRvB" onclick="setMapMode('rvb')">🔴🔵 RvB</button>
+      </div>
+      <div class="row" style="margin-top: 10px;">
+        <label>Bots</label>
+        <input type="number" id="botsCount" value="0" min="0" max="20" step="1">
       </div>
     </div>
 
@@ -523,6 +854,10 @@
         <label for="blockCollision" style="cursor: pointer; flex: 1; min-width: auto;">Colisión</label>
         <input type="checkbox" id="blockCollision" checked style="width: 16px; height: 16px; cursor: pointer; flex: 0;">
       </div>
+      <div class="row" id="destructibleRow" style="display: flex; align-items: center; gap: 8px;">
+        <label for="blockDestructible" style="cursor: pointer; flex: 1; min-width: auto;">Destruible</label>
+        <input type="checkbox" id="blockDestructible" style="width: 16px; height: 16px; cursor: pointer; flex: 0;">
+      </div>
       <div class="row">
         <label>Color</label>
         <input type="color" id="blockColor" value="#cc4444">
@@ -538,6 +873,101 @@
       <div class="panel-title">Bloques (<span id="blockCount">0</span>)</div>
       <button class="btn btn-danger" onclick="undoLast()">↩ Deshacer último</button>
       <button class="btn btn-danger" onclick="clearAll()">🗑 Limpiar todo</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Estructuras</div>
+      <div class="struct-panel-info">
+        Seleccionados: <span id="selCount">0</span> · Grupos: <span id="groupCount">0</span>
+      </div>
+      <div class="struct-btn-row">
+        <button class="btn btn-secondary" onclick="selectGroupOfSelected()" title="Seleccionar todo el grupo">🔄 Sel. grupo</button>
+        <button class="btn btn-secondary" onclick="moveSelected()" title="Mover selección (G)">📦 Mover (G)</button>
+      </div>
+      <button class="btn btn-success" onclick="joinSelected()" style="background: linear-gradient(135deg, #ffe600, #ffaa00); color: #000; font-weight: bold;">🔗 Unir seleccionados (Ctrl+J)</button>
+      <button class="btn btn-danger" onclick="ungroupSelected()">✂ Desagrupar</button>
+      <div class="struct-btn-row">
+        <button class="btn btn-danger" onclick="deleteSelected()">🗑 Eliminar (Del)</button>
+        <button class="btn btn-secondary" onclick="clearSelectionUI()">✖ Deseleccionar</button>
+      </div>
+
+      <!-- Panel de Edición de Selección (se muestra solo si hay seleccionados) -->
+      <div id="selectionEditorPanel" style="display: none; border-top: 1px solid rgba(255,230,0,0.15); margin-top: 12px; padding-top: 12px; transition: all 0.3s ease;">
+        <div style="font-size: 10px; color: #ffe600; text-transform: uppercase; margin-bottom: 10px; font-weight: bold; letter-spacing: 2px; display: flex; align-items: center; gap: 6px;">
+          <span>⚡</span> Editar Selección
+        </div>
+        
+        <div class="row">
+          <label>Tipo</label>
+          <select id="selBlockType" onchange="updateSelectedProperties({type: this.value})">
+            <option value="block">🧱 Bloque</option>
+            <option value="spawn_red">🔴 Spawn Red</option>
+            <option value="spawn_blue">🔵 Spawn Blue</option>
+            <option value="plane_start">✈️ Ruta Inicio</option>
+            <option value="plane_end">🛬 Ruta Fin</option>
+            <option value="airdrop_spawn">📦 Spawn Airdrop</option>
+          </select>
+        </div>
+        
+        <div class="row" style="display: flex; align-items: center; gap: 8px;">
+          <label for="selBlockCollision" style="cursor: pointer; flex: 1; min-width: auto; font-size:10px;">Colisión</label>
+          <input type="checkbox" id="selBlockCollision" style="width: 16px; height: 16px; cursor: pointer; flex: 0;" onchange="updateSelectedProperties({collision: this.checked})">
+        </div>
+        <div class="row" id="selDestructibleRow" style="display: flex; align-items: center; gap: 8px;">
+          <label for="selBlockDestructible" style="cursor: pointer; flex: 1; min-width: auto; font-size:10px;">Destruible</label>
+          <input type="checkbox" id="selBlockDestructible" style="width: 16px; height: 16px; cursor: pointer; flex: 0;" onchange="updateSelectedProperties({destructible: this.checked})">
+        </div>
+
+        <div class="row">
+          <label>Color</label>
+          <input type="color" id="selBlockColor" value="#cc4444" onchange="updateSelectedProperties({color: this.value})">
+        </div>
+        <div class="color-presets" id="selColorPresets" style="margin-top: 4px; margin-bottom: 10px;"></div>
+
+        <div style="margin-bottom: 10px;">
+          <label style="color: #888; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; display: block; margin-bottom: 5px;">Dimensiones</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
+            <div>
+              <div style="font-size: 8px; color: #667; text-align: center; margin-bottom: 2px;">ANCHO</div>
+              <input type="number" id="selBlockW" value="2" min="1" max="50" style="width: 100%; text-align: center;" onchange="updateSelectedProperties({w: parseInt(this.value)})">
+            </div>
+            <div>
+              <div style="font-size: 8px; color: #667; text-align: center; margin-bottom: 2px;">ALTO</div>
+              <input type="number" id="selBlockH" value="2" min="1" max="50" style="width: 100%; text-align: center;" onchange="updateSelectedProperties({h: parseInt(this.value)})">
+            </div>
+            <div>
+              <div style="font-size: 8px; color: #667; text-align: center; margin-bottom: 2px;">LARGO</div>
+              <input type="number" id="selBlockD" value="2" min="1" max="50" style="width: 100%; text-align: center;" onchange="updateSelectedProperties({d: parseInt(this.value)})">
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label style="color: #888; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; display: block; margin-bottom: 5px;">Desplazar (Preciso)</label>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <div style="display: grid; grid-template-columns: 20px 1fr 1fr 1fr; gap: 4px; align-items: center;">
+              <span style="font-size: 9px; color: #ffe600; text-align: center; font-weight: bold;">X</span>
+              <button class="btn btn-secondary" style="margin:0; padding:3px 0; font-size:9px;" onclick="updateSelectedProperties({dx: -1})">-1</button>
+              <button class="btn btn-secondary" style="margin:0; padding:3px 0; font-size:9px;" onclick="updateSelectedProperties({dx: 1})">+1</button>
+              <button class="btn btn-secondary" style="margin:0; padding:3px 0; font-size:9px;" onclick="updateSelectedProperties({dx: 2})">+2</button>
+            </div>
+            <div style="display: grid; grid-template-columns: 20px 1fr 1fr 1fr; gap: 4px; align-items: center;">
+              <span style="font-size: 9px; color: #ffe600; text-align: center; font-weight: bold;">Y</span>
+              <button class="btn btn-secondary" style="margin:0; padding:3px 0; font-size:9px;" onclick="updateSelectedProperties({dy: -1})">-1</button>
+              <button class="btn btn-secondary" style="margin:0; padding:3px 0; font-size:9px;" onclick="updateSelectedProperties({dy: 1})">+1</button>
+              <button class="btn btn-secondary" style="margin:0; padding:3px 0; font-size:9px;" onclick="updateSelectedProperties({dy: 2})">+2</button>
+            </div>
+            <div style="display: grid; grid-template-columns: 20px 1fr 1fr 1fr; gap: 4px; align-items: center;">
+              <span style="font-size: 9px; color: #ffe600; text-align: center; font-weight: bold;">Z</span>
+              <button class="btn btn-secondary" style="margin:0; padding:3px 0; font-size:9px;" onclick="updateSelectedProperties({dz: -1})">-1</button>
+              <button class="btn btn-secondary" style="margin:0; padding:3px 0; font-size:9px;" onclick="updateSelectedProperties({dz: 1})">+1</button>
+              <button class="btn btn-secondary" style="margin:0; padding:3px 0; font-size:9px;" onclick="updateSelectedProperties({dz: 2})">+2</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-success" onclick="cloneSelected()" style="background: linear-gradient(135deg, #00d2ff, #0072ff); color: #fff; font-weight: bold; border: none; box-shadow: 0 0 15px rgba(0, 114, 255, 0.25);">👥 Duplicar Selección</button>
+      </div>
     </div>
 
     <div class="panel">
@@ -630,11 +1060,22 @@
       <p>Click para editar</p>
       <p class="sub">WASD mover · Mouse mirar · Click izq: poner · Click der: quitar</p>
     </div>
+    <div id="rubberBand"></div>
     <div id="crosshair">+</div>
     <div id="ghostInfo">Listo</div>
     <div id="editorHud">
-      <span>Izq</span> Colocar · <span>Der</span> Eliminar · <span>Scroll</span> Distancia · <span>ESC</span> Soltar
-      mouse
+      <span>Izq</span> Colocar · <span>Der</span> Eliminar · <span>Shift+Der</span> Sel. bloque · <span>Shift+Arrastrar Der</span> Sel. zona · <span>G</span> Mover · <span>Ctrl+J</span> Unir · <span>Del</span> Borrar sel.
+    </div>
+  </div>
+
+  <!-- RIGHT GROUPS PANEL -->
+  <div id="groupsPanel">
+    <div class="gp-header">
+      <div class="gp-title">🏗 Estructuras</div>
+      <div class="gp-subtitle">Grupos de bloques del mapa</div>
+    </div>
+    <div id="groupsList">
+      <div class="gp-empty">Selecciona bloques<br>y pulsa Ctrl+J<br>para crear un grupo</div>
     </div>
   </div>
 
@@ -675,11 +1116,38 @@
       colorBox.appendChild(el);
     });
 
+    const selColorBox = document.getElementById('selColorPresets');
+    COLORS.forEach(c => {
+      const el = document.createElement('div');
+      el.className = 'cpre';
+      el.style.background = c;
+      el.dataset.color = c;
+      el.addEventListener('click', () => {
+        document.getElementById('selBlockColor').value = c;
+        selColorBox.querySelectorAll('.cpre').forEach(e => e.classList.remove('active'));
+        el.classList.add('active');
+        updateSelectedProperties({color: c});
+      });
+      selColorBox.appendChild(el);
+    });
+
     /* ═══════ STATE ═══════ */
     let floorW = 100, floorD = 100, floorColor = 0x4f9a45;
-    const blocks = []; // {mesh, data:{x,z,w,h,d,color}}
+    const blocks = []; // {mesh, data:{x,z,w,h,d,color,groupId?}}
     let placeDist = 12; // how far ahead to place
     let placeMode = 'free'; // 'snap' or 'free'
+
+    // ═══════ SELECTION & GROUP STATE ═══════
+    const selectedSet = new Set();
+    let nextGroupId = 0;
+    let moveMode = false;
+    let moveOriginalPositions = [];
+    const moveCenter = new THREE.Vector3();
+    const GROUP_COLORS = [0xff6600, 0x00ccff, 0xaa00ff, 0x00ff66, 0xff0066, 0x6666ff, 0xffcc00, 0x00ffcc];
+    const selectionOutlines = new Map();
+    const groupOutlines = new Map();
+    // groupMeta: groupId -> { name }
+    const groupMeta = new Map();
 
     window.setPlaceMode = function (mode) {
       placeMode = mode;
@@ -745,6 +1213,7 @@
       const colorInput = document.getElementById('blockColor');
       const colorPresets = document.getElementById('colorPresets');
       const collisionRow = document.getElementById('collisionRow');
+      const destructibleRow = document.getElementById('destructibleRow');
       
       if (type === 'spawn_red') {
         colorInput.value = '#ff4444';
@@ -754,6 +1223,9 @@
         collisionRow.style.opacity = '0.5';
         collisionRow.style.pointerEvents = 'none';
         document.getElementById('blockCollision').checked = false;
+        document.getElementById('blockDestructible').checked = false;
+        destructibleRow.style.opacity = '0.5';
+        destructibleRow.style.pointerEvents = 'none';
       } else if (type === 'spawn_blue') {
         colorInput.value = '#4444ff';
         colorInput.disabled = true;
@@ -762,6 +1234,9 @@
         collisionRow.style.opacity = '0.5';
         collisionRow.style.pointerEvents = 'none';
         document.getElementById('blockCollision').checked = false;
+        document.getElementById('blockDestructible').checked = false;
+        destructibleRow.style.opacity = '0.5';
+        destructibleRow.style.pointerEvents = 'none';
       } else if (type === 'plane_start') {
         colorInput.value = '#ffaa00';
         colorInput.disabled = true;
@@ -770,6 +1245,9 @@
         collisionRow.style.opacity = '0.5';
         collisionRow.style.pointerEvents = 'none';
         document.getElementById('blockCollision').checked = false;
+        document.getElementById('blockDestructible').checked = false;
+        destructibleRow.style.opacity = '0.5';
+        destructibleRow.style.pointerEvents = 'none';
       } else if (type === 'plane_end') {
         colorInput.value = '#00ffff';
         colorInput.disabled = true;
@@ -778,6 +1256,9 @@
         collisionRow.style.opacity = '0.5';
         collisionRow.style.pointerEvents = 'none';
         document.getElementById('blockCollision').checked = false;
+        document.getElementById('blockDestructible').checked = false;
+        destructibleRow.style.opacity = '0.5';
+        destructibleRow.style.pointerEvents = 'none';
       } else if (type === 'airdrop_spawn') {
         colorInput.value = '#ffe600';
         colorInput.disabled = true;
@@ -786,6 +1267,9 @@
         collisionRow.style.opacity = '0.5';
         collisionRow.style.pointerEvents = 'none';
         document.getElementById('blockCollision').checked = false;
+        document.getElementById('blockDestructible').checked = false;
+        destructibleRow.style.opacity = '0.5';
+        destructibleRow.style.pointerEvents = 'none';
       } else {
         colorInput.disabled = false;
         colorPresets.style.pointerEvents = 'auto';
@@ -793,6 +1277,9 @@
         collisionRow.style.opacity = '1.0';
         collisionRow.style.pointerEvents = 'auto';
         document.getElementById('blockCollision').checked = true;
+        document.getElementById('blockDestructible').checked = false;
+        destructibleRow.style.opacity = '1.0';
+        destructibleRow.style.pointerEvents = 'auto';
       }
       updateGhost();
     };
@@ -832,7 +1319,7 @@
     updateGhost();
 
     // Listen for block parameter changes
-    ['blockW', 'blockH', 'blockD', 'blockColor', 'blockCollision'].forEach(id => {
+    ['blockW', 'blockH', 'blockD', 'blockColor', 'blockCollision', 'blockDestructible'].forEach(id => {
       document.getElementById(id).addEventListener('change', updateGhost);
       document.getElementById(id).addEventListener('input', updateGhost);
     });
@@ -928,6 +1415,7 @@
       const bd = parseInt(document.getElementById('blockD').value) || 2;
       const type = document.getElementById('blockType').value || 'block';
       const solid = document.getElementById('blockCollision').checked;
+      const dest = document.getElementById('blockDestructible').checked;
       let col = document.getElementById('blockColor').value;
       if (type === 'spawn_red') col = '#ff4444';
       if (type === 'spawn_blue') col = '#4444ff';
@@ -971,8 +1459,12 @@
         w: bw, h: bh, d: bd,
         color: col,
         type: type,
-        collision: type === 'block' ? solid : false
+        collision: type === 'block' ? solid : false,
+        destructible: type === 'block' ? dest : false
       };
+      if (data.destructible) {
+        addDestructibleIndicator(mesh);
+      }
       blocks.push({ mesh, data });
       updateCount();
       setStatus(`Bloque en (${pos.x}, ${pos.y}, ${pos.z})`);
@@ -980,9 +1472,28 @@
 
     function removeBlock(idx) {
       if (idx < 0 || idx >= blocks.length) return;
-      scene.remove(blocks[idx].mesh);
-      blocks[idx].mesh.geometry.dispose();
-      blocks[idx].mesh.material.dispose();
+      const block = blocks[idx];
+      
+      // Clean up selection tracking for this block
+      if (selectedSet.has(block)) {
+        selectedSet.delete(block);
+      }
+      if (selectionOutlines.has(block)) {
+        const outline = selectionOutlines.get(block);
+        block.mesh.remove(outline);
+        outline.geometry.dispose(); outline.material.dispose();
+        selectionOutlines.delete(block);
+      }
+      if (groupOutlines.has(block)) {
+        const outline = groupOutlines.get(block);
+        block.mesh.remove(outline);
+        outline.geometry.dispose(); outline.material.dispose();
+        groupOutlines.delete(block);
+      }
+
+      scene.remove(block.mesh);
+      block.mesh.geometry.dispose();
+      block.mesh.material.dispose();
       blocks.splice(idx, 1);
       updateCount();
       setStatus('Bloque eliminado');
@@ -991,6 +1502,497 @@
     function updateCount() {
       document.getElementById('blockCount').textContent = blocks.length;
       document.getElementById('blockCountStatus').textContent = blocks.length + ' bloques';
+    }
+
+    // ═══════ SELECTION & GROUP FUNCTIONS ═══════
+    function getGroupColor(groupId) {
+      let hash = 0;
+      for (let i = 0; i < groupId.length; i++) hash = ((hash << 5) - hash) + groupId.charCodeAt(i) | 0;
+      return GROUP_COLORS[Math.abs(hash) % GROUP_COLORS.length];
+    }
+
+    function syncSelectionWithVisibility() {
+      let changed = false;
+      selectedSet.forEach(b => {
+        if (b && !b.mesh.visible) {
+          removeSelectionOutline(b);
+          selectedSet.delete(b);
+          changed = true;
+        }
+      });
+      if (changed) {
+        updateSelectionUI();
+      }
+    }
+
+    function addDestructibleIndicator(mesh) {
+      const existing = mesh.getObjectByName('destructibleIndicator');
+      if (existing) return;
+      const geo = new THREE.SphereGeometry(0.2, 8, 8);
+      const mat = new THREE.MeshBasicMaterial({ color: 0xff3300 }); // Neon red/orange dot
+      const indicator = new THREE.Mesh(geo, mat);
+      indicator.name = 'destructibleIndicator';
+      // Position slightly above block top
+      const h = mesh.geometry.parameters ? mesh.geometry.parameters.height : 2;
+      indicator.position.set(0, h / 2 + 0.1, 0);
+      mesh.add(indicator);
+    }
+
+    function removeDestructibleIndicator(mesh) {
+      const existing = mesh.getObjectByName('destructibleIndicator');
+      if (existing) {
+        mesh.remove(existing);
+        existing.geometry.dispose();
+        existing.material.dispose();
+      }
+    }
+
+    function addSelectionOutline(block) {
+      if (selectionOutlines.has(block)) return;
+      if (!block) return;
+      const geo = new THREE.EdgesGeometry(block.mesh.geometry);
+      const mat = new THREE.LineBasicMaterial({ color: 0xffe600 });
+      const outline = new THREE.LineSegments(geo, mat);
+      outline.scale.set(1.06, 1.06, 1.06);
+      block.mesh.add(outline);
+      selectionOutlines.set(block, outline);
+    }
+
+    function removeSelectionOutline(block) {
+      const outline = selectionOutlines.get(block);
+      if (!outline) return;
+      block.mesh.remove(outline);
+      outline.geometry.dispose(); outline.material.dispose();
+      selectionOutlines.delete(block);
+    }
+
+    function updateGroupOutline(block) {
+      const existing = groupOutlines.get(block);
+      if (existing) {
+        block.mesh.remove(existing);
+        existing.geometry.dispose(); existing.material.dispose();
+        groupOutlines.delete(block);
+      }
+      if (!block || !block.data.groupId) return;
+      const color = getGroupColor(block.data.groupId);
+      const geo = new THREE.EdgesGeometry(block.mesh.geometry);
+      const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.7 });
+      const outline = new THREE.LineSegments(geo, mat);
+      outline.scale.set(1.03, 1.03, 1.03);
+      block.mesh.add(outline);
+      groupOutlines.set(block, outline);
+    }
+
+    function updateAllGroupOutlines() {
+      blocks.forEach(b => updateGroupOutline(b));
+    }
+
+    function toggleSelect(block) {
+      if (selectedSet.has(block)) {
+        selectedSet.delete(block);
+        removeSelectionOutline(block);
+      } else {
+        selectedSet.add(block);
+        addSelectionOutline(block);
+      }
+      updateSelectionUI();
+    }
+
+    function clearSelection() {
+      selectedSet.forEach(block => removeSelectionOutline(block));
+      selectedSet.clear();
+      if (moveMode) cancelMove();
+      updateSelectionUI();
+    }
+    window.clearSelectionUI = clearSelection;
+
+    function updateSelectionUI() {
+      const selCount = selectedSet.size;
+      document.getElementById('selCount').textContent = selCount;
+      const groups = new Set();
+      blocks.forEach(b => { if (b.data.groupId) groups.add(b.data.groupId); });
+      document.getElementById('groupCount').textContent = groups.size;
+      renderGroupsPanel();
+
+      const selEditor = document.getElementById('selectionEditorPanel');
+      if (selCount > 0) {
+        selEditor.style.display = 'block';
+        const b = Array.from(selectedSet)[0];
+        if (b) {
+          document.getElementById('selBlockType').value = b.data.type || 'block';
+          document.getElementById('selBlockW').value = b.data.w;
+          document.getElementById('selBlockH').value = b.data.h;
+          document.getElementById('selBlockD').value = b.data.d;
+          document.getElementById('selBlockCollision').checked = b.data.collision !== false;
+          document.getElementById('selBlockDestructible').checked = b.data.destructible === true;
+          document.getElementById('selBlockColor').value = b.data.color || '#cc4444';
+          
+          const selColorBox = document.getElementById('selColorPresets');
+          if (selColorBox) {
+            selColorBox.querySelectorAll('.cpre').forEach(e => {
+              if (e.dataset.color === b.data.color) e.classList.add('active');
+              else e.classList.remove('active');
+            });
+          }
+        }
+      } else {
+        selEditor.style.display = 'none';
+      }
+    }
+
+    // ═══ GROUPS PANEL RENDER ═══
+    function renderGroupsPanel() {
+      const container = document.getElementById('groupsList');
+      const groupBlocks = new Map();
+      blocks.forEach((b, idx) => {
+        if (!b.data.groupId) return;
+        if (!groupBlocks.has(b.data.groupId)) groupBlocks.set(b.data.groupId, []);
+        groupBlocks.get(b.data.groupId).push(idx);
+      });
+
+      if (groupBlocks.size === 0) {
+        container.innerHTML = '<div class="gp-empty">Selecciona bloques<br>y pulsa <b style="color:#ffe600">Ctrl+J</b><br>para crear un grupo</div>';
+        return;
+      }
+
+      groupMeta.forEach((_, gid) => { if (!groupBlocks.has(gid)) groupMeta.delete(gid); });
+
+      const gids = Array.from(groupBlocks.keys());
+
+      container.innerHTML = '';
+      let autoIdx = 1;
+      gids.forEach((gid) => {
+        if (!groupMeta.has(gid)) groupMeta.set(gid, { name: 'Grupo ' + autoIdx });
+        autoIdx++;
+        const meta = groupMeta.get(gid);
+        
+        const indices = groupBlocks.get(gid) || [];
+        const groupBlocksList = blocks.filter(b => b.data.groupId === gid);
+        const isSelected = groupBlocksList.some(b => selectedSet.has(b));
+
+        const folder = document.createElement('div');
+        folder.className = 'gp-folder' + (isSelected ? ' gp-selected' : '');
+        folder.dataset.gid = gid;
+
+        folder.innerHTML = `
+          <div class="gp-folder-header" onclick="selectGroupById('${gid}')">
+            <span class="gp-folder-icon">📁</span>
+            <input class="gp-folder-name-input" value="${meta.name}" placeholder="Nombre" data-gid="${gid}" onclick="event.stopPropagation()">
+            <span class="gp-count">${indices.length} blq</span>
+            <div class="gp-folder-actions" onclick="event.stopPropagation()">
+              <button class="gp-mini-btn sel" onclick="selectGroupById('${gid}')" title="Seleccionar">▶</button>
+              <button class="gp-mini-btn" onclick="deleteGroupById('${gid}')" title="Eliminar">✕</button>
+            </div>
+          </div>
+        `;
+        container.appendChild(folder);
+      });
+
+      container.querySelectorAll('.gp-folder-name-input').forEach(inp => {
+        inp.addEventListener('input', e => {
+          const gid = e.target.dataset.gid;
+          const m = groupMeta.get(gid);
+          if (m) m.name = e.target.value;
+        });
+        inp.addEventListener('keydown', e => e.stopPropagation());
+      });
+    }
+
+    window.selectGroupById = function(gid) {
+      blocks.forEach(b => {
+        if (b.data.groupId === gid && !selectedSet.has(b)) {
+          selectedSet.add(b);
+          addSelectionOutline(b);
+        }
+      });
+      updateSelectionUI();
+      setStatus('Grupo seleccionado', true);
+    };
+
+    window.selectGroupOfSelected = function() {
+      const groupIds = new Set();
+      selectedSet.forEach(b => {
+        if (b.data.groupId) {
+          groupIds.add(b.data.groupId);
+        }
+      });
+      if (groupIds.size === 0) { setStatus('Ningún bloque seleccionado pertenece a un grupo'); return; }
+      blocks.forEach(b => {
+        if (b.data.groupId && groupIds.has(b.data.groupId) && !selectedSet.has(b)) {
+          selectedSet.add(b);
+          addSelectionOutline(b);
+        }
+      });
+      updateSelectionUI();
+      setStatus('Grupo(s) seleccionado(s) completamente', true);
+    };
+
+    window.deleteGroupById = function(gid) {
+      const indices = blocks.map((b, i) => b.data.groupId === gid ? i : -1).filter(i => i >= 0);
+      if (!confirm('¿Eliminar ' + indices.length + ' bloques del grupo?')) return;
+      indices.sort((a, b) => b - a).forEach(i => removeBlock(i));
+      groupMeta.delete(gid);
+      rebuildOutlines();
+      setStatus('Grupo eliminado', true);
+    };
+
+    window.joinSelected = function() {
+      if (selectedSet.size < 2) { setStatus('Selecciona al menos 2 bloques para unir'); return; }
+      const gid = 'struct_' + (nextGroupId++);
+      selectedSet.forEach(b => { b.data.groupId = gid; });
+      const existingCount = new Set(blocks.map(b => b.data.groupId).filter(Boolean)).size;
+      groupMeta.set(gid, { name: 'Grupo ' + existingCount });
+      updateAllGroupOutlines();
+      updateSelectionUI();
+      setStatus('🔗 ' + selectedSet.size + ' bloques unidos en "' + (groupMeta.get(gid)?.name || gid) + '"', true);
+    };
+
+    window.ungroupSelected = function() {
+      let count = 0;
+      selectedSet.forEach(b => {
+        if (b.data.groupId) { delete b.data.groupId; count++; }
+      });
+      updateAllGroupOutlines();
+      updateSelectionUI();
+      if (count > 0) setStatus('✂ ' + count + ' bloques desagrupados', true);
+      else setStatus('Ningún bloque seleccionado tiene grupo');
+    };
+
+    function removeBlockObject(block) {
+      const idx = blocks.indexOf(block);
+      if (idx >= 0) {
+        removeBlock(idx);
+      }
+    }
+
+    window.deleteSelected = function() {
+      if (selectedSet.size === 0) return;
+      if (!confirm('¿Eliminar ' + selectedSet.size + ' bloques seleccionados?')) return;
+      selectedSet.forEach(b => {
+        removeSelectionOutline(b);
+        removeBlockObject(b);
+      });
+      selectedSet.clear();
+      rebuildOutlines();
+      setStatus('🗑 Bloques eliminados', true);
+    };
+
+    function rebuildOutlines() {
+      selectionOutlines.forEach((o) => { o.geometry.dispose(); o.material.dispose(); });
+      selectionOutlines.clear();
+      groupOutlines.forEach((o) => { o.geometry.dispose(); o.material.dispose(); });
+      groupOutlines.clear();
+      selectedSet.clear();
+      updateAllGroupOutlines();
+      updateSelectionUI();
+    }
+
+    window.updateSelectedProperties = function(props) {
+      if (selectedSet.size === 0) return;
+      
+      selectedSet.forEach(b => {
+        // Update data values if provided
+        if (props.type !== undefined) b.data.type = props.type;
+        if (props.collision !== undefined) b.data.collision = props.collision;
+        if (props.destructible !== undefined) {
+          b.data.destructible = props.destructible;
+          if (props.destructible) {
+            addDestructibleIndicator(b.mesh);
+          } else {
+            removeDestructibleIndicator(b.mesh);
+          }
+        }
+        if (props.color !== undefined) {
+          if (b.data.type === 'block') b.data.color = props.color;
+        }
+
+        // Handle dimension changes
+        let geomChanged = false;
+        if (props.w !== undefined) { b.data.w = props.w; geomChanged = true; }
+        if (props.h !== undefined) { b.data.h = props.h; geomChanged = true; }
+        if (props.d !== undefined) { b.data.d = props.d; geomChanged = true; }
+
+        // Handle position offsets
+        if (props.dx !== undefined) b.data.x += props.dx;
+        if (props.dy !== undefined) b.data.y += props.dy;
+        if (props.dz !== undefined) b.data.z += props.dz;
+
+        // Update Three.js position
+        b.mesh.position.set(b.data.x, b.data.y, b.data.z);
+
+        // Update Three.js geometry if dimensions changed
+        if (geomChanged) {
+          b.mesh.geometry.dispose();
+          b.mesh.geometry = new THREE.BoxGeometry(b.data.w, b.data.h, b.data.d);
+          
+          // Recreate wireframe edges helper inside the mesh
+          const oldEdges = b.mesh.children.filter(child => child.isLineSegments);
+          oldEdges.forEach(child => {
+            b.mesh.remove(child);
+            child.geometry.dispose();
+            child.material.dispose();
+          });
+          
+          // Add standard black edges
+          const edges = new THREE.LineSegments(
+            new THREE.EdgesGeometry(b.mesh.geometry),
+            new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.15 })
+          );
+          b.mesh.add(edges);
+
+          // Update position of destructible indicator if it exists
+          const indicator = b.mesh.getObjectByName('destructibleIndicator');
+          if (indicator) {
+            indicator.position.y = b.data.h / 2 + 0.1;
+          }
+        }
+
+        // Update Three.js material
+        const type = b.data.type || 'block';
+        const solid = b.data.collision !== false;
+        let col = b.data.color;
+        if (type === 'spawn_red') col = '#ff4444';
+        if (type === 'spawn_blue') col = '#4444ff';
+        if (type === 'plane_start') col = '#ffaa00';
+        if (type === 'plane_end') col = '#00ffff';
+        if (type === 'airdrop_spawn') col = '#ffe600';
+
+        b.mesh.material.dispose();
+        if (type === 'spawn_red') {
+          b.mesh.material = new THREE.MeshPhongMaterial({ color: 0xff4444, transparent: true, opacity: 0.6 });
+        } else if (type === 'spawn_blue') {
+          b.mesh.material = new THREE.MeshPhongMaterial({ color: 0x4444ff, transparent: true, opacity: 0.6 });
+        } else if (type === 'plane_start') {
+          b.mesh.material = new THREE.MeshPhongMaterial({ color: 0xffaa00, transparent: true, opacity: 0.6 });
+        } else if (type === 'plane_end') {
+          b.mesh.material = new THREE.MeshPhongMaterial({ color: 0x00ffff, transparent: true, opacity: 0.6 });
+        } else if (type === 'airdrop_spawn') {
+          b.mesh.material = new THREE.MeshPhongMaterial({ color: 0xffe600, transparent: true, opacity: 0.6 });
+        } else {
+          b.mesh.material = new THREE.MeshPhongMaterial({
+            color: new THREE.Color(col),
+            transparent: !solid,
+            opacity: solid ? 1.0 : 0.6
+          });
+        }
+      });
+
+      // Rebuild outlines for selection and groups
+      selectionOutlines.forEach((o) => { o.geometry.dispose(); o.material.dispose(); });
+      selectionOutlines.clear();
+      selectedSet.forEach(b => {
+        const oldSel = b.mesh.children.find(c => c.material && c.material.color && c.material.color.getHex() === 0xffe600);
+        if (oldSel) b.mesh.remove(oldSel);
+        
+        const geo = new THREE.EdgesGeometry(b.mesh.geometry);
+        const mat = new THREE.LineBasicMaterial({ color: 0xffe600 });
+        const outline = new THREE.LineSegments(geo, mat);
+        outline.scale.set(1.06, 1.06, 1.06);
+        b.mesh.add(outline);
+        selectionOutlines.set(b, outline);
+      });
+
+      groupOutlines.forEach((o) => { o.geometry.dispose(); o.material.dispose(); });
+      groupOutlines.clear();
+      updateAllGroupOutlines();
+      updateCount();
+      updateSelectionUI();
+      setStatus('Estructura modificada', true);
+    };
+
+    window.cloneSelected = function() {
+      if (selectedSet.size === 0) { setStatus('Selecciona bloques para clonar'); return; }
+      
+      const newBlocks = [];
+      const tempSelected = Array.from(selectedSet);
+      const offset = 2; 
+
+      tempSelected.forEach(b => {
+        const d = b.data;
+        const newX = d.x + offset;
+        const newY = d.y;
+        const newZ = d.z + offset;
+
+        const geo = new THREE.BoxGeometry(d.w, d.h, d.d);
+        const mat = b.mesh.material.clone();
+        const mesh = new THREE.Mesh(geo, mat);
+        
+        const edges = new THREE.LineSegments(
+          new THREE.EdgesGeometry(geo),
+          new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.15 })
+        );
+        mesh.add(edges);
+        mesh.position.set(newX, newY, newZ);
+        mesh.visible = true; 
+        scene.add(mesh);
+
+        const data = { 
+          ...d, 
+          x: newX, 
+          y: newY, 
+          z: newZ
+        };
+        
+        const newBlock = { mesh, data };
+        blocks.push(newBlock);
+        newBlocks.push(newBlock);
+      });
+
+      selectedSet.forEach(b => removeSelectionOutline(b));
+      selectedSet.clear();
+
+      newBlocks.forEach(b => {
+        selectedSet.add(b);
+        addSelectionOutline(b);
+      });
+
+      updateCount();
+      updateAllGroupOutlines();
+      updateSelectionUI();
+      setStatus(`🔀 ${newBlocks.length} bloques clonados y seleccionados`, true);
+    };
+
+    window.moveSelected = function() {
+      if (selectedSet.size === 0) { setStatus('Selecciona bloques primero'); return; }
+      if (moveMode) return;
+      moveMode = true;
+      ghostMesh.visible = false;
+      moveOriginalPositions = [];
+      let cx = 0, cy = 0, cz = 0, n = 0;
+      selectedSet.forEach(b => {
+        moveOriginalPositions.push({ block: b, x: b.data.x, y: b.data.y, z: b.data.z });
+        cx += b.data.x; cy += b.data.y; cz += b.data.z; n++;
+      });
+      moveCenter.set(cx / n, cy / n, cz / n);
+      setStatus('📦 MOVIENDO — Click izq: soltar · Esc/Click der: cancelar');
+    };
+
+    function confirmMove() {
+      moveMode = false;
+      selectedSet.forEach(b => {
+        b.data.x = b.mesh.position.x; b.data.y = b.mesh.position.y; b.data.z = b.mesh.position.z;
+      });
+      setStatus('✅ Bloques movidos', true);
+    }
+
+    function cancelMove() {
+      moveMode = false;
+      moveOriginalPositions.forEach(p => {
+        p.block.mesh.position.set(p.x, p.y, p.z);
+        p.block.data.x = p.x; p.block.data.y = p.y; p.block.data.z = p.z;
+      });
+      moveOriginalPositions = [];
+      setStatus('Movimiento cancelado');
+    }
+
+    function updateMaxGroupId() {
+      nextGroupId = 0;
+      blocks.forEach(b => {
+        if (b.data.groupId) {
+          const match = b.data.groupId.match(/struct_(\d+)/);
+          if (match) nextGroupId = Math.max(nextGroupId, parseInt(match[1]) + 1);
+        }
+      });
     }
 
     /* ═══════ CONTROLS ═══════ */
@@ -1014,17 +2016,155 @@
     window.addEventListener('keydown', e => {
       keys[e.key.toLowerCase()] = true;
       if (e.key === ' ') e.preventDefault();
+
+      // ─── Block dangerous browser shortcuts ───
+      const ctrl = e.ctrlKey || e.metaKey;
+      const dangerKeys = ['w', 'r', 't', 'n'];
+      if (ctrl && dangerKeys.includes(e.key.toLowerCase())) { e.preventDefault(); return; }
+      if (ctrl && e.key === 'F4') { e.preventDefault(); return; }
+      if (e.altKey && e.key === 'F4') { e.preventDefault(); return; }
+      // ─────────────────────────────────────────
+
+      if (!locked()) return;
+      // G = move selected
+      if (e.key.toLowerCase() === 'g' && !moveMode && selectedSet.size > 0) { moveSelected(); e.preventDefault(); }
+      // Ctrl+J = join
+      if (e.key.toLowerCase() === 'j' && (e.ctrlKey || e.metaKey)) { joinSelected(); e.preventDefault(); }
+      // Delete = delete selected
+      if (e.key === 'Delete' && selectedSet.size > 0) { deleteSelected(); e.preventDefault(); }
+      // Escape = cancel move or clear selection
+      if (e.key === 'Escape') { if (moveMode) cancelMove(); else clearSelection(); }
     });
     window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
     window.addEventListener('contextmenu', e => e.preventDefault());
 
+    // ═══════ RUBBER BAND SELECTION ═══════
+    const rubberBandEl = document.getElementById('rubberBand');
+    let rbActive = false;
+    let rbStartX = 0, rbStartY = 0;
+
+    function startRubberBand(clientX, clientY) {
+      const rect = area.getBoundingClientRect();
+      rbStartX = clientX - rect.left;
+      rbStartY = clientY - rect.top;
+      rbActive = true;
+      rubberBandEl.style.left   = rbStartX + 'px';
+      rubberBandEl.style.top    = rbStartY + 'px';
+      rubberBandEl.style.width  = '0px';
+      rubberBandEl.style.height = '0px';
+      rubberBandEl.style.display = 'block';
+      // Hide lock overlay while rubber banding
+      lockOverlay.style.display = 'none';
+    }
+
+    function updateRubberBand(clientX, clientY) {
+      if (!rbActive) return;
+      const rect = area.getBoundingClientRect();
+      const cx = clientX - rect.left;
+      const cy = clientY - rect.top;
+      const x = Math.min(cx, rbStartX);
+      const y = Math.min(cy, rbStartY);
+      const w = Math.abs(cx - rbStartX);
+      const h = Math.abs(cy - rbStartY);
+      rubberBandEl.style.left   = x + 'px';
+      rubberBandEl.style.top    = y + 'px';
+      rubberBandEl.style.width  = w + 'px';
+      rubberBandEl.style.height = h + 'px';
+    }
+
+    function finishRubberBand(clientX, clientY) {
+      if (!rbActive) return;
+      rbActive = false;
+      rubberBandEl.style.display = 'none';
+      // Restore lock overlay visibility (pointerlockchange handles actual state)
+      lockOverlay.style.display = locked() ? 'none' : 'flex';
+
+      const rect = area.getBoundingClientRect();
+      const cx = clientX - rect.left;
+      const cy = clientY - rect.top;
+      const x1 = Math.min(cx, rbStartX);
+      const y1 = Math.min(cy, rbStartY);
+      const x2 = Math.max(cx, rbStartX);
+      const y2 = Math.max(cy, rbStartY);
+
+      // Only select if user actually dragged (not just a click)
+      if (x2 - x1 < 4 && y2 - y1 < 4) return;
+
+      // Project each block center to screen space
+      const aW = area.clientWidth, aH = area.clientHeight;
+      const tmp = new THREE.Vector3();
+      let added = 0;
+      blocks.forEach((b, idx) => {
+        if (!b.mesh.visible) return; // Skip hidden/invisible blocks
+        tmp.set(b.mesh.position.x, b.mesh.position.y, b.mesh.position.z);
+        tmp.project(camera);
+        // NDC to pixel
+        const sx = ( tmp.x + 1) / 2 * aW;
+        const sy = (-tmp.y + 1) / 2 * aH;
+        if (tmp.z < 1 && sx >= x1 && sx <= x2 && sy >= y1 && sy <= y2) {
+          if (!selectedSet.has(b)) {
+            selectedSet.add(b);
+            addSelectionOutline(b);
+            added++;
+          }
+        }
+      });
+      updateSelectionUI();
+      if (added > 0) setStatus(`🟡 ${added} bloque(s) añadidos a la selección`, true);
+      else setStatus('Ningún bloque en esa zona');
+    }
+
     // Mouse buttons
     window.addEventListener('mousedown', e => {
+      // Shift+Right drag = rubber band selection (works locked or unlocked)
+      if (e.button === 2 && e.shiftKey) {
+        if (locked()) document.exitPointerLock();
+        e.preventDefault();
+        startRubberBand(e.clientX, e.clientY);
+        return;
+      }
       if (!locked()) return;
+      if (moveMode) {
+        if (e.button === 0) { confirmMove(); return; }
+        if (e.button === 2) { cancelMove(); return; }
+        return;
+      }
       if (e.button === 0) placeBlock();
       if (e.button === 2) {
-        const idx = getRemoveTarget();
-        if (idx >= 0) removeBlock(idx);
+        if (e.shiftKey) {
+          // Shift+Right click (no drag) = select/deselect single block
+          const idx = getRemoveTarget();
+          if (idx >= 0) toggleSelect(blocks[idx]);
+        } else {
+          const idx = getRemoveTarget();
+          if (idx >= 0) removeBlock(idx);
+        }
+      }
+    });
+
+    window.addEventListener('mousemove', e => {
+      if (rbActive) updateRubberBand(e.clientX, e.clientY);
+    });
+
+    window.addEventListener('mouseup', e => {
+      if (rbActive && e.button === 2) {
+        finishRubberBand(e.clientX, e.clientY);
+      }
+    });
+
+    // Double right-click to select entire group
+    window.addEventListener('dblclick', e => {
+      if (!locked() || e.button !== 2) return;
+      const idx = getRemoveTarget();
+      if (idx >= 0 && blocks[idx]?.data.groupId) {
+        const gid = blocks[idx].data.groupId;
+        blocks.forEach(b => {
+          if (b.data.groupId === gid && !selectedSet.has(b)) {
+            selectedSet.add(b);
+            addSelectionOutline(b);
+          }
+        });
+        updateSelectionUI();
       }
     });
 
@@ -1061,13 +2201,31 @@
     function updateGhostPosition() {
       if (!locked()) { ghostMesh.visible = false; return; }
 
+      // Move mode: move selected blocks to follow cursor
+      if (moveMode) {
+        ghostMesh.visible = false;
+        const pos = getPlacePosition();
+        if (pos.valid) {
+          const dx = pos.x - moveCenter.x;
+          const dy = pos.y - moveCenter.y;
+          const dz = pos.z - moveCenter.z;
+          moveOriginalPositions.forEach(p => {
+            p.block.mesh.position.set(p.x + dx, p.y + dy, p.z + dz);
+          });
+          document.getElementById('ghostInfo').textContent =
+            `📦 MOVIENDO ${selectedSet.size} bloques · Δ(${dx.toFixed(1)}, ${dy.toFixed(1)}, ${dz.toFixed(1)})`;
+        }
+        return;
+      }
+
       const pos = getPlacePosition();
       if (pos.valid) {
         ghostMesh.position.set(pos.x, pos.y, pos.z);
         ghostMesh.visible = true;
 
+        const selTxt = selectedSet.size > 0 ? ` · Sel: ${selectedSet.size}` : '';
         document.getElementById('ghostInfo').textContent =
-          `Pos: (${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}) · Dist: ${placeDist.toFixed(0)} · ${placeMode === 'snap' ? '📐 SNAP' : '🔓 LIBRE'}`;
+          `Pos: (${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}) · Dist: ${placeDist.toFixed(0)} · ${placeMode === 'snap' ? '📐 SNAP' : '🔓 LIBRE'}${selTxt}`;
       } else {
         ghostMesh.visible = false;
       }
@@ -1138,20 +2296,33 @@
           d: floorD,
           color: '0x' + floorColor.toString(16).padStart(6, '0')
         },
-        blocks: {}
+        blocks: {},
+        botsCount: parseInt(document.getElementById('botsCount').value) || 0
       };
       blocks.forEach((b, i) => {
         const d = b.data;
-        mapData.blocks['b' + i] = {
+        const entry = {
           x: d.x, z: d.z,
           w: d.w, h: d.h, d: d.d,
           y: d.y,
           color: '0x' + d.color.slice(1),
           type: d.type || 'block',
-          collision: d.collision !== false
+          collision: d.collision !== false,
+          destructible: d.destructible === true
         };
+        if (d.groupId) entry.groupId = d.groupId;
+        mapData.blocks['b' + i] = entry;
       });
+      // Save group metadata
+      const groupMetaObj = {};
+      groupMeta.forEach((m, gid) => { groupMetaObj[gid] = { name: m.name || gid }; });
+      if (Object.keys(groupMetaObj).length > 0) mapData.groupMeta = groupMetaObj;
       set(ref(db, 'fps/map_' + activeMapMode), mapData).then(() => {
+        if (activeMapMode === 'br') {
+          set(ref(db, 'fps/map_lobby/botsCount'), mapData.botsCount);
+        } else if (activeMapMode === 'lobby') {
+          set(ref(db, 'fps/map_br/botsCount'), mapData.botsCount);
+        }
         setStatus('✅ Mapa publicado (' + activeMapMode.toUpperCase() + ') — ' + blocks.length + ' bloques!', true);
       }).catch(err => {
         setStatus('❌ Error: ' + err.message);
@@ -1162,6 +2333,7 @@
       const data = {
         floorW, floorD,
         floorColor: '#' + floorColor.toString(16).padStart(6, '0'),
+        botsCount: parseInt(document.getElementById('botsCount').value) || 0,
         blocks: blocks.map(b => b.data)
       };
       const json = JSON.stringify(data, null, 2);
@@ -1180,6 +2352,7 @@
 
         floorW = data.floorW || 100;
         floorD = data.floorD || 100;
+        document.getElementById('botsCount').value = data.botsCount !== undefined ? data.botsCount : 0;
         if (data.floorColor) {
           floorColor = parseInt('0x' + data.floorColor.slice(1));
           document.getElementById('floorColor').value = data.floorColor;
@@ -1193,6 +2366,7 @@
           if (!d.type) d.type = 'block';
           const btype = d.type;
           const solid = d.collision !== false;
+          const dest = d.destructible === true;
           const geo = new THREE.BoxGeometry(d.w, d.h, d.d);
           let mat;
           if (btype === 'spawn_red') {
@@ -1220,7 +2394,17 @@
           mesh.add(edges);
           mesh.position.set(d.x, d.y, d.z);
           scene.add(mesh);
-          blocks.push({ mesh, data: d });
+
+          const blockData = {
+            ...d,
+            type: btype,
+            collision: solid,
+            destructible: dest
+          };
+          if (dest) {
+            addDestructibleIndicator(mesh);
+          }
+          blocks.push({ mesh, data: blockData });
         });
         updateCount();
         setStatus('📥 Mapa importado — ' + blocks.length + ' bloques', true);
@@ -1281,6 +2465,7 @@
           document.getElementById('floorColor').value = '#4f9a45';
           document.getElementById('floorW').value = floorW;
           document.getElementById('floorD').value = floorD;
+          document.getElementById('botsCount').value = 0;
           updateFloorPresetsUI(100, 100);
           makeFloor();
           updateCount();
@@ -1288,6 +2473,18 @@
           return;
         }
         const mapData = snap.val();
+
+        document.getElementById('botsCount').value = mapData.botsCount !== undefined ? mapData.botsCount : 0;
+        if (activeMapMode === 'br' || activeMapMode === 'lobby') {
+          const otherMode = activeMapMode === 'br' ? 'lobby' : 'br';
+          if (mapData.botsCount === undefined) {
+            get(ref(db, 'fps/map_' + otherMode + '/botsCount')).then(otherSnap => {
+              if (otherSnap.exists()) {
+                document.getElementById('botsCount').value = otherSnap.val();
+              }
+            });
+          }
+        }
 
         // Clear existing blocks
         while (blocks.length > 0) {
@@ -1372,19 +2569,32 @@
             mesh.position.set(bx, by, bz);
             scene.add(mesh);
 
-            blocks.push({
-              mesh,
-              data: {
+            const blockData = {
                 x: bx, y: by, z: bz,
                 w: bw, h: bh, d: bd,
                 color: colStr,
                 type: btype,
-                collision: solid
-              }
-            });
+                collision: solid,
+                destructible: b.destructible === true
+            };
+            if (b.groupId) blockData.groupId = b.groupId;
+            if (blockData.destructible) {
+              addDestructibleIndicator(mesh);
+            }
+            blocks.push({ mesh, data: blockData });
           });
         }
         updateCount();
+        updateMaxGroupId();
+        updateAllGroupOutlines();
+        // Restore groupMeta
+        groupMeta.clear();
+        if (mapData.groupMeta) {
+          Object.entries(mapData.groupMeta).forEach(([gid, m]) => {
+            groupMeta.set(gid, { name: m.name || gid });
+          });
+        }
+        updateSelectionUI();
         setStatus('✅ Mapa ' + activeMapMode.toUpperCase() + ' cargado de Firebase', true);
       }).catch(err => {
         setStatus('❌ Error al cargar: ' + err.message);
