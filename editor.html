@@ -649,6 +649,48 @@
     }
     .gp-destroyed-link b { color: #ff9955; }
 
+    /* Right Sidebar Tabs & Objects */
+    .right-tab-bar {
+      display: flex;
+      background: rgba(255,255,255,.02);
+      border-bottom: 1px solid #1a1a2e;
+      flex-shrink: 0;
+    }
+    .right-tab {
+      flex: 1;
+      padding: 10px 12px;
+      border: none;
+      background: transparent;
+      color: #556;
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all .2s;
+    }
+    .right-tab.active {
+      color: #ffe600;
+      border-bottom-color: #ffe600;
+      background: rgba(255,230,0,.04);
+    }
+    .right-tab:hover:not(.active) { color: #aaa; }
+
+    .obj-card {
+      background: rgba(255,255,255,.02);
+      border: 1px solid #1e1e2e;
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .obj-card:hover { border-color: #ffe60055; background: rgba(255,230,0,.02); }
+    .obj-card.active { border-color: #ffe600; background: rgba(255,230,0,.04); }
+
     #editorArea canvas {
       display: block;
       width: 100%;
@@ -775,6 +817,173 @@
       z-index: 200;
       box-shadow: 0 0 0 1px rgba(0,0,0,0.4) inset;
     }
+
+    /* ═══════ CUSTOM MODEL MODAL ═══════ */
+    #customModelModal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.82);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    #customModelModal.active { display: flex; }
+    .cm-box {
+      background: rgba(10,10,18,.97);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 18px;
+      width: 660px;
+      max-width: calc(100vw - 40px);
+      max-height: calc(100vh - 60px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0,0,0,.8), 0 0 0 1px rgba(100,200,255,.06);
+      animation: cmIn .22s cubic-bezier(.175,.885,.32,1.275);
+    }
+    @keyframes cmIn { 0%{opacity:0;transform:scale(.95)} 100%{opacity:1;transform:scale(1)} }
+    .cm-header {
+      padding: 20px 24px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .cm-title {
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #00ccff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .cm-close {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 50%;
+      width: 34px; height: 34px;
+      color: #888;
+      font-size: 1em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+      font-family: monospace;
+    }
+    .cm-close:hover { background: rgba(255,68,68,.2); border-color: #ff4444; color: #ff4444; }
+    .cm-body {
+      padding: 18px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .cm-hint {
+      font-size: 10px;
+      color: #556;
+      letter-spacing: 1px;
+      line-height: 1.7;
+      background: rgba(0,200,255,.04);
+      border: 1px solid rgba(0,200,255,.1);
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+    .cm-hint b { color: #00ccff; }
+    .cm-name-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .cm-name-row label {
+      color: #888;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      min-width: 60px;
+    }
+    .cm-name-row input {
+      flex: 1;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 7px 10px;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .cm-name-row input:focus { border-color: #00ccff; }
+    #customCodeArea {
+      width: 100%;
+      height: 260px;
+      background: #070710;
+      border: 1px solid #1a2a3a;
+      border-radius: 10px;
+      padding: 14px;
+      color: #7ec8e3;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      line-height: 1.7;
+      resize: vertical;
+      outline: none;
+      transition: border-color .2s;
+      tab-size: 2;
+    }
+    #customCodeArea:focus { border-color: #00ccff; box-shadow: 0 0 0 2px rgba(0,200,255,.08); }
+    #customCodeArea::placeholder { color: #334; }
+    .cm-status {
+      font-size: 10px;
+      letter-spacing: 1px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      display: none;
+    }
+    .cm-status.ok  { display:block; background:rgba(0,255,100,.08); border:1px solid rgba(0,255,100,.2); color:#44ff88; }
+    .cm-status.err { display:block; background:rgba(255,50,50,.08); border:1px solid rgba(255,50,50,.2); color:#ff6666; }
+    .cm-footer {
+      padding: 14px 24px 18px;
+      border-top: 1px solid rgba(255,255,255,.06);
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    .cm-btn {
+      padding: 10px 22px;
+      border: none;
+      border-radius: 9px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .cm-btn-test {
+      background: rgba(0,200,255,.1);
+      color: #00ccff;
+      border: 1px solid rgba(0,200,255,.25);
+    }
+    .cm-btn-test:hover { background: rgba(0,200,255,.2); }
+    .cm-btn-confirm {
+      background: linear-gradient(135deg, #00ccff, #0072ff);
+      color: #fff;
+      box-shadow: 0 0 20px rgba(0,180,255,.3);
+    }
+    .cm-btn-confirm:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0,180,255,.5); }
+    .cm-btn-cancel {
+      background: rgba(255,255,255,.05);
+      color: #888;
+      border: 1px solid #333;
+    }
+    .cm-btn-cancel:hover { background: rgba(255,255,255,.1); color: #fff; }
   </style>
 </head>
 
@@ -836,6 +1045,8 @@
           <option value="plane_start">✈️ Ruta Inicio</option>
           <option value="plane_end">🛬 Ruta Fin</option>
           <option value="airdrop_spawn">📦 Spawn Airdrop</option>
+          <option value="chair">🪑 Silla</option>
+          <option value="custom_model" style="display:none">🧩 Modelo IA</option>
         </select>
       </div>
       <div class="row">
@@ -1070,12 +1281,49 @@
 
   <!-- RIGHT GROUPS PANEL -->
   <div id="groupsPanel">
-    <div class="gp-header">
-      <div class="gp-title">🏗 Estructuras</div>
-      <div class="gp-subtitle">Grupos de bloques del mapa</div>
+    <div class="right-tab-bar">
+      <button class="right-tab active" id="tabGroups" onclick="switchRightTab('groups')">🏗 Grupos</button>
+      <button class="right-tab" id="tabObjects" onclick="switchRightTab('objects')">🛋 Objetos</button>
     </div>
-    <div id="groupsList">
-      <div class="gp-empty">Selecciona bloques<br>y pulsa Ctrl+J<br>para crear un grupo</div>
+
+    <!-- Contenido de Grupos -->
+    <div id="groupsContent" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+      <div class="gp-header">
+        <div class="gp-title">🏗 Estructuras</div>
+        <div class="gp-subtitle">Grupos de bloques del mapa</div>
+      </div>
+      <div id="groupsList">
+        <div class="gp-empty">Selecciona bloques<br>y pulsa Ctrl+J<br>para crear un grupo</div>
+      </div>
+    </div>
+
+    <!-- Contenido de Objetos -->
+    <div id="objectsContent" style="display: none; flex-direction: column; flex: 1; overflow: hidden;">
+      <div class="gp-header" style="background: linear-gradient(180deg, rgba(255,230,0,.06) 0%, transparent 100%);">
+        <div class="gp-title" style="color: #ffe600; border-left-color: #ffe600;">🛋 Objetos</div>
+        <div class="gp-subtitle">Elige un objeto y haz clic en el mapa para colocarlo</div>
+      </div>
+      <div id="objectsList" style="flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+        <div class="obj-card" id="objChair" onclick="selectDecoration('chair')">
+          <div style="font-size: 24px; background: rgba(255,255,255,.04); border-radius: 6px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">🪑</div>
+          <div style="flex: 1;">
+            <div style="font-weight: bold; color: #fff; font-size: 11px; letter-spacing: 1px; text-transform: uppercase;">Silla</div>
+            <div style="font-size: 9px; color: #556; margin-top: 2px; font-family: sans-serif;">Silla decorativa de madera</div>
+          </div>
+        </div>
+
+        <div class="obj-card" id="objCustomModel" onclick="openCustomModelModal()" style="border-color:#00ccff33;">
+          <div style="font-size: 24px; background: rgba(0,200,255,.08); border-radius: 6px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">🧩</div>
+          <div style="flex: 1;">
+            <div style="font-weight: bold; color: #00ccff; font-size: 11px; letter-spacing: 1px; text-transform: uppercase;">Modelo IA</div>
+            <div style="font-size: 9px; color: #2a5a6a; margin-top: 2px; font-family: sans-serif;">Pega código Three.js de una IA</div>
+          </div>
+          <div style="font-size: 9px; color: #00ccff88; letter-spacing: 1px;">+ CÓDIGO</div>
+        </div>
+
+        <!-- Modelos IA guardados -->
+        <div id="savedModelsList" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;"></div>
+      </div>
     </div>
   </div>
 
@@ -1137,6 +1385,12 @@
     let placeDist = 12; // how far ahead to place
     let placeMode = 'free'; // 'snap' or 'free'
 
+    // ═══════ CUSTOM MODEL STATE ═══════
+    let currentCustomCode = '';
+    let currentCustomModelName = 'Modelo IA';
+    // savedModels: [{name, code}] — stored in Firebase at fps/custom_models
+    let savedModels = [];
+
     // ═══════ SELECTION & GROUP STATE ═══════
     const selectedSet = new Set();
     let nextGroupId = 0;
@@ -1153,6 +1407,176 @@
       placeMode = mode;
       document.getElementById('modeSnap').classList.toggle('active', mode === 'snap');
       document.getElementById('modeFree').classList.toggle('active', mode === 'free');
+    };
+
+    /* ═══════ RIGHT PANEL TABS ═══════ */
+    window.switchRightTab = function(tab) {
+      const groupsContent  = document.getElementById('groupsContent');
+      const objectsContent = document.getElementById('objectsContent');
+      const tabGroups      = document.getElementById('tabGroups');
+      const tabObjects     = document.getElementById('tabObjects');
+
+      if (tab === 'groups') {
+        groupsContent.style.display  = 'flex';
+        objectsContent.style.display = 'none';
+        tabGroups.classList.add('active');
+        tabObjects.classList.remove('active');
+      } else {
+        groupsContent.style.display  = 'none';
+        objectsContent.style.display = 'flex';
+        tabGroups.classList.remove('active');
+        tabObjects.classList.add('active');
+      }
+    };
+
+    /* ═══════ SELECT DECORATION FROM OBJECTS PANEL ═══════ */
+    window.selectDecoration = function(objType) {
+      // Highlight the selected card
+      document.querySelectorAll('.obj-card').forEach(c => c.classList.remove('active'));
+      const card = document.getElementById('obj' + objType.charAt(0).toUpperCase() + objType.slice(1));
+      if (card) card.classList.add('active');
+
+      // Switch the block type selector to the chosen decoration
+      const sel = document.getElementById('blockType');
+      if (sel) {
+        sel.value = objType;
+        onBlockTypeChange();
+      }
+    };
+
+    /* ═══════ CUSTOM MODEL MODAL ═══════ */
+    window.openCustomModelModal = function(savedIdx) {
+      const modal = document.getElementById('customModelModal');
+      const nameInp = document.getElementById('customModelName');
+      const codeArea = document.getElementById('customCodeArea');
+      const statusEl = document.getElementById('customCodeStatus');
+      statusEl.className = 'cm-status';
+      if (savedIdx !== undefined && savedModels[savedIdx]) {
+        nameInp.value = savedModels[savedIdx].name;
+        codeArea.value = savedModels[savedIdx].code;
+      } else {
+        nameInp.value = '';
+        codeArea.value = '';
+      }
+      modal.classList.add('active');
+    };
+
+    window.closeCustomModelModal = function() {
+      document.getElementById('customModelModal').classList.remove('active');
+    };
+
+    window.testCustomCode = function() {
+      const code = document.getElementById('customCodeArea').value.trim();
+      const statusEl = document.getElementById('customCodeStatus');
+      if (!code) { statusEl.className='cm-status err'; statusEl.textContent='⚠ El código está vacío'; return; }
+      try {
+        const fn = new Function('THREE', code);
+        const result = fn(THREE);
+        if (!result || !result.isObject3D) throw new Error('El código debe hacer return de un THREE.Group o THREE.Mesh');
+        // Dispose test result
+        result.traverse(c => { if(c.geometry) c.geometry.dispose(); if(c.material) c.material.dispose(); });
+        statusEl.className = 'cm-status ok';
+        statusEl.textContent = '✅ Código válido — el modelo se creó correctamente';
+      } catch(e) {
+        statusEl.className = 'cm-status err';
+        statusEl.textContent = '❌ Error: ' + e.message;
+      }
+    };
+
+    window.confirmCustomModel = function() {
+      const code = document.getElementById('customCodeArea').value.trim();
+      const name = document.getElementById('customModelName').value.trim() || 'Modelo IA';
+      const statusEl = document.getElementById('customCodeStatus');
+      if (!code) { statusEl.className='cm-status err'; statusEl.textContent='⚠ El código está vacío'; return; }
+      try {
+        const fn = new Function('THREE', code);
+        const result = fn(THREE);
+        if (!result || !result.isObject3D) throw new Error('El código debe hacer return de un THREE.Group o THREE.Mesh');
+        result.traverse(c => { if(c.geometry) c.geometry.dispose(); if(c.material) c.material.dispose(); });
+      } catch(e) {
+        statusEl.className = 'cm-status err';
+        statusEl.textContent = '❌ Error: ' + e.message;
+        return;
+      }
+      currentCustomCode = code;
+      currentCustomModelName = name;
+      // Save to Firebase savedModels list
+      const existing = savedModels.findIndex(m => m.name === name);
+      if (existing >= 0) savedModels[existing] = { name, code };
+      else savedModels.push({ name, code });
+      saveCustomModelsToFirebase();
+      renderSavedModelsList();
+      closeCustomModelModal();
+      // Activate custom_model block type
+      document.querySelectorAll('.obj-card').forEach(c => c.classList.remove('active'));
+      document.getElementById('objCustomModel').classList.add('active');
+      const sel = document.getElementById('blockType');
+      if (sel) { sel.value = 'custom_model'; onBlockTypeChange(); }
+      setStatus('🧩 Modelo "' + name + '" listo para colocar', true);
+    };
+
+    function createCustomModelMesh(code) {
+      try {
+        const fn = new Function('THREE', code);
+        const result = fn(THREE);
+        if (result && result.isObject3D) return result;
+        return null;
+      } catch(e) {
+        console.error('Error creando modelo custom:', e);
+        return null;
+      }
+    }
+
+    function saveCustomModelsToFirebase() {
+      import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js').then(({ ref: dbRef, set: dbSet }) => {
+        dbSet(dbRef(db, 'fps/custom_models'), savedModels).catch(err => console.error('Error guardando modelos:', err));
+      });
+    }
+
+    function renderSavedModelsList() {
+      const container = document.getElementById('savedModelsList');
+      if (!container) return;
+      if (savedModels.length === 0) { container.innerHTML = ''; return; }
+      container.innerHTML = '';
+      savedModels.forEach((m, i) => {
+        const card = document.createElement('div');
+        card.className = 'obj-card' + (currentCustomCode === m.code ? ' active' : '');
+        card.style.cssText = 'border-color: rgba(0,200,255,0.2); gap:8px;';
+        card.innerHTML = `
+          <div style="font-size:16px;background:rgba(0,200,255,.06);border-radius:5px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">🧩</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:bold;color:#00ccff;font-size:10px;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name}</div>
+            <div style="font-size:8px;color:#2a5a6a;margin-top:2px;font-family:sans-serif;">Modelo IA guardado</div>
+          </div>
+          <div style="display:flex;gap:3px;flex-shrink:0;">
+            <button onclick="event.stopPropagation();selectSavedModel(${i})" style="background:rgba(0,200,255,.1);border:1px solid rgba(0,200,255,.3);border-radius:4px;color:#00ccff;font-size:9px;padding:2px 6px;cursor:pointer;font-family:monospace;">▶ Usar</button>
+            <button onclick="event.stopPropagation();openCustomModelModal(${i})" style="background:rgba(255,255,255,.05);border:1px solid #333;border-radius:4px;color:#888;font-size:9px;padding:2px 6px;cursor:pointer;font-family:monospace;">✏</button>
+            <button onclick="event.stopPropagation();deleteSavedModel(${i})" style="background:rgba(255,50,50,.08);border:1px solid rgba(255,50,50,.2);border-radius:4px;color:#ff6666;font-size:9px;padding:2px 6px;cursor:pointer;font-family:monospace;">✕</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    window.selectSavedModel = function(i) {
+      if (!savedModels[i]) return;
+      currentCustomCode = savedModels[i].code;
+      currentCustomModelName = savedModels[i].name;
+      renderSavedModelsList();
+      document.querySelectorAll('.obj-card').forEach(c => c.classList.remove('active'));
+      document.getElementById('objCustomModel').classList.add('active');
+      const sel = document.getElementById('blockType');
+      if (sel) { sel.value = 'custom_model'; onBlockTypeChange(); }
+      setStatus('🧩 Modelo "' + currentCustomModelName + '" seleccionado', true);
+    };
+
+    window.deleteSavedModel = function(i) {
+      if (!confirm('¿Eliminar modelo "' + savedModels[i].name + '"?')) return;
+      if (currentCustomCode === savedModels[i].code) { currentCustomCode = ''; currentCustomModelName = 'Modelo IA'; }
+      savedModels.splice(i, 1);
+      saveCustomModelsToFirebase();
+      renderSavedModelsList();
+      setStatus('Modelo eliminado', true);
     };
 
     /* ═══════ THREE.JS SETUP ═══════ */
@@ -1198,6 +1622,33 @@
       scene.add(window._gridHelper);
     }
     makeFloor();
+
+    // ═══════ createChairMesh ═══════
+    function createChairMesh(color) {
+      const mat = new THREE.MeshPhongMaterial({ color: new THREE.Color(color || '#8B6914') });
+      const group = new THREE.Group();
+
+      // Seat
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(1, 0.1, 1), mat);
+      seat.position.set(0, 0.55, 0);
+      group.add(seat);
+
+      // Back
+      const back = new THREE.Mesh(new THREE.BoxGeometry(1, 0.9, 0.1), mat);
+      back.position.set(0, 1.05, -0.45);
+      group.add(back);
+
+      // Legs
+      const legGeo = new THREE.BoxGeometry(0.1, 0.55, 0.1);
+      [[-0.4, 0.275, -0.4], [0.4, 0.275, -0.4],
+       [-0.4, 0.275,  0.4], [0.4, 0.275,  0.4]].forEach(([x, y, z]) => {
+        const leg = new THREE.Mesh(legGeo, mat);
+        leg.position.set(x, y, z);
+        group.add(leg);
+      });
+
+      return group;
+    }
 
     // Ghost block (preview)
     const ghostMat = new THREE.MeshPhongMaterial({
@@ -1270,6 +1721,26 @@
         document.getElementById('blockDestructible').checked = false;
         destructibleRow.style.opacity = '0.5';
         destructibleRow.style.pointerEvents = 'none';
+      } else if (type === 'chair') {
+        colorInput.disabled = false;
+        colorPresets.style.pointerEvents = 'auto';
+        colorPresets.style.opacity = '1.0';
+        collisionRow.style.opacity = '0.5';
+        collisionRow.style.pointerEvents = 'none';
+        document.getElementById('blockCollision').checked = false;
+        document.getElementById('blockDestructible').checked = false;
+        destructibleRow.style.opacity = '0.5';
+        destructibleRow.style.pointerEvents = 'none';
+      } else if (type === 'custom_model') {
+        colorInput.disabled = true;
+        colorPresets.style.pointerEvents = 'none';
+        colorPresets.style.opacity = '0.3';
+        collisionRow.style.opacity = '1.0';
+        collisionRow.style.pointerEvents = 'auto';
+        document.getElementById('blockCollision').checked = true;
+        document.getElementById('blockDestructible').checked = false;
+        destructibleRow.style.opacity = '1.0';
+        destructibleRow.style.pointerEvents = 'auto';
       } else {
         colorInput.disabled = false;
         colorPresets.style.pointerEvents = 'auto';
@@ -1298,6 +1769,28 @@
       if (type === 'airdrop_spawn') col = '#ffe600';
 
       scene.remove(ghostMesh);
+
+      if (type === 'chair') {
+        ghostMesh = createChairMesh(col);
+        ghostMesh.traverse(c => {
+          if (c.isMesh) { c.material = c.material.clone(); c.material.transparent = true; c.material.opacity = 0.45; }
+        });
+        ghostMesh.visible = false;
+        scene.add(ghostMesh);
+        return;
+      }
+
+      if (type === 'custom_model' && currentCustomCode) {
+        ghostMesh = createCustomModelMesh(currentCustomCode);
+        if (!ghostMesh) { ghostMesh = new THREE.Mesh(new THREE.BoxGeometry(2,2,2), ghostMat.clone()); }
+        ghostMesh.traverse(c => {
+          if (c.isMesh) { c.material = c.material.clone(); c.material.transparent = true; c.material.opacity = 0.4; }
+        });
+        ghostMesh.visible = false;
+        scene.add(ghostMesh);
+        return;
+      }
+
       const opacity = type !== 'block' ? 0.35 : (solid ? 0.35 : 0.18);
       ghostMesh = new THREE.Mesh(
         new THREE.BoxGeometry(bw, bh, bd),
@@ -1332,12 +1825,22 @@
       raycaster.setFromCamera(center, camera);
       raycaster.far = placeDist + 5;
 
-      // Collect all meshes to test against (floor + blocks)
+      // Collect all meshes to test against (floor + blocks, recursive for groups)
       const targets = [floorMesh, ...blocks.map(b => b.mesh)];
-      const hits = raycaster.intersectObjects(targets, false);
+      const hits = raycaster.intersectObjects(targets, true);
 
       if (hits.length > 0) {
         const hit = hits[0];
+        // Skip hits that have no face (e.g. group container)
+        if (!hit.face) {
+          if (placeMode === 'free') {
+            const dir = new THREE.Vector3();
+            camera.getWorldDirection(dir);
+            const pos = camera.position.clone().add(dir.multiplyScalar(placeDist));
+            return { x: pos.x, y: pos.y, z: pos.z, valid: true };
+          }
+          return { x: 0, y: 0, z: 0, valid: false };
+        }
         const normal = hit.face.normal.clone();
         // Transform normal to world space
         normal.transformDirection(hit.object.matrixWorld);
@@ -1346,29 +1849,23 @@
         const bh = parseInt(document.getElementById('blockH').value) || 2;
         const bd = parseInt(document.getElementById('blockD').value) || 2;
 
-        // Use unscaled normal for direction checks, scaled offset for position
         const nx = normal.x, ny = normal.y, nz = normal.z;
-
         let px, py, pz;
 
         if (Math.abs(ny) > 0.5) {
-          // Hit horizontal surface (floor or top/bottom of block)
           px = Math.round(hit.point.x);
           py = hit.point.y + (ny > 0 ? bh / 2 : -bh / 2);
           pz = Math.round(hit.point.z);
         } else if (Math.abs(nx) > 0.5) {
-          // Hit X-facing side
           px = hit.point.x + (nx > 0 ? bw / 2 : -bw / 2);
           py = Math.round(hit.point.y);
           pz = Math.round(hit.point.z);
         } else {
-          // Hit Z-facing side
           px = Math.round(hit.point.x);
           py = Math.round(hit.point.y);
           pz = hit.point.z + (nz > 0 ? bd / 2 : -bd / 2);
         }
 
-        // Round to snap to grid
         px = Math.round(px);
         py = Math.round(py);
         pz = Math.round(pz);
@@ -1381,15 +1878,9 @@
         const dir = new THREE.Vector3();
         camera.getWorldDirection(dir);
         const pos = camera.position.clone().add(dir.multiplyScalar(placeDist));
-        return {
-          x: pos.x,
-          y: pos.y,
-          z: pos.z,
-          valid: true
-        };
+        return { x: pos.x, y: pos.y, z: pos.z, valid: true };
       }
 
-      // Snap mode: no surface hit = can't place
       return { x: 0, y: 0, z: 0, valid: false };
     }
 
@@ -1397,9 +1888,13 @@
       raycaster.setFromCamera(center, camera);
       raycaster.far = placeDist + 10;
       const meshes = blocks.map(b => b.mesh);
-      const hits = raycaster.intersectObjects(meshes, false);
+      // Use recursive=true to hit children of Group objects (chairs)
+      const hits = raycaster.intersectObjects(meshes, true);
       if (hits.length > 0) {
-        const idx = blocks.findIndex(b => b.mesh === hits[0].object);
+        // Walk up to find the root block mesh
+        let obj = hits[0].object;
+        while (obj.parent && !meshes.includes(obj)) obj = obj.parent;
+        const idx = blocks.findIndex(b => b.mesh === obj);
         return idx;
       }
       return -1;
@@ -1422,6 +1917,49 @@
       if (type === 'plane_start') col = '#ffaa00';
       if (type === 'plane_end') col = '#00ffff';
       if (type === 'airdrop_spawn') col = '#ffe600';
+
+      // ── Chair: place as 3D Group ──
+      if (type === 'chair') {
+        const mesh = createChairMesh(col);
+        mesh.position.set(pos.x, pos.y, pos.z);
+        scene.add(mesh);
+        const data = {
+          x: pos.x, y: pos.y, z: pos.z,
+          w: 1, h: 1.5, d: 1,
+          color: col,
+          type: 'chair',
+          collision: false,
+          destructible: false
+        };
+        blocks.push({ mesh, data });
+        updateCount();
+        setStatus(`Silla en (${pos.x}, ${pos.y}, ${pos.z})`);
+        return;
+      }
+
+      // ── Custom Model ──
+      if (type === 'custom_model') {
+        if (!currentCustomCode) { setStatus('⚠ Primero pega un código de modelo'); return; }
+        const mesh = createCustomModelMesh(currentCustomCode);
+        if (!mesh) { setStatus('❌ Error al crear el modelo'); return; }
+        mesh.position.set(pos.x, pos.y, pos.z);
+        scene.add(mesh);
+        const data = {
+          x: pos.x, y: pos.y, z: pos.z,
+          w: 2, h: 2, d: 2,
+          color: '#888888',
+          type: 'custom_model',
+          modelCode: currentCustomCode,
+          modelName: currentCustomModelName,
+          collision: solid,
+          destructible: dest
+        };
+        if (dest) addDestructibleIndicator(mesh);
+        blocks.push({ mesh, data });
+        updateCount();
+        setStatus(`🧩 "${currentCustomModelName}" en (${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)})`);
+        return;
+      }
 
       const geo = new THREE.BoxGeometry(bw, bh, bd);
       let mat;
@@ -1481,19 +2019,24 @@
       if (selectionOutlines.has(block)) {
         const outline = selectionOutlines.get(block);
         block.mesh.remove(outline);
-        outline.geometry.dispose(); outline.material.dispose();
+        if (outline.geometry) outline.geometry.dispose();
+        if (outline.material) outline.material.dispose();
         selectionOutlines.delete(block);
       }
       if (groupOutlines.has(block)) {
         const outline = groupOutlines.get(block);
         block.mesh.remove(outline);
-        outline.geometry.dispose(); outline.material.dispose();
+        if (outline.geometry) outline.geometry.dispose();
+        if (outline.material) outline.material.dispose();
         groupOutlines.delete(block);
       }
 
       scene.remove(block.mesh);
-      block.mesh.geometry.dispose();
-      block.mesh.material.dispose();
+      // Dispose recursively (handles both Mesh and Group/chair)
+      block.mesh.traverse(child => {
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) child.material.dispose();
+      });
       blocks.splice(idx, 1);
       updateCount();
       setStatus('Bloque eliminado');
@@ -1529,12 +2072,14 @@
       const existing = mesh.getObjectByName('destructibleIndicator');
       if (existing) return;
       const geo = new THREE.SphereGeometry(0.2, 8, 8);
-      const mat = new THREE.MeshBasicMaterial({ color: 0xff3300 }); // Neon red/orange dot
+      const mat = new THREE.MeshBasicMaterial({ color: 0xff3300 });
       const indicator = new THREE.Mesh(geo, mat);
       indicator.name = 'destructibleIndicator';
-      // Position slightly above block top
-      const h = mesh.geometry.parameters ? mesh.geometry.parameters.height : 2;
-      indicator.position.set(0, h / 2 + 0.1, 0);
+      // Position above top: works for both Mesh (has .geometry) and Group
+      const h = (mesh.geometry && mesh.geometry.parameters)
+        ? mesh.geometry.parameters.height
+        : (() => { const box = new THREE.Box3().setFromObject(mesh); return box.max.y - box.min.y; })();
+      indicator.position.set(0, h / 2 + 0.3, 0);
       mesh.add(indicator);
     }
 
@@ -2305,12 +2850,17 @@
           x: d.x, z: d.z,
           w: d.w, h: d.h, d: d.d,
           y: d.y,
-          color: '0x' + d.color.slice(1),
+          color: '0x' + (d.color || '#888888').slice(1),
           type: d.type || 'block',
           collision: d.collision !== false,
           destructible: d.destructible === true
         };
         if (d.groupId) entry.groupId = d.groupId;
+        // Preserve custom model code
+        if (d.type === 'custom_model' && d.modelCode) {
+          entry.modelCode = d.modelCode;
+          entry.modelName = d.modelName || 'Modelo IA';
+        }
         mapData.blocks['b' + i] = entry;
       });
       // Save group metadata
@@ -2367,6 +2917,26 @@
           const btype = d.type;
           const solid = d.collision !== false;
           const dest = d.destructible === true;
+
+          // ── Chair ──
+          if (btype === 'chair') {
+            const mesh = createChairMesh(d.color || '#8B6914');
+            mesh.position.set(d.x, d.y, d.z);
+            scene.add(mesh);
+            blocks.push({ mesh, data: { ...d, type: 'chair', collision: false, destructible: false } });
+            return;
+          }
+          // ── Custom Model ──
+          if (btype === 'custom_model' && d.modelCode) {
+            const mesh = createCustomModelMesh(d.modelCode);
+            if (mesh) {
+              mesh.position.set(d.x, d.y, d.z);
+              scene.add(mesh);
+              blocks.push({ mesh, data: { ...d, type: 'custom_model', collision: false, destructible: false } });
+            }
+            return;
+          }
+
           const geo = new THREE.BoxGeometry(d.w, d.h, d.d);
           let mat;
           if (btype === 'spawn_red') {
@@ -2539,6 +3109,46 @@
               } else {
                 colStr = '#' + b.color.toString(16).padStart(6, '0');
               }
+            }
+
+            // ── Chair ──
+            if (btype === 'chair') {
+              const mesh = createChairMesh(colStr);
+              mesh.position.set(bx, by, bz);
+              scene.add(mesh);
+              const blockData = {
+                x: bx, y: by, z: bz,
+                w: 1, h: 1.5, d: 1,
+                color: colStr,
+                type: 'chair',
+                collision: false,
+                destructible: false
+              };
+              if (b.groupId) blockData.groupId = b.groupId;
+              blocks.push({ mesh, data: blockData });
+              return;
+            }
+
+            // ── Custom Model ──
+            if (btype === 'custom_model' && b.modelCode) {
+              const mesh = createCustomModelMesh(b.modelCode);
+              if (mesh) {
+                mesh.position.set(bx, by, bz);
+                scene.add(mesh);
+                const blockData = {
+                  x: bx, y: by, z: bz,
+                  w: 2, h: 2, d: 2,
+                  color: '#888888',
+                  type: 'custom_model',
+                  modelCode: b.modelCode,
+                  modelName: b.modelName || 'Modelo IA',
+                  collision: false,
+                  destructible: false
+                };
+                if (b.groupId) blockData.groupId = b.groupId;
+                blocks.push({ mesh, data: blockData });
+              }
+              return;
             }
 
             const geo = new THREE.BoxGeometry(bw, bh, bd);
@@ -3019,11 +3629,78 @@
       });
     };
 
+    // ── Load saved custom models from Firebase ──
+    function loadCustomModelsFromFirebase() {
+      get(ref(db, 'fps/custom_models')).then(snap => {
+        if (snap.exists()) {
+          const val = snap.val();
+          savedModels = Array.isArray(val) ? val.filter(Boolean) : Object.values(val);
+        } else {
+          savedModels = [];
+        }
+        renderSavedModelsList();
+      }).catch(err => console.error('Error cargando modelos IA:', err));
+    }
+
     // Auto-load on startup
     loadMapFromFirebase();
     loadEmotes();
     loadSkins();
+    loadCustomModelsFromFirebase();
   </script>
+
+  <!-- CUSTOM MODEL MODAL -->
+  <div id="customModelModal">
+    <div class="cm-box">
+      <div class="cm-header">
+        <div class="cm-title">🧩 Pegar Modelo de IA</div>
+        <button class="cm-close" onclick="closeCustomModelModal()">✕</button>
+      </div>
+      <div class="cm-body">
+        <div class="cm-hint">
+          Pídele a una IA (ChatGPT, Gemini, Claude…):<br>
+          <b>"Crea una [cama / árbol / mesa / …] en Three.js usando MeshPhongMaterial.<br>
+          El código debe ser el cuerpo de una función que recibe THREE como parámetro<br>
+          y hace return de un THREE.Group con toda la geometría."</b><br><br>
+          💡 <b style="color:#00ccff;">Ejemplo real — código de la Silla:</b><br>
+          <span style="color:#7ec8e3;font-size:9px;line-height:1.9;display:block;margin-top:4px;">
+            const mat = new THREE.MeshPhongMaterial({ color: 0x8B6914 });<br>
+            const legCol = new THREE.Color(0x8B6914).multiplyScalar(0.7);<br>
+            const legMat = new THREE.MeshPhongMaterial({ color: legCol });<br>
+            const group = new THREE.Group();<br>
+            // Asiento<br>
+            const seat = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.1, 1.2), mat);<br>
+            seat.position.y = 0.6; group.add(seat);<br>
+            // Respaldo<br>
+            const back = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 0.15), mat);<br>
+            back.position.set(0, 1.1, -0.525); group.add(back);<br>
+            // 4 Patas<br>
+            const legGeo = new THREE.BoxGeometry(0.15, 0.6, 0.15);<br>
+            [[-0.5,0.3,-0.5],[0.5,0.3,-0.5],[-0.5,0.3,0.5],[0.5,0.3,0.5]].forEach(p =&gt; {<br>
+            &nbsp;&nbsp;const leg = new THREE.Mesh(legGeo, legMat);<br>
+            &nbsp;&nbsp;leg.position.set(p[0], p[1], p[2]); group.add(leg);<br>
+            });<br>
+            return group;
+          </span>
+        </div>
+        <div class="cm-name-row">
+          <label>Nombre</label>
+          <input type="text" id="customModelName" placeholder="Ej: Cama, Árbol, Mesa..." maxlength="40">
+        </div>
+        <textarea id="customCodeArea"
+          placeholder="// Pega aquí el código Three.js de tu modelo&#10;// DEBE hacer return de un THREE.Group o THREE.Mesh&#10;&#10;// Ejemplo: silla&#10;const mat = new THREE.MeshPhongMaterial({ color: 0x8B6914 });&#10;const group = new THREE.Group();&#10;const seat = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.1, 1.2), mat);&#10;seat.position.y = 0.6;&#10;group.add(seat);&#10;return group;"
+          spellcheck="false"
+        ></textarea>
+        <div id="customCodeStatus" class="cm-status"></div>
+      </div>
+      <div class="cm-footer">
+        <button class="cm-btn cm-btn-cancel" onclick="closeCustomModelModal()">Cancelar</button>
+        <button class="cm-btn cm-btn-test" onclick="testCustomCode()">🔍 Probar</button>
+        <button class="cm-btn cm-btn-confirm" onclick="confirmCustomModel()">✅ Guardar y Usar</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 
 </html>

@@ -1366,7 +1366,10 @@ function initGame(){
         if(d<R){
           m.visible=false;
           blocksDestroyed++;
-          const col=m.material.color?m.material.color.getHex():0x888888;
+          // Get color safely: Groups have no .material, so walk children
+          let col=0x888888;
+          if(m.material&&m.material.color) col=m.material.color.getHex();
+          else m.traverse(c=>{ if(c.isMesh&&c.material&&c.material.color){ col=c.material.color.getHex(); return; }});
           spawnDebris(m.position,new THREE.Vector3(0,1,0),col);
         }
       }
@@ -1403,6 +1406,61 @@ function initGame(){
     }
   }
 
+  function createCustomModelMesh(code) {
+    try {
+      const fn = new Function('THREE', code);
+      const result = fn(THREE);
+      if (result && result.isObject3D) return result;
+      return null;
+    } catch(e) {
+      console.error('Error recreando modelo custom:', e);
+      return null;
+    }
+  }
+
+  function createChairMesh(colorHex) {
+    const group = new THREE.Group();
+    const col = new THREE.Color(colorHex || '#8b5a2b');
+    const legCol = col.clone().multiplyScalar(0.7);
+
+    // Seat
+    const seatGeo = new THREE.BoxGeometry(1.2, 0.1, 1.2);
+    const seatMat = new THREE.MeshPhongMaterial({ color: col });
+    const seat = new THREE.Mesh(seatGeo, seatMat);
+    seat.position.y = 0.6;
+    seat.castShadow = true;
+    seat.receiveShadow = true;
+    group.add(seat);
+
+    // Backrest
+    const backGeo = new THREE.BoxGeometry(1.2, 1.0, 0.15);
+    const back = new THREE.Mesh(backGeo, seatMat);
+    back.position.set(0, 1.1, -0.525);
+    back.castShadow = true;
+    back.receiveShadow = true;
+    group.add(back);
+
+    // 4 Legs
+    const legGeo = new THREE.BoxGeometry(0.15, 0.6, 0.15);
+    const legMat = new THREE.MeshPhongMaterial({ color: legCol });
+    const legPositions = [
+      [-0.5, 0.3, -0.5],
+      [0.5, 0.3, -0.5],
+      [-0.5, 0.3, 0.5],
+      [0.5, 0.3, 0.5]
+    ];
+    legPositions.forEach(p => {
+      const leg = new THREE.Mesh(legGeo, legMat);
+      leg.position.set(p[0], p[1], p[2]);
+      leg.castShadow = true;
+      leg.receiveShadow = true;
+      group.add(leg);
+    });
+
+    group.isGroup = true;
+    return group;
+  }
+
   function loadMapFromData(data){
     clearMapObjects(); redSpawns=[]; blueSpawns=[]; editorPlaneStart=null; editorPlaneEnd=null;
     mapBotsCount = data ? (data.botsCount || 0) : 0;
@@ -1414,16 +1472,43 @@ function initGame(){
         if(t==='spawn_red'){ redSpawns.push(b); return; } if(t==='spawn_blue'){ blueSpawns.push(b); return; }
         if(t==='plane_start'){ editorPlaneStart=b; return; } if(t==='plane_end'){ editorPlaneEnd=b; return; }
         if(t==='airdrop_spawn'){ airdropSpawns.push(b); return; }
-        const geo=new THREE.BoxGeometry(b.w||2,b.h||2,b.d||2);
-        const mesh=new THREE.Mesh(geo,new THREE.MeshPhongMaterial({color:parseInt(b.color)||0x888888}));
+        
+        let mesh;
+        if(t==='chair'){
+          // Normalize color: Firebase stores "0xRRGGBB", THREE.Color needs "#RRGGBB"
+          const chairColor = (typeof b.color === 'string' && b.color.startsWith('0x'))
+            ? '#' + b.color.slice(2).padStart(6,'0')
+            : (b.color || '#8b5a2b');
+          mesh = createChairMesh(chairColor);
+        } else if(t==='custom_model' && b.modelCode) {
+          mesh = createCustomModelMesh(b.modelCode);
+          if(!mesh){ mesh = new THREE.Mesh(new THREE.BoxGeometry(2,2,2), new THREE.MeshPhongMaterial({color:0x888888})); }
+        } else {
+          const geo=new THREE.BoxGeometry(b.w||2,b.h||2,b.d||2);
+          mesh=new THREE.Mesh(geo,new THREE.MeshPhongMaterial({color:parseInt(b.color)||0x888888}));
+          const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0x000000,transparent:true,opacity:.22})); edges.name='wireframe'; edges.visible=showWireframes; mesh.add(edges);
+        }
+        
         mesh.position.set(b.x||0,b.y!=null?b.y:(b.h/2-2),b.z||0);
         mesh.castShadow = true;
         mesh.receiveShadow = true;
         if(b.groupId) mesh.userData.groupId=b.groupId;
         mesh.userData.destructible = b.destructible === true;
-        const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0x000000,transparent:true,opacity:.22})); edges.name='wireframe'; edges.visible=showWireframes; mesh.add(edges);
+        // solidCollision = blocks the player physically
+        // All solid OR destructible objects enter mapObjects so raycasting and explosions work.
+        // Non-solid destructible objects get solidCollision=false so the player can walk through them.
+        const isSolid = b.collision !== false;
+        const isDestructible = b.destructible === true;
+        mesh.userData.solidCollision = isSolid;
         scene.add(mesh);
-        if(b.collision!==false){ mesh.updateMatrixWorld(true); mesh.geometry.computeBoundingBox(); mesh.userData.bbox=new THREE.Box3().setFromObject(mesh); mapObjects.push(mesh); }
+        if(isSolid || isDestructible){
+          mesh.updateMatrixWorld(true);
+          if(t!=='chair' && t!=='custom_model'){
+            mesh.geometry.computeBoundingBox();
+          }
+          mesh.userData.bbox=new THREE.Box3().setFromObject(mesh);
+          mapObjects.push(mesh);
+        }
       });
     }
     if(data.groupMeta) Object.entries(data.groupMeta).forEach(([gid,meta])=>{ structureGroups[gid]={meshes:[],name:meta.name||gid}; });
@@ -2276,8 +2361,11 @@ function initGame(){
     ctx.fillStyle='rgba(255,255,255,0.2)';
     mapObjects.forEach(b=>{
       if(!b.visible) return;
-      const w=b.geometry.parameters?b.geometry.parameters.width:2;
-      const d=b.geometry.parameters?b.geometry.parameters.depth:2;
+      // Use bbox size so Groups (custom models, chairs) don't crash
+      const size = b.userData.bbox
+        ? b.userData.bbox.getSize(new THREE.Vector3())
+        : new THREE.Vector3(2,2,2);
+      const w = size.x, d = size.z;
       const rx=mapExpanded?b.position.x:b.position.x-camera.position.x;
       const rz=mapExpanded?b.position.z:b.position.z-camera.position.z;
       if(!mapExpanded&&(Math.abs(rx)>80||Math.abs(rz)>80)) return;
@@ -2499,9 +2587,10 @@ function initGame(){
     return mapObjects.some(b=>{
       if(!b.visible) return false;
       if(!b.userData.bbox) return false;
-      const w = b.geometry.parameters ? b.geometry.parameters.width : 2;
-      const d = b.geometry.parameters ? b.geometry.parameters.depth : 2;
-      const maxDim = Math.max(w, d);
+      // Skip objects that are destructible-only (no physical collision)
+      if(b.userData.solidCollision === false) return false;
+      const size = b.userData.bbox.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.z);
       const limit = maxDim / 2 + 3;
       if (b.position.distanceToSquared(pos) > limit * limit) return false;
       return pb.intersectsBox(b.userData.bbox);
@@ -2698,9 +2787,29 @@ function initGame(){
     }
     for(let i=projectiles.length-1;i>=0;i--){
       const p=projectiles[i]; p.distanceTraveled+=p.speed;
-      if(p.distanceTraveled>=p.totalDistance){ p.mesh.position.copy(p.end); p.onImpact(); scene.remove(p.mesh); p.mesh.traverse(c=>{ if(c.isMesh){ c.geometry.dispose(); c.material.dispose(); }}); projectiles.splice(i,1); }
+      const hitEnd = p.distanceTraveled>=p.totalDistance;
+      if(hitEnd){ p.mesh.position.copy(p.end); p.onImpact(); scene.remove(p.mesh); p.mesh.traverse(c=>{ if(c.isMesh){ c.geometry.dispose(); c.material.dispose(); }}); projectiles.splice(i,1); }
       else{
+        const prevPos=p.mesh.position.clone();
         p.mesh.position.copy(p.start).addScaledVector(p.dir,p.distanceTraveled);
+        // Mid-flight collision: raycast from previous pos toward current pos
+        const step=p.mesh.position.clone().sub(prevPos);
+        const stepLen=step.length();
+        if(stepLen>0&&mapObjects.length>0){
+          const midRay=new THREE.Raycaster(prevPos,step.clone().normalize(),0,stepLen+0.3);
+          const visObjs=mapObjects.filter(o=>o.visible);
+          const hits=midRay.intersectObjects(visObjs,true);
+          if(hits.length>0){
+            const hitPt=hits[0].point;
+            p.end.copy(hitPt);
+            p.mesh.position.copy(hitPt);
+            p.onImpact();
+            scene.remove(p.mesh);
+            p.mesh.traverse(c=>{ if(c.isMesh){ c.geometry.dispose(); c.material.dispose(); }});
+            projectiles.splice(i,1);
+            continue;
+          }
+        }
         if(Math.random()<.8){ const sz=.12+Math.random()*.2,gv=60+Math.floor(Math.random()*60),col=(gv<<16)|(gv<<8)|gv; const sm=new THREE.Mesh(new THREE.BoxGeometry(sz,sz,sz),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.7})); sm.position.copy(p.mesh.position).addScaledVector(p.dir,-.3); scene.add(sm); particles.push({mesh:sm,velocity:new THREE.Vector3((Math.random()-.5)*.03,(Math.random()-.5)*.03+.01,(Math.random()-.5)*.03),life:1.5,decay:.008+Math.random()*.008}); }
       }
     }
