@@ -2452,7 +2452,7 @@
       { name: 'Bazooka', imgIdle: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun4.png', imgAim: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun4.5.png', damage: [60, 90], fireRate: 1500, fovNormal: 75, fovAim: 55, useScope: false, sndShoot: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/bazooka.mp3', sndFadeDelay: 1000, sndImpact: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/impacto.mp3' },
       { name: 'Escopeta', imgIdle: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun6.png', imgAim: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun6.5.png', damage: [35, 55], fireRate: 900, fovNormal: 75, fovAim: 65, useScope: false, sndShoot: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/disparoescopeta.mp3', sndFadeDelay: 600 },
       { name: 'Ametralladora', imgIdle: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun5.png', imgAim: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/gun5.5.png', damage: [35, 55], fireRate: 95, fovNormal: 75, fovAim: 50, useScope: false, sndShoot: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/disparopistola.mp3', isMythic: true, sndFadeDelay: 400 },
-      { name: 'Transformadora', imgIdle: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/transformadora.png', imgAim: 'ejemplo.png', damage: [0, 0], fireRate: 500, fovNormal: 75, fovAim: 60, useScope: false, sndShoot: 'ejemplo.mp3', sndFadeDelay: 500 },
+      { name: 'Transformadora', imgIdle: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/transformadora.png', imgAim: 'transformadora.png', damage: [0, 0], fireRate: 500, fovNormal: 75, fovAim: 60, useScope: false, sndShoot: 'ejemplo.mp3', sndFadeDelay: 500 },
       { name: 'Dron', imgIdle: 'ejemplo.png', imgAim: 'ejemplo.png', damage: [15, 25], fireRate: 150, fovNormal: 75, fovAim: 75, useScope: false, sndShoot: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/disparopistola.mp3', sndFadeDelay: 400 },
       { name: 'Granada', imgIdle: 'ejemplo.png', imgAim: 'ejemplo.png', damage: [80, 120], fireRate: 1000, fovNormal: 75, fovAim: 75, useScope: false, sndShoot: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/disparopistola.mp3', sndFadeDelay: 400 }
     ];
@@ -2627,6 +2627,7 @@
       const BASE_FOV = 75;
       const camera = new THREE.PerspectiveCamera(BASE_FOV, GAME_W / GAME_H, 0.1, 1000);
       let currentFov = BASE_FOV, targetFov = BASE_FOV;
+      let savedCamPos = null;
 
       let selectedSkinUrl = localStorage.getItem('zw_skinUrl') || IMG_PLAYER;
       let selectedSkinName = localStorage.getItem('zw_skinName') || 'Default';
@@ -3444,15 +3445,18 @@
             mesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), new THREE.MeshPhongMaterial({ color: 0x888888 }));
           }
         } else {
-          const geo = new THREE.BoxGeometry(prop.w || 2, prop.h || 2, prop.d || 2);
+          const w = parseFloat(prop.w) || 2;
+          const h = parseFloat(prop.h) || 2;
+          const d = parseFloat(prop.d) || 2;
+          const geo = new THREE.BoxGeometry(w, h, d);
           mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ color: parseInt(prop.color) || 0x888888 }));
         }
         mesh.castShadow = true;
         mesh.receiveShadow = true;
         if (prop.type === 'block') {
-          mesh.position.y = -1.2 + (prop.h || 2) / 2;
+          mesh.position.y = -2.0 + (parseFloat(prop.h) || 2) / 2;
         } else {
-          mesh.position.y = -1.2;
+          mesh.position.y = -2.0;
         }
         return mesh;
       }
@@ -4020,7 +4024,7 @@
         shadowMesh.name = 'playerShadow';
         shadowMesh.position.set(0, -QUAD_H / 2 + .02, 0);
         shadowMesh.rotation.set(-Math.PI / 2, 0, 0);
-        shadowMesh.visible = !isDead;
+        shadowMesh.visible = !isDead && shadowsOn;
         if (pData.skin) loadSkinTexture(pData.skin, tex => { if (otherPlayers[id]?.data.skin === pData.skin) { bodyMat.map = tex; bodyMat.needsUpdate = true; shadowMat.map = tex; shadowMat.needsUpdate = true; } });
         const nameMat = new THREE.MeshBasicMaterial({ map: makeNameTex(pData.name || id, pData.team), transparent: true, side: THREE.DoubleSide, depthTest: false, depthWrite: false });
         const nameMesh = new THREE.Mesh(geoNameplate, nameMat); nameMesh.position.y = QUAD_H / 2 + .45;
@@ -4050,7 +4054,22 @@
         delete otherPlayers[id];
       }
 
-      function billboardAll() { Object.values(otherPlayers).forEach(op => { if (!op.group.visible) return; if (op.dead) { op.mesh.rotation.set(-Math.PI / 2, 0, 0); } else { const dx = camera.position.x - op.group.position.x, dz = camera.position.z - op.group.position.z; op.group.rotation.y = Math.atan2(dx, dz); op.mesh.rotation.set(0, 0, 0); } }); }
+      function billboardAll() {
+        Object.values(otherPlayers).forEach(op => {
+          if (!op.group.visible) return;
+          if (op.dead) {
+            op.mesh.rotation.set(-Math.PI / 2, 0, 0);
+          } else {
+            if (op.data.prop) {
+              op.group.rotation.y = op.data.yaw || 0;
+            } else {
+              const dx = camera.position.x - op.group.position.x, dz = camera.position.z - op.group.position.z;
+              op.group.rotation.y = Math.atan2(dx, dz);
+            }
+            op.mesh.rotation.set(0, 0, 0);
+          }
+        });
+      }
 
       /* ── FIREBASE ── */
       let myRef = null, myHp = MAX_HP, dead = false, deathPos = null, myLastShot = null, gameMode = 'normal';
@@ -4085,8 +4104,14 @@
             const op = otherPlayers[id];
             if (op.data.team !== p.team) { op.nameMesh.material.map.dispose(); op.nameMesh.material.map = makeNameTex(p.name || id, p.team); op.nameMesh.material.needsUpdate = true; }
             if (op.data.skin !== p.skin) { loadSkinTexture(p.skin || IMG_PLAYER, tex => { if (otherPlayers[id]?.data.skin === p.skin && !otherPlayers[id]?.currentEmoteUrl) { op.mesh.material.map = tex; op.mesh.material.needsUpdate = true; if (op.shadowMesh) { op.shadowMesh.material.map = tex; op.shadowMesh.material.needsUpdate = true; } } }); }
-            op.data = p; op.hp = p.hp ?? MAX_HP; op.dead = !!p.dead; op.nameMesh.visible = !op.dead; if (op.shadowMesh) op.shadowMesh.visible = !op.dead;
-            if (op.dead) op.group.position.set(p.x || 0, (p.y || 1.5) - 1.5 + .01, p.z || 0); else op.group.position.set(p.x || 0, (p.y || 1.5) - 1.5 + QUAD_H / 2, p.z || 0);
+            op.data = p; op.hp = p.hp ?? MAX_HP; op.dead = !!p.dead; op.nameMesh.visible = !op.dead; if (op.shadowMesh) op.shadowMesh.visible = !op.dead && shadowsOn && op.group.visible;
+            let groupY = (p.y || 1.5) - 1.5;
+            if (op.dead) {
+              groupY += 0.01;
+            } else if (!p.prop) {
+              groupY += QUAD_H / 2;
+            }
+            op.group.position.set(p.x || 0, groupY, p.z || 0);
             op.group.visible = !p.inPlane;
             const ps = op.group.getObjectByName('parachuteSprite');
             if (ps) ps.visible = !!p.isFalling;
@@ -4805,7 +4830,8 @@
           const cx2 = (c[0].x + c[2].x) / 2, cy2 = (c[0].y + c[2].y) / 2;
           dbCtx.beginPath(); dbCtx.arc(cx2, cy2, 4, 0, Math.PI * 2); dbCtx.fillStyle = '#ff4444'; dbCtx.fill();
           const lx = Math.max(...c.map(x => x.x)) + 6, ly = Math.min(...c.map(x => x.y));
-          const info = [`[${op.data.name || id}]`, `HP:${op.hp ?? '?'}`, `dist:${camera.position.distanceTo(op.group.position).toFixed(1)}u`, op.dead ? 'DEAD' : 'ALIVE'];
+          const playerPosForDist = (myPropState && savedCamPos) ? savedCamPos : camera.position;
+          const info = [`[${op.data.name || id}]`, `HP:${op.hp ?? '?'}`, `dist:${playerPosForDist.distanceTo(op.group.position).toFixed(1)}u`, op.dead ? 'DEAD' : 'ALIVE'];
           dbCtx.fillStyle = 'rgba(0,0,0,.78)'; dbCtx.fillRect(lx, ly, 100, info.length * 14 + 8);
           dbCtx.fillStyle = col; dbCtx.font = 'bold 10px Courier New'; info.forEach((ln, i) => dbCtx.fillText(ln, lx + 4, ly + 13 + i * 14));
         });
@@ -5340,12 +5366,10 @@
           }
           myLocalPropMesh.position.set(camera.position.x, camera.position.y - 1.5, camera.position.z);
           myLocalPropMesh.rotation.y = yaw;
-          myLocalPropMesh.visible = emoteIsPlaying;
-          if (myLocalPropMesh.visible) {
-            const t = (Date.now() - myPropState.animStart) / 500;
-            const scale = Math.min(1.0, 0.05 + 0.95 * t);
-            myLocalPropMesh.scale.set(scale, scale, scale);
-          }
+          myLocalPropMesh.visible = !dead;
+          const t = (Date.now() - myPropState.animStart) / 500;
+          const scale = Math.min(1.0, 0.05 + 0.95 * t);
+          myLocalPropMesh.scale.set(scale, scale, scale);
         } else {
           if (myLocalPropMesh) {
             scene.remove(myLocalPropMesh);
@@ -5521,9 +5545,40 @@
           }
         }
 
+        if (myPropState) {
+          weapon.style.display = 'none';
+          crosshair.style.display = 'none';
+        } else if (!inDroneMode && !emoteIsPlaying) {
+          weapon.style.display = '';
+          crosshair.style.display = '';
+        }
+
         if (Math.abs(currentFov - targetFov) > .5) { currentFov += (targetFov - currentFov) * .15; camera.fov = currentFov; camera.updateProjectionMatrix(); } else if (currentFov !== targetFov) { currentFov = targetFov; camera.fov = currentFov; camera.updateProjectionMatrix(); }
         camera.rotation.order = 'YXZ'; camera.rotation.y = yaw; camera.rotation.x = pitch; camera.rotation.z = 0;
         if (brState === 'none' && !dead && (keys['w'] || keys['a'] || keys['s'] || keys['d'])) camera.position.y += Math.sin(walkTime * 2) * .003;
+
+        savedCamPos = null;
+        if (myPropState && !dead) {
+          savedCamPos = camera.position.clone();
+          const dist = 5.0;
+          const backVec = new THREE.Vector3(
+            Math.sin(yaw) * Math.cos(pitch),
+            -Math.sin(pitch),
+            Math.cos(yaw) * Math.cos(pitch)
+          ).normalize();
+          
+          const rayStart = new THREE.Vector3(savedCamPos.x, savedCamPos.y, savedCamPos.z);
+          const cameraRay = new THREE.Raycaster(rayStart, backVec, 0, dist);
+          const activeObjs = mapObjects.filter(o => o.userData.active !== false && o.userData.solidCollision !== false);
+          const hits = cameraRay.intersectObjects(activeObjs, false);
+          
+          let targetDist = dist;
+          if (hits.length > 0) {
+            targetDist = Math.max(0.8, hits[0].distance - 0.3);
+          }
+          
+          camera.position.copy(rayStart).addScaledVector(backVec, targetDist);
+        }
 
         if (localPlayerEmoteMesh?.visible) localPlayerEmoteMesh.lookAt(camera.position.x, localPlayerEmoteMesh.position.y, camera.position.z);
         if (localPlayerEmoteIconMesh?.visible) localPlayerEmoteIconMesh.lookAt(camera.position.x, localPlayerEmoteIconMesh.position.y, camera.position.z);
@@ -5552,7 +5607,12 @@
         if (spe) { if (foundCand) { document.getElementById('sharedEmoteName').textContent = foundCand.name; spe.style.display = 'block'; } else spe.style.display = 'none'; }
 
         renderer.render(scene, camera);
-        updateDebugInfo(); drawDebugOverlay(); updateMinimap();
+        drawDebugOverlay();
+
+        if (savedCamPos) {
+          camera.position.copy(savedCamPos);
+        }
+        updateDebugInfo(); updateMinimap();
       }
       animate();
       window.addEventListener('beforeunload', () => { if (myRef) remove(myRef); });
