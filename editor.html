@@ -1082,6 +1082,13 @@
         <label>Girar Y</label>
         <input type="range" id="blockRotation" min="0" max="360" value="0" step="15" style="flex:1;" oninput="updateBlockRotationText(this.value)">
         <span id="blockRotationVal" style="font-size:10px;color:#888;min-width:32px;text-align:right;">0°</span>
+        <select id="blockFacingDir" onchange="setFacingDirection(this.value)" title="Dirección rápida" style="background:#111;border:1px solid #ff444455;border-radius:4px;padding:3px 4px;color:#ff8888;font-family:'Courier New',monospace;font-size:9px;cursor:pointer;outline:none;margin-left:4px;">
+          <option value="" style="color:#555;">↻ Dir</option>
+          <option value="0">⬆ Frente</option>
+          <option value="90">➡ Derecha</option>
+          <option value="180">⬇ Atrás</option>
+          <option value="270">⬅ Izquierda</option>
+        </select>
       </div>
       <div class="row">
         <label>Escala</label>
@@ -1186,12 +1193,21 @@
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
             <div>
               <div style="font-size: 8px; color: #667; text-align: center; margin-bottom: 2px;">ROTACIÓN (Y)</div>
-              <select id="selBlockRotation" style="width: 100%; text-align: center; background:#111; border:1px solid #333; color:#fff; border-radius:4px; padding:3px; font-family:monospace; font-size:10px;" onchange="updateSelectedProperties({rotation: parseFloat(this.value)})">
-                <option value="0">0°</option>
-                <option value="1.5707963267948966">90°</option>
-                <option value="3.141592653589793">180°</option>
-                <option value="4.71238898038469">270°</option>
-              </select>
+              <div style="display: flex; gap: 4px; align-items: center;">
+                <select id="selBlockRotation" style="flex:1; text-align: center; background:#111; border:1px solid #333; color:#fff; border-radius:4px; padding:3px; font-family:monospace; font-size:10px;" onchange="updateSelectedProperties({rotation: parseFloat(this.value)})">
+                  <option value="0">0°</option>
+                  <option value="1.5707963267948966">90°</option>
+                  <option value="3.141592653589793">180°</option>
+                  <option value="4.71238898038469">270°</option>
+                </select>
+                <select id="selFacingDir" onchange="setSelFacingDirection(this.value)" title="Dirección rápida" style="background:#111;border:1px solid #ffe60044;border-radius:4px;padding:3px 4px;color:#ffe688;font-family:'Courier New',monospace;font-size:9px;cursor:pointer;outline:none;">
+                  <option value="" style="color:#555;">↻</option>
+                  <option value="0">⬆ Frente</option>
+                  <option value="90">➡ Der.</option>
+                  <option value="180">⬇ Atrás</option>
+                  <option value="270">⬅ Izq.</option>
+                </select>
+              </div>
             </div>
             <div>
               <div style="font-size: 8px; color: #667; text-align: center; margin-bottom: 2px;">ESCALA</div>
@@ -2057,7 +2073,35 @@
     window.updateBlockRotationText = function(val) {
       const el = document.getElementById('blockRotationVal');
       if (el) el.textContent = val + '°';
+      // Reset facing dir dropdown so it shows neutral
+      const dirSel = document.getElementById('blockFacingDir');
+      if (dirSel) dirSel.value = '';
       updateGhost();
+    };
+
+    /* ═══════ FACING DIRECTION SHORTCUTS ═══════ */
+    window.setFacingDirection = function(deg) {
+      if (deg === '') return;
+      const slider = document.getElementById('blockRotation');
+      const valSpan = document.getElementById('blockRotationVal');
+      if (slider) { slider.value = deg; }
+      if (valSpan) { valSpan.textContent = deg + '°'; }
+      updateGhost();
+    };
+
+    window.setSelFacingDirection = function(deg) {
+      if (deg === '') return;
+      // Convert degrees to radians and set the selBlockRotation select
+      const radMap = { '0': '0', '90': '1.5707963267948966', '180': '3.141592653589793', '270': '4.71238898038469' };
+      const radVal = radMap[deg];
+      const sel = document.getElementById('selBlockRotation');
+      if (sel && radVal !== undefined) {
+        sel.value = radVal;
+        updateSelectedProperties({ rotation: parseFloat(radVal) });
+      }
+      // Reset the dir dropdown
+      const dirSel = document.getElementById('selFacingDir');
+      if (dirSel) dirSel.value = '';
     };
 
     // Listen for block parameter changes
