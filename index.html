@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zone War – FPS Multijugador</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;800;900&display=swap');
     * {
       margin: 0;
       padding: 0;
@@ -2127,6 +2128,214 @@
       font-size: .75em;
       letter-spacing: 2px;
     }
+
+    /* DRONE TARGET BOX */
+    #droneTargetBox {
+      position: absolute;
+      pointer-events: none;
+      z-index: 18;
+      display: none;
+      transition: border-color 0.1s, box-shadow 0.1s;
+    }
+
+    #droneTargetBox.visible {
+      display: block;
+    }
+
+    #droneTargetBox .target-corner {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-color: #ff4444;
+      border-style: solid;
+      box-shadow: 0 0 8px rgba(255, 68, 68, 0.8);
+    }
+
+    #droneTargetBox.locked .target-corner {
+      border-color: #ff0000;
+      box-shadow: 0 0 20px rgba(255, 0, 0, 1);
+      animation: targetPulse 0.3s ease-in-out infinite alternate;
+    }
+
+    #droneTargetBox .target-corner.tl {
+      top: 0;
+      left: 0;
+      border-width: 2px 0 0 2px;
+    }
+
+    #droneTargetBox .target-corner.tr {
+      top: 0;
+      right: 0;
+      border-width: 2px 2px 0 0;
+    }
+
+    #droneTargetBox .target-corner.bl {
+      bottom: 0;
+      left: 0;
+      border-width: 0 0 2px 2px;
+    }
+
+    #droneTargetBox .target-corner.br {
+      bottom: 0;
+      right: 0;
+      border-width: 0 2px 2px 0;
+    }
+
+    #droneTargetLabel {
+      position: absolute;
+      top: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #ff4444;
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-shadow: 0 0 8px #ff0000;
+      white-space: nowrap;
+    }
+
+    @keyframes targetPulse {
+      from {
+        box-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+      }
+
+      to {
+        box-shadow: 0 0 25px rgba(255, 0, 0, 1);
+      }
+    }
+
+    /* PROP HUNT HUD */
+    #propHuntHUD {
+      display: none;
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      padding: 10px 28px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 3px;
+      z-index: 20;
+      pointer-events: none;
+      text-align: center;
+      gap: 20px;
+      align-items: center;
+    }
+
+    #propHuntHUD.active {
+      display: flex;
+    }
+
+    #propHuntTimer {
+      color: #ffcc00;
+      font-size: 1.2em;
+      text-shadow: 0 0 10px #ffcc00;
+    }
+
+    #propHuntTeamLabel {
+      font-size: 0.75em;
+      letter-spacing: 2px;
+      padding: 3px 10px;
+      border-radius: 5px;
+    }
+
+    #propHuntTeamLabel.props {
+      background: rgba(0, 200, 100, 0.2);
+      color: #00ff88;
+      border: 1px solid #00ff88;
+    }
+
+    #propHuntTeamLabel.hunters {
+      background: rgba(255, 68, 68, 0.2);
+      color: #ff4444;
+      border: 1px solid #ff4444;
+    }
+
+    #propHuntCount {
+      color: #ccc;
+      font-size: 0.7em;
+      letter-spacing: 1px;
+    }
+
+    /* PROP HUNT TEAM SELECT */
+    #propHuntTeamSelect {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    #propHuntTeamSelect.active {
+      display: flex;
+    }
+
+    #propHuntTeamSelect label {
+      color: #889;
+      font-size: .65em;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .ph-team-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #aaa;
+      font-family: 'Courier New', monospace;
+      font-size: .8em;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ph-team-btn:hover {
+      border-color: rgba(255, 255, 255, .2);
+      color: #fff;
+    }
+
+    .ph-team-btn.active-props {
+      border-color: #00ff88;
+      color: #00ff88;
+      background: rgba(0, 255, 136, 0.1);
+    }
+
+    .ph-team-btn.active-hunters {
+      border-color: #ff4444;
+      color: #ff4444;
+      background: rgba(255, 68, 68, 0.1);
+    }
+
+    /* IN-GAME PROP HUNT TEAM SELECT */
+    #propHuntInGameTeamSelect {
+      transition: all 0.5s ease;
+    }
+    .ph-in-game-card {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .ph-in-game-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      background: rgba(255, 255, 255, 0.06) !important;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5) !important;
+    }
+    .ph-in-game-card.props:hover {
+      border-color: rgba(0, 255, 136, 0.8) !important;
+      box-shadow: 0 20px 40px rgba(0, 255, 136, 0.15) !important;
+    }
+    .ph-in-game-card.hunters:hover {
+      border-color: rgba(255, 68, 68, 0.8) !important;
+      box-shadow: 0 20px 40px rgba(255, 68, 68, 0.15) !important;
+    }
   </style>
 </head>
 
@@ -2179,7 +2388,10 @@
               Normal</div>
             <div class="mode-btn" id="modeBR" style="margin-bottom:6px"><span class="mode-icon">🪂</span> Battle Royale
             </div>
-            <div class="mode-btn" id="modeRvB"><span class="mode-icon">🔴</span> Red vs Blue</div>
+            <div class="mode-btn" id="modeRvB" style="margin-bottom:6px"><span class="mode-icon">🔴</span> Red vs Blue
+            </div>
+            <div class="mode-btn" id="modePropHunt" style="margin-bottom:6px"><span class="mode-icon">🎭</span> Prop
+              Hunt</div>
             <div class="mode-btn" id="modeCustom" style="margin-top:6px"><span class="mode-icon">🎮</span> Partidas
               Personalizadas</div>
             <div id="teamSelect" class="setting-group"
@@ -2221,7 +2433,23 @@
     <div id="droneLostSignal" style="display:none;">
       <div class="ls-icon">📡</div>
       <div class="ls-title">⚠ SEÑAL PERDIDA</div>
-      <div class="ls-sub">Dron fuera de alcance — regresando…</div>
+      <div class="ls-sub">Dron fuera de alcance — ¡KABOOM!</div>
+    </div>
+
+    <!-- Drone enemy target box -->
+    <div id="droneTargetBox">
+      <div class="target-corner tl"></div>
+      <div class="target-corner tr"></div>
+      <div class="target-corner bl"></div>
+      <div class="target-corner br"></div>
+      <div id="droneTargetLabel">▶ OBJETIVO ◀</div>
+    </div>
+
+    <!-- Prop Hunt HUD -->
+    <div id="propHuntHUD">
+      <span id="propHuntTeamLabel" class="props">🟢 PROP</span>
+      <span id="propHuntTimer">3:00</span>
+      <span id="propHuntCount">Props: ? | Hunters: ?</span>
     </div>
 
     <div id="droneHUD" style="display:none; position:absolute; inset:0; pointer-events:none; z-index:12;">
@@ -2269,7 +2497,37 @@
       <p>Click para jugar</p>
     </div>
 
+    <!-- In-Game Prop Hunt Team Selection Overlay -->
+    <div id="propHuntInGameTeamSelect" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(6,6,10,0.85); z-index:99999; flex-direction:column; align-items:center; justify-content:center; backdrop-filter:blur(15px); pointer-events:auto; font-family:'Outfit', 'Segoe UI', system-ui, sans-serif;">
+      <!-- Title -->
+      <h2 style="color:#00ff88; font-size:24px; letter-spacing:4px; text-transform:uppercase; margin-bottom:40px; text-shadow:0 0 20px rgba(0,255,136,0.3); font-weight:900;">🎭 ELIGE TU EQUIPO</h2>
+      
+      <!-- Cards Container -->
+      <div style="display:flex; gap:30px; max-width:800px; width:90%; justify-content:center; flex-wrap:wrap;">
+        
+        <!-- Props Card -->
+        <div id="phInGamePropsCard" class="ph-in-game-card props" style="flex:1; background:rgba(255,255,255,0.03); border:2px solid rgba(0,255,136,0.2); border-radius:20px; padding:35px 25px; text-align:center; cursor:pointer; display:flex; flex-direction:column; align-items:center; box-shadow:0 10px 30px rgba(0,0,0,0.3); min-width:250px;">
+          <div style="font-size:64px; margin-bottom:20px; filter:drop-shadow(0 0 10px rgba(0,255,136,0.2));">🟢</div>
+          <h3 style="color:#00ff88; font-size:28px; margin:0 0 15px 0; font-weight:800; letter-spacing:1px;">PROPS</h3>
+          <p style="color:#a0a5b5; font-size:14px; line-height:1.6; margin:0; flex-grow:1;">Transfórmate en cualquier objeto decorativo del mapa. ¡Muévete con sigilo, escóndete en lugares inesperados y sobrevive al tiempo límite!</p>
+          <div style="margin-top:25px; background:rgba(0,255,136,0.1); border:1px solid rgba(0,255,136,0.3); color:#00ff88; padding:10px 20px; border-radius:30px; font-weight:bold; font-size:13px; text-transform:uppercase; letter-spacing:1px; width:80%;">Unirse como Prop</div>
+        </div>
+
+        <!-- Hunters Card -->
+        <div id="phInGameHuntersCard" class="ph-in-game-card hunters" style="flex:1; background:rgba(255,255,255,0.03); border:2px solid rgba(255,68,68,0.2); border-radius:20px; padding:35px 25px; text-align:center; cursor:pointer; display:flex; flex-direction:column; align-items:center; box-shadow:0 10px 30px rgba(0,0,0,0.3); min-width:250px;">
+          <div style="font-size:64px; margin-bottom:20px; filter:drop-shadow(0 0 10px rgba(255,68,68,0.2));">🔴</div>
+          <h3 style="color:#ff4444; font-size:28px; margin:0 0 15px 0; font-weight:800; letter-spacing:1px;">HUNTERS</h3>
+          <p style="color:#a0a5b5; font-size:14px; line-height:1.6; margin:0; flex-grow:1;">Busca y elimina a los Props impostores usando tus armas. ¡Pero ten cuidado! Disparar a objetos reales te restará salud.</p>
+          <div style="margin-top:25px; background:rgba(255,68,68,0.1); border:1px solid rgba(255,68,68,0.3); color:#ff4444; padding:10px 20px; border-radius:30px; font-weight:bold; font-size:13px; text-transform:uppercase; letter-spacing:1px; width:80%;">Unirse como Cazador</div>
+        </div>
+
+      </div>
+    </div>
+
     <div id="brJumpPrompt">Presiona <span class="key">E</span> para lanzarte</div>
+    <div id="phJumpPrompt" style="display:none; position:absolute; bottom:120px; left:50%; transform:translateX(-50%); background:rgba(10,10,15,0.85); border:1px solid rgba(0,255,136,0.3); border-radius:10px; padding:12px 24px; color:#fff; font-family:'Courier New', monospace; font-size:12px; font-weight:bold; letter-spacing:2px; text-align:center; box-shadow:0 0 20px rgba(0,255,136,0.15); backdrop-filter:blur(8px); pointer-events:none; z-index:10;">
+      Lobby de espera<br><span style="font-size:11px;color:#aaa">Esperando jugadores...</span>
+    </div>
     <div id="brAltitude">ALT: 50m</div>
     <div id="sharedEmotePrompt">Presiona <span class="key">G</span> para unirse a <span id="sharedEmoteName"
         style="color:#ffe600;font-weight:bold">Emote</span></div>
@@ -2324,6 +2582,16 @@
       <button id="lobbyReturnBtn" style="display:none">🚪 REGRESAR AL LOBBY</button>
     </div>
 
+    <div id="propHuntBlindOverlay"
+      style="display:none;position:absolute;inset:0;background:#050508;z-index:9999;flex-direction:column;justify-content:center;align-items:center;pointer-events:all;cursor:none">
+      <div
+        style="color:#ff2222;font-size:2.5em;font-weight:900;letter-spacing:6px;text-transform:uppercase;text-shadow:0 0 30px #ff0000;margin-bottom:10px;animation:titlePulse 1.5s infinite">
+        FASE DE ESCONDITE</div>
+      <p style="color:#889;letter-spacing:3px;font-size:1em;text-align:center;max-width:400px;line-height:1.5">Los Props
+        se están escondiendo...<br><span style="color:#ffe600;font-size:.8em">Quedas cegado y congelado por 30s</span>
+      </p>
+    </div>
+
     <div id="spectateUI"
       style="display:none;position:absolute;top:20px;left:50%;transform:translateX(-50%);background:rgba(10,10,18,0.85);border:1px solid #ff4444;border-radius:8px;padding:10px 20px;color:#fff;font-family:'Courier New',monospace;font-size:12px;letter-spacing:2px;z-index:70;text-align:center;pointer-events:none;box-shadow:0 0 20px rgba(255,68,68,0.25)">
       <span>👀 ESPECTEANDO A: </span><span id="spectateName" style="color:#ffcc00;font-weight:bold">None</span>
@@ -2373,9 +2641,12 @@
               Cargando mapas…</div>
           </div>
         </div>
-        <div class="create-room-footer">
-          <div class="selected-map-label" id="selectedMapLabel">Selecciona un mapa para continuar</div>
-          <button class="btn-confirm-create" id="confirmCreateBtn">CREAR SALA ▶</button>
+        <div class="create-room-footer" style="flex-direction:column;gap:12px;align-items:stretch">
+          <!-- Modo de juego determinado automáticamente por el mapa seleccionado -->
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+            <div class="selected-map-label" id="selectedMapLabel">Selecciona un mapa para continuar</div>
+            <button class="btn-confirm-create" id="confirmCreateBtn">CREAR SALA ▶</button>
+          </div>
         </div>
       </div>
     </div>
@@ -2463,11 +2734,18 @@
     const db = getDatabase(fbApp);
 
     /* ── ONLINE COUNT ── */
-    let normalCount = 0, brCount = 0, rvbCount = 0;
-    function updateOnlineCount() { document.getElementById('onlineCount').textContent = normalCount + brCount + rvbCount; }
+    let normalCount = 0, brCount = 0, rvbCount = 0, propHuntCount = 0;
+    function updateOnlineCount() { document.getElementById('onlineCount').textContent = normalCount + brCount + rvbCount + propHuntCount; }
     function fetchPlayerCounts() {
-      ['normal', 'br', 'rvb'].forEach((m, i) => {
-        get(ref(db, 'fps/players_' + m)).then(s => { if (i === 0) normalCount = Object.keys(s.val() || {}).length; else if (i === 1) brCount = Object.keys(s.val() || {}).length; else rvbCount = Object.keys(s.val() || {}).length; updateOnlineCount(); }).catch(() => { });
+      ['normal', 'br', 'rvb', 'propHunt'].forEach((m) => {
+        get(ref(db, 'fps/players_' + m)).then(s => {
+          const count = Object.keys(s.val() || {}).length;
+          if (m === 'normal') normalCount = count;
+          else if (m === 'br') brCount = count;
+          else if (m === 'rvb') rvbCount = count;
+          else if (m === 'propHunt') propHuntCount = count;
+          updateOnlineCount();
+        }).catch(() => { });
       });
     }
     fetchPlayerCounts();
@@ -2496,12 +2774,19 @@
     let droneVelX = 0, droneVelY = 0, droneVelZ = 0;
     const DRONE_ACCEL = 0.030;  // aceleración por frame
     const DRONE_MAX_SPEED = 0.38;   // velocidad horizontal máxima
-    const DRONE_FRICTION = 0.82;   // rozamiento (0=frena instantáneo, 1=no frena)
+    const DRONE_FRICTION = 0.95;   // rozamiento suave (como auto - antes 0.82 frenaba muy rápido)
     const DRONE_VERT_ACCEL = 0.020;  // aceleración vertical
     const DRONE_MAX_VERT = 0.28;   // velocidad vertical máxima
     const DRONE_WARN_RANGE = 40;     // desde aquí empieza la interferencia
     const DRONE_MAX_RANGE = 50;     // señal perdida aquí
     let droneSignalLost = false;
+    let droneAiming = false;          // modo apuntar con click derecho en dron
+    let droneTargetedId = null;       // id jugador objetivo en la mira
+    let propHuntTeam = 'props';       // 'props' o 'hunters'
+    let isPropHuntTeamSelectActive = false;
+    let hasSelectedTeamThisMatch = false;
+    let propHuntTimerInterval = null; // timer de partida prop hunt
+    let propHuntRunning = false;
 
     const nameInputEl = document.getElementById('nameInput');
     nameInputEl.value = localStorage.getItem('zw_playerName') || '';
@@ -2571,8 +2856,13 @@
 
     /* ── MODE SELECT ── */
     function setModeUI(mode, icon, label, showTeam = false) {
-      ['modeNormal', 'modeBR', 'modeRvB', 'modeCustom'].forEach(id => document.getElementById(id).classList.remove('active'));
-      document.getElementById({ normal: 'modeNormal', br: 'modeBR', rvb: 'modeRvB', custom: 'modeCustom' }[mode]).classList.add('active');
+      ['modeNormal', 'modeBR', 'modeRvB', 'modePropHunt', 'modeCustom'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('active');
+      });
+      const targetId = { normal: 'modeNormal', br: 'modeBR', rvb: 'modeRvB', propHunt: 'modePropHunt', custom: 'modeCustom' }[mode];
+      const targetEl = document.getElementById(targetId);
+      if (targetEl) targetEl.classList.add('active');
       document.getElementById('currentModeIcon').textContent = icon;
       document.getElementById('currentModeText').textContent = label;
       document.getElementById('teamSelect').style.display = showTeam ? 'block' : 'none';
@@ -2581,7 +2871,8 @@
     document.getElementById('modeNormal').addEventListener('click', () => { selectedMode = 'normal'; setModeUI('normal', '⚔', 'Modo: Normal'); modeDropdownList.classList.remove('active'); modeSelectBtn.classList.remove('open'); window._activeCustomRoom = null; updateMapBadge(); });
     document.getElementById('modeBR').addEventListener('click', () => { selectedMode = 'br'; setModeUI('br', '🪂', 'Modo: Battle Royale'); modeDropdownList.classList.remove('active'); modeSelectBtn.classList.remove('open'); window._activeCustomRoom = null; updateMapBadge(); });
     document.getElementById('modeRvB').addEventListener('click', () => { selectedMode = 'rvb'; setModeUI('rvb', '🔴', 'Modo: Red vs Blue', true); window._activeCustomRoom = null; updateMapBadge(); });
-    document.getElementById('modeCustom').addEventListener('click', () => { selectedMode = 'custom'; setModeUI('custom', '🎮', 'Modo: Personalizado'); });
+    document.getElementById('modePropHunt').addEventListener('click', () => { selectedMode = 'propHunt'; setModeUI('propHunt', '🎭', 'Modo: Prop Hunt'); modeDropdownList.classList.remove('active'); modeSelectBtn.classList.remove('open'); window._activeCustomRoom = null; updateMapBadge(); });
+    document.getElementById('modeCustom').addEventListener('click', () => { /* no cambiar modo ni label — solo abre el modal (ver handler abajo) */ });
 
     /* ── TEAM SELECT ── */
     function setTeam(t) {
@@ -2593,6 +2884,70 @@
     }
     document.getElementById('teamRed').addEventListener('click', () => setTeam('red'));
     document.getElementById('teamBlue').addEventListener('click', () => setTeam('blue'));
+
+    /* ── PROP HUNT TEAM SELECT ── */
+    function openInGameTeamSelect() {
+      isPropHuntTeamSelectActive = true;
+      const teamSelectModal = document.getElementById('propHuntInGameTeamSelect');
+      if (teamSelectModal) {
+        teamSelectModal.style.display = 'flex';
+      }
+      const lockOverlay = document.getElementById('lockOverlay');
+      if (lockOverlay) lockOverlay.style.display = 'none';
+      if (document.pointerLockElement) {
+        document.exitPointerLock();
+      }
+    }
+
+    function selectInGameTeam(t) {
+      propHuntTeam = t;
+      localStorage.setItem('zw_propHuntTeam', t);
+      isPropHuntTeamSelectActive = false;
+      hasSelectedTeamThisMatch = true;
+      
+      const teamSelectModal = document.getElementById('propHuntInGameTeamSelect');
+      if (teamSelectModal) {
+        teamSelectModal.style.display = 'none';
+      }
+
+      const phTeamLabel = document.getElementById('propHuntTeamLabel');
+      if (phTeamLabel) {
+        phTeamLabel.textContent = t === 'props' ? '🟢 PROP' : '🔴 HUNTER';
+        phTeamLabel.className = t === 'props' ? 'props' : 'hunters';
+      }
+
+      myPropState = null;
+      if (t === 'props') {
+        curWeaponIdx = 6; // Transformadora
+      } else {
+        curWeaponIdx = 0; // Rifle
+      }
+      updateWeaponSelectorVisibility();
+      equipWeapon(curWeaponIdx);
+      publishPos();
+      resetPlayerForRound();
+      gameEl.requestPointerLock();
+    }
+
+    function setPropHuntTeam(t) {
+      propHuntTeam = t;
+      localStorage.setItem('zw_propHuntTeam', t);
+      const phTeamLabel = document.getElementById('propHuntTeamLabel');
+      if (phTeamLabel) {
+        phTeamLabel.textContent = t === 'props' ? '🟢 PROP' : '🔴 HUNTER';
+        phTeamLabel.className = t === 'props' ? 'props' : 'hunters';
+      }
+    }
+    propHuntTeam = localStorage.getItem('zw_propHuntTeam') || 'props';
+    setPropHuntTeam(propHuntTeam);
+
+    // Set up in-game Prop Hunt team select card event listeners
+    document.getElementById('phInGamePropsCard')?.addEventListener('click', () => {
+      selectInGameTeam('props');
+    });
+    document.getElementById('phInGameHuntersCard')?.addEventListener('click', () => {
+      selectInGameTeam('hunters');
+    });
 
     /* ── SCREEN MODE ── */
     function setScreen(mode) {
@@ -2610,9 +2965,184 @@
     const savedMode = localStorage.getItem('zw_selectedMode') || 'normal';
     const savedTeam = localStorage.getItem('zw_selectedTeam') || 'red';
     const savedScreen = localStorage.getItem('zw_screenMode') || 'windowed';
-    document.getElementById({ normal: 'modeNormal', br: 'modeBR', rvb: 'modeRvB', custom: 'modeCustom' }[savedMode] || 'modeNormal').click();
+    document.getElementById({ normal: 'modeNormal', br: 'modeBR', rvb: 'modeRvB', propHunt: 'modePropHunt', custom: 'modeCustom' }[savedMode] || 'modeNormal').click();
     setTeam(savedTeam);
     setScreen(savedScreen);
+
+    /* ════════════════════════════════════════
+       WebRTC P2P ROOM MANAGER
+    ════════════════════════════════════════ */
+    let rtcManager = null;
+    let isWebRTCMode = false;
+
+    class WebRTCRoomManager {
+      constructor(roomId, myId, myName) {
+        this.roomId = roomId;
+        this.myId = myId;
+        this.myName = myName;
+        this.peers = {};
+        this.onData = null;
+        this.onLeave = null;
+        this._unsub = [];
+        this._base = `fps/webrtc/${roomId}`;
+      }
+
+      _rtcConfig() {
+        return {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' }
+          ]
+        };
+      }
+
+      async init(onData, onLeave) {
+        this.onData = onData;
+        this.onLeave = onLeave;
+
+        // Escuchar señales entrantes ANTES de anunciar nuestra presencia
+        const sigRef = ref(db, `${this._base}/signals/${this.myId}`);
+        const unsub = onValue(sigRef, snap => {
+          const sigs = snap.val();
+          if (!sigs) return;
+          Object.entries(sigs).forEach(([fromId, sig]) => {
+            if (!sig || !sig.type) return;
+            this._processSignal(fromId, sig).catch(e => console.warn('[WebRTC]', e));
+          });
+        });
+        this._unsub.push(unsub);
+
+        // Detectar peers que se desconectan
+        const peersUnsub = onValue(ref(db, `${this._base}/peers`), snap => {
+          const peers = snap.val() || {};
+          Object.keys(this.peers).forEach(id => { if (!peers[id]) this._removePeer(id); });
+        });
+        this._unsub.push(peersUnsub);
+
+        // Obtener peers existentes ANTES de registrarnos
+        const existingSnap = await get(ref(db, `${this._base}/peers`));
+        const existing = existingSnap.val() || {};
+
+        // Registrar presencia
+        const presRef = ref(db, `${this._base}/peers/${this.myId}`);
+        await set(presRef, { name: this.myName, joined: Date.now() });
+        onDisconnect(presRef).remove();
+
+        // Ofrecer conexión a todos los peers existentes (ellos responderán)
+        for (const [peerId] of Object.entries(existing)) {
+          if (peerId === this.myId) continue;
+          this._createOffer(peerId).catch(e => console.warn('[WebRTC] offer error', e));
+        }
+      }
+
+      async _createOffer(peerId) {
+        if (this.peers[peerId]) return;
+        const pc = this._createPC(peerId);
+        const channel = pc.createDataChannel('game', { ordered: false, maxRetransmits: 0 });
+        this._setupChannel(peerId, channel);
+
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+
+        // Esperar ICE gathering completo (non-trickle para simplificar)
+        await new Promise(resolve => {
+          if (pc.iceGatheringState === 'complete') { resolve(); return; }
+          const fn = () => { if (pc.iceGatheringState === 'complete') { pc.removeEventListener('icegatheringstatechange', fn); resolve(); } };
+          pc.addEventListener('icegatheringstatechange', fn);
+          setTimeout(resolve, 6000);
+        });
+
+        await set(ref(db, `${this._base}/signals/${peerId}/${this.myId}`), {
+          type: 'offer', sdp: pc.localDescription.sdp
+        });
+      }
+
+      async _processSignal(fromId, sig) {
+        if (sig.type === 'offer') {
+          if (this.peers[fromId]) return;
+          const pc = this._createPC(fromId);
+          pc.ondatachannel = e => this._setupChannel(fromId, e.channel);
+          try {
+            await pc.setRemoteDescription({ type: 'offer', sdp: sig.sdp });
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            await new Promise(resolve => {
+              if (pc.iceGatheringState === 'complete') { resolve(); return; }
+              const fn = () => { if (pc.iceGatheringState === 'complete') { pc.removeEventListener('icegatheringstatechange', fn); resolve(); } };
+              pc.addEventListener('icegatheringstatechange', fn);
+              setTimeout(resolve, 6000);
+            });
+            await set(ref(db, `${this._base}/signals/${fromId}/${this.myId}`), {
+              type: 'answer', sdp: pc.localDescription.sdp
+            });
+          } catch (e) { console.warn('[WebRTC] process offer error:', e); }
+
+        } else if (sig.type === 'answer') {
+          const peer = this.peers[fromId];
+          if (!peer) return;
+          try {
+            if (peer.pc.signalingState === 'have-local-offer')
+              await peer.pc.setRemoteDescription({ type: 'answer', sdp: sig.sdp });
+          } catch (e) { console.warn('[WebRTC] process answer error:', e); }
+        }
+      }
+
+      _createPC(peerId) {
+        const pc = new RTCPeerConnection(this._rtcConfig());
+        this.peers[peerId] = { pc, channel: null, connected: false };
+        pc.onconnectionstatechange = () => {
+          if (['disconnected', 'failed', 'closed'].includes(pc.connectionState))
+            this._removePeer(peerId);
+        };
+        return pc;
+      }
+
+      _setupChannel(peerId, channel) {
+        if (this.peers[peerId]) this.peers[peerId].channel = channel;
+        channel.onopen = () => {
+          if (this.peers[peerId]) this.peers[peerId].connected = true;
+          try { channel.send(JSON.stringify({ type: 'hello', id: this.myId, name: this.myName })); } catch (e) { }
+        };
+        channel.onmessage = e => {
+          try { const data = JSON.parse(e.data); if (this.onData) this.onData(peerId, data); } catch (err) { }
+        };
+        channel.onclose = () => this._removePeer(peerId);
+        channel.onerror = () => this._removePeer(peerId);
+      }
+
+      _sendTo(peerId, data) {
+        const peer = this.peers[peerId];
+        if (peer?.channel?.readyState === 'open') {
+          try { peer.channel.send(JSON.stringify(data)); } catch (e) { }
+        }
+      }
+
+      broadcast(data) {
+        const json = JSON.stringify(data);
+        Object.values(this.peers).forEach(peer => {
+          if (peer.channel?.readyState === 'open') {
+            try { peer.channel.send(json); } catch (e) { }
+          }
+        });
+      }
+
+      _removePeer(peerId) {
+        const peer = this.peers[peerId];
+        if (!peer) return;
+        if (peer.channel && peer.channel.readyState !== 'closed') try { peer.channel.close(); } catch (e) { }
+        if (peer.pc && peer.pc.signalingState !== 'closed') try { peer.pc.close(); } catch (e) { }
+        delete this.peers[peerId];
+        if (this.onLeave) this.onLeave(peerId);
+      }
+
+      destroy() {
+        this._unsub.forEach(u => u && u());
+        Object.keys(this.peers).forEach(id => this._removePeer(id));
+        try { remove(ref(db, `${this._base}/peers/${this.myId}`)); } catch (e) { }
+        try { remove(ref(db, `${this._base}/signals/${this.myId}`)); } catch (e) { }
+      }
+    }
 
     /* ════════════════════════════════════════
        GAME
@@ -2922,14 +3452,14 @@
       }
 
       function openEmoteWheel() {
-        if (dead || brState === 'in_plane' || brState === 'falling' || inDroneMode) return;
+        if (dead || brState === 'in_plane' || brState === 'falling' || inDroneMode || myPropState) return;
         EMOTE_LIST = [...RAW_EMOTE_LIST.filter(e => !!getEmoteVideoForCharacter(e, selectedSkinName)), { name: 'Cancelar', icon: '❌' }];
         initEmoteWheel(); emoteWheel.classList.add('active');
         if (inLobby) lobbyClickHint.style.display = 'none'; else document.exitPointerLock();
       }
       function closeEmoteWheel() {
         emoteWheel.classList.remove('active');
-        if (inLobby) { if (!emoteIsPlaying) lobbyClickHint.style.display = 'block'; } else gameEl.requestPointerLock();
+        if (inLobby) { if (!emoteIsPlaying) lobbyClickHint.style.display = 'block'; } else if (!isPropHuntTeamSelectActive) gameEl.requestPointerLock();
       }
       emoteWheel.addEventListener('click', e => { if (e.target === emoteWheel) { e.stopPropagation(); closeEmoteWheel(); } });
 
@@ -3083,13 +3613,31 @@
           onValue(ref(db, 'fps/rvb_score'), sn => { const sc = sn.val() || {}; document.getElementById('scoreRed').textContent = sc.red || 0; document.getElementById('scoreBlue').textContent = sc.blue || 0; });
           applyCustomMap('rvb').then(() => listenToMap('rvb'));
           sp2 = getSpawnPosition();
+        } else if (gameMode === 'propHunt' || gameMode === 'custom' && crd?.mode === 'propHunt') {
+          // Prop Hunt: cargar mapa propHunt (copiándolo si es sala personalizada) + activar HUD de Prop Hunt
+          applyCustomMap('propHunt').then(() => listenToMap('propHunt'));
+          const phHUD = document.getElementById('propHuntHUD');
+          if (phHUD) phHUD.classList.add('active');
+          const phTeamLabel = document.getElementById('propHuntTeamLabel');
+          if (phTeamLabel) {
+            phTeamLabel.textContent = propHuntTeam === 'props' ? '🟢 PROP' : '🔴 HUNTER';
+            phTeamLabel.className = propHuntTeam === 'props' ? 'props' : 'hunters';
+          }
+          const s = spawnPos(); sp2 = { x: s.x, y: 1.5, z: s.z };
+          initPropHuntMatch();
+          updateWeaponSelectorVisibility();
         } else {
           // Normal or custom-normal
           const mapMode = (crd?.mode === 'normal' || !crd) ? 'normal' : crd.mode;
           applyCustomMap(mapMode).then(() => listenToMap(mapMode === 'normal' ? 'normal' : mapMode));
           const s = spawnPos(); sp2 = { x: s.x, y: 1.5, z: s.z };
         }
-        camera.position.set(sp2.x, sp2.y, sp2.z); yaw = 0; pitch = 0; publishPos(); gameEl.requestPointerLock();
+        camera.position.set(sp2.x, sp2.y, sp2.z); yaw = 0; pitch = 0; publishPos();
+        if (gameMode === 'propHunt' || (gameMode === 'custom' && crd?.mode === 'propHunt')) {
+          openInGameTeamSelect();
+        } else {
+          gameEl.requestPointerLock();
+        }
       };
 
       /* ── BATTLE ROYALE STATE ── */
@@ -3099,6 +3647,10 @@
       let brFallVelocityY = 0, brAudio = null, brCanJump = false, brJumpInterval = null;
       const brJumpPrompt = document.getElementById('brJumpPrompt'), brAltitudeEl = document.getElementById('brAltitude');
       let spectatingPlayerId = null;
+
+      /* ── PROP HUNT MATCH STATE ── */
+      let phMatchState = 'lobby', phMatchTimer = 0, phMatchWinner = null;
+      let phMatchUnsubscribe = null, phHostInterval = null;
 
       function cycleSpectator(dir = 1) {
         if (!dead || gameMode !== 'br') return;
@@ -3259,11 +3811,309 @@
         document.getElementById('weapon').style.display = ''; document.getElementById('crosshair').style.display = ''; document.getElementById('weaponSelector').style.display = ''; document.getElementById('instructions').style.display = '';
       }
 
+      /* ── PROP HUNT MATCH LOGIC ── */
+      function resetPlayerForRound() {
+        if (inDroneMode) destroyDrone(false);
+        myPropState = null;
+        if (myLocalPropMesh) { scene.remove(myLocalPropMesh); myLocalPropMesh = null; }
+        myHp = MAX_HP;
+        dead = false;
+        deathPos = null;
+        updateHealthUI();
+        pitch = 0;
+        yaw = 0;
+        hasMythicWeapon = false;
+        document.getElementById('ws5').style.display = 'none';
+
+        const s = spawnPos();
+        camera.position.set(s.x, 1.5, s.z);
+
+        document.getElementById('deathScreen').style.display = 'none';
+        updateWeaponSelectorVisibility();
+        publishPos();
+
+        if (!isPropHuntTeamSelectActive) {
+          gameEl.requestPointerLock();
+        }
+      }
+
+      function phCleanup() {
+        if (phMatchUnsubscribe) { phMatchUnsubscribe(); phMatchUnsubscribe = null; }
+        if (phHostInterval) { clearInterval(phHostInterval); phHostInterval = null; }
+        const blindOverlay = document.getElementById('propHuntBlindOverlay');
+        if (blindOverlay) blindOverlay.style.display = 'none';
+      }
+
+      function updatePropHuntLobbyPrompt() {
+        if (gameMode !== 'propHunt' && !(gameMode === 'custom' && window._activeCustomRoom?.mode === 'propHunt')) return;
+        
+        const phPrompt = document.getElementById('phJumpPrompt');
+        if (!phPrompt) return;
+
+        if (phMatchState === 'lobby') {
+          const realPlayers = Object.keys(currentPlayersData).filter(id => !id.startsWith('bot_'));
+          if (realPlayers.length < 2) {
+            phPrompt.innerHTML = `LOBBY DE ESPERA<br><span style="font-size:11px;color:#aaa">Esperando jugadores (Mínimo 2)...</span>`;
+          } else {
+            if (currentHostId === myId) {
+              phPrompt.innerHTML = `PARTIDA LISTA<br><span style="font-size:11px;color:#aaa">Presiona <span style="background:#00ff88;color:#000;font-weight:bold;padding:2px 6px;border-radius:4px">J</span> para iniciar la partida</span>`;
+            } else {
+              phPrompt.innerHTML = `LOBBY DE ESPERA<br><span style="font-size:11px;color:#aaa">Esperando que el Host inicie la partida</span>`;
+            }
+          }
+          phPrompt.style.display = 'block';
+        } else {
+          phPrompt.style.display = 'none';
+        }
+      }
+
+      function updateInGameTeamSelectUI() {
+        if (!isPropHuntTeamSelectActive) return;
+        
+        const propsCard = document.getElementById('phInGamePropsCard');
+        const huntersCard = document.getElementById('phInGameHuntersCard');
+        if (!propsCard || !huntersCard) return;
+
+        // Reset default styles
+        propsCard.style.opacity = '1.0';
+        propsCard.style.pointerEvents = 'auto';
+        const propsBtn = propsCard.querySelector('div');
+        if (propsBtn) propsBtn.textContent = 'Unirse como Prop';
+
+        huntersCard.style.opacity = '1.0';
+        huntersCard.style.pointerEvents = 'auto';
+        const huntersBtn = huntersCard.querySelector('div');
+        if (huntersBtn) huntersBtn.textContent = 'Unirse como Cazador';
+
+        // Check player count and other player's team
+        const realPlayers = Object.keys(currentPlayersData).filter(id => !id.startsWith('bot_'));
+        if (realPlayers.length === 2) {
+          const otherId = realPlayers.find(id => id !== myId);
+          const otherP = otherId ? currentPlayersData[otherId] : null;
+          if (otherP && otherP.propHuntTeam) {
+            if (otherP.propHuntTeam === 'props') {
+              propsCard.style.opacity = '0.35';
+              propsCard.style.pointerEvents = 'none';
+              if (propsBtn) propsBtn.textContent = 'No disponible';
+            } else if (otherP.propHuntTeam === 'hunters') {
+              huntersCard.style.opacity = '0.35';
+              huntersCard.style.pointerEvents = 'none';
+              if (huntersBtn) huntersBtn.textContent = 'No disponible';
+            }
+          }
+        }
+      }
+
+      function initPropHuntMatch() {
+        phCleanup();
+        let lastState = 'lobby';
+        phMatchUnsubscribe = onValue(ref(db, 'fps/prophunt_match'), snap => {
+          const data = snap.val() || { state: 'lobby', timer: 0 };
+          const prevState = phMatchState;
+          phMatchState = data.state || 'lobby';
+          phMatchTimer = data.timer || 0;
+          phMatchWinner = data.winner || null;
+
+          updatePropHuntLobbyPrompt();
+
+          const timerEl = document.getElementById('propHuntTimer');
+          if (timerEl) {
+            if (phMatchState === 'lobby') {
+              timerEl.textContent = "Esperando...";
+            } else {
+              const minutes = Math.floor(phMatchTimer / 60);
+              const seconds = phMatchTimer % 60;
+              timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+          }
+
+          const countEl = document.getElementById('propHuntCount');
+          if (countEl) {
+            if (phMatchState === 'lobby') {
+              const realPlayers = Object.keys(currentPlayersData).filter(id => !id.startsWith('bot_'));
+              countEl.textContent = `Jugadores: ${realPlayers.length}`;
+            } else {
+              let propsCount = 0, huntersCount = 0;
+              Object.values(currentPlayersData).forEach(p => {
+                if (p.dead) return;
+                if (p.propHuntTeam === 'props') propsCount++;
+                else if (p.propHuntTeam === 'hunters') huntersCount++;
+              });
+              countEl.textContent = `Props: ${propsCount} | Hunters: ${huntersCount}`;
+            }
+          }
+
+          const blindOverlay = document.getElementById('propHuntBlindOverlay');
+          if (phMatchState === 'hiding') {
+            if (propHuntTeam === 'hunters') {
+              if (blindOverlay) blindOverlay.style.display = 'flex';
+            } else {
+              if (blindOverlay) blindOverlay.style.display = 'none';
+            }
+          } else if (phMatchState === 'hunting') {
+            if (blindOverlay) blindOverlay.style.display = 'none';
+          } else if (phMatchState === 'ended') {
+            if (blindOverlay) blindOverlay.style.display = 'none';
+            if (phMatchWinner && lastState !== 'ended') {
+              const winnerLabel = phMatchWinner === 'props' ? '🟢 ¡LOS PROPS GANAN!' : '🔴 ¡LOS CAZADORES GANAN!';
+              showToast(winnerLabel, phMatchWinner === 'props' ? '#00ff88' : '#ff4444', 'rgba(0,0,0,0.85)', 4000);
+            }
+          } else {
+            if (blindOverlay) blindOverlay.style.display = 'none';
+          }
+
+          if (phMatchState === 'lobby') {
+            hasSelectedTeamThisMatch = false;
+            // Clean up visual prop state if any
+            myPropState = null;
+            if (myLocalPropMesh) { scene.remove(myLocalPropMesh); myLocalPropMesh = null; }
+            document.getElementById('weapon').style.display = 'none';
+            document.getElementById('crosshair').style.display = 'none';
+            document.getElementById('weaponSelector').style.display = 'none';
+            if (selectHelper) selectHelper.visible = false;
+          } else {
+            document.getElementById('weapon').style.display = '';
+            document.getElementById('crosshair').style.display = '';
+            document.getElementById('weaponSelector').style.display = '';
+          }
+
+          if (phMatchState === 'hiding' && prevState === 'lobby') {
+            if (!hasSelectedTeamThisMatch) {
+              openInGameTeamSelect();
+            }
+            resetPlayerForRound();
+          } else if (phMatchState === 'hiding' && lastState !== 'hiding') {
+            resetPlayerForRound();
+          }
+
+          lastState = phMatchState;
+        });
+
+        phHostInterval = setInterval(() => {
+          if (currentHostId === myId) {
+            updatePropHuntMatchHost();
+          }
+        }, 1000);
+      }
+
+      function updatePropHuntMatchHost() {
+        get(ref(db, 'fps/prophunt_match')).then(snap => {
+          let data = snap.val();
+          if (!data) {
+            data = { state: 'lobby', timer: 0, winner: null, phaseEnd: 0, startedAt: Date.now() };
+          }
+          const now = Date.now();
+          let state = data.state || 'lobby';
+          let timer = data.timer || 0;
+          let winner = data.winner || null;
+          let phaseEnd = data.phaseEnd || 0;
+          let startedAt = data.startedAt || 0;
+
+          let aliveProps = 0;
+          let aliveHunters = 0;
+          Object.entries(currentPlayersData).forEach(([id, p]) => {
+            if (p.dead) return;
+            const pTeam = p.propHuntTeam || 'props';
+            if (pTeam === 'props') aliveProps++;
+            else if (pTeam === 'hunters') aliveHunters++;
+          });
+
+          if (state === 'lobby') {
+            // Lobby waits for the host trigger
+            timer = 0;
+            winner = null;
+          } else if (state === 'hiding') {
+            timer = Math.max(0, Math.ceil((phaseEnd - now) / 1000));
+            if (now >= phaseEnd) {
+              state = 'hunting';
+              phaseEnd = now + 180 * 1000;
+              timer = 180;
+            }
+          } else if (state === 'hunting') {
+            timer = Math.max(0, Math.ceil((phaseEnd - now) / 1000));
+            if (aliveProps === 0) {
+              state = 'ended';
+              winner = 'hunters';
+              phaseEnd = now + 10 * 1000;
+              timer = 10;
+            } else if (timer <= 0) {
+              state = 'ended';
+              winner = 'props';
+              phaseEnd = now + 10 * 1000;
+              timer = 10;
+            }
+          } else if (state === 'ended') {
+            timer = Math.max(0, Math.ceil((phaseEnd - now) / 1000));
+            if (now >= phaseEnd) {
+              const realPlayers = Object.keys(currentPlayersData).filter(id => !id.startsWith('bot_'));
+              if (realPlayers.length < 2) {
+                state = 'lobby';
+                timer = 0;
+                winner = null;
+              } else {
+                state = 'hiding';
+                startedAt = now;
+                phaseEnd = now + 30 * 1000;
+                timer = 30;
+                winner = null;
+              }
+            }
+          }
+
+          set(ref(db, 'fps/prophunt_match'), {
+            state,
+            timer,
+            winner,
+            phaseEnd,
+            startedAt
+          });
+        });
+      }
+
       /* ── MAP ── */
       const mapObjects = [], particles = [], tracers = [], projectiles = [];
       let showWireframes = false, redSpawns = [], blueSpawns = [], airdropSpawns = [];
       let editorPlaneStart = null, editorPlaneEnd = null, firstSpawnDone = false;
       const structureGroups = {}, destroyedStructures = new Set();
+
+      // Caches for rendering optimization
+      const boxGeometryCache = new Map();
+      const edgesGeometryCache = new Map();
+      const materialCache = new Map();
+      const customModelCache = new Map();
+      let wireframeMaterial = null;
+
+      function getCachedBoxGeometry(w, h, d) {
+        const key = `${w}_${h}_${d}`;
+        if (!boxGeometryCache.has(key)) {
+          boxGeometryCache.set(key, new THREE.BoxGeometry(w, h, d));
+        }
+        return boxGeometryCache.get(key);
+      }
+
+      function getCachedEdgesGeometry(w, h, d) {
+        const key = `${w}_${h}_${d}`;
+        if (!edgesGeometryCache.has(key)) {
+          const geo = getCachedBoxGeometry(w, h, d);
+          edgesGeometryCache.set(key, new THREE.EdgesGeometry(geo));
+        }
+        return edgesGeometryCache.get(key);
+      }
+
+      function getCachedMaterial(color) {
+        const colorVal = parseInt(color) || 0x888888;
+        if (!materialCache.has(colorVal)) {
+          materialCache.set(colorVal, new THREE.MeshPhongMaterial({ color: colorVal }));
+        }
+        return materialCache.get(colorVal);
+      }
+
+      function getWireframeMaterial() {
+        if (!wireframeMaterial) {
+          wireframeMaterial = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: .22 });
+        }
+        return wireframeMaterial;
+      }
 
       function getSpawnPosition() {
         if (gameMode === 'rvb') {
@@ -3273,7 +4123,33 @@
         const s = spawnPos(); return { x: s.x, y: 1.5, z: s.z };
       }
 
-      function clearMapObjects() { mapObjects.forEach(m => scene.remove(m)); mapObjects.length = 0; airdropSpawns = []; Object.keys(structureGroups).forEach(k => delete structureGroups[k]); }
+      function clearMapObjects() {
+        mapObjects.forEach(m => scene.remove(m));
+        mapObjects.length = 0;
+        airdropSpawns = [];
+        Object.keys(structureGroups).forEach(k => delete structureGroups[k]);
+
+        // Clean up caches to prevent WebGL memory leaks
+        boxGeometryCache.forEach(g => g.dispose());
+        boxGeometryCache.clear();
+
+        edgesGeometryCache.forEach(g => g.dispose());
+        edgesGeometryCache.clear();
+
+        materialCache.forEach(m => m.dispose());
+        materialCache.clear();
+
+        customModelCache.forEach(model => {
+          model.traverse(child => {
+            if (child.geometry) child.geometry.dispose();
+            if (child.material) {
+              if (Array.isArray(child.material)) child.material.forEach(mat => mat.dispose());
+              else child.material.dispose();
+            }
+          });
+        });
+        customModelCache.clear();
+      }
 
       function spawnTracer(start, end, isMythic = false, isShotgun = false) {
         if (camera.position.distanceToSquared(start) > 10000 && camera.position.distanceToSquared(end) > 10000) return;
@@ -3362,7 +4238,14 @@
             spawnExplosion(end); destroyStructureAt(end);
             const es = new Audio(impactSndUrl);
             es.volume = Math.max(0, .4 - camera.position.distanceTo(end) * .005); if (es.volume > .05) es.play().catch(() => { });
-            if (!isRemote && targetId) { set(ref(db, `fps/hits_${gameMode}/${targetId}`), { dmg, from: myName, team: gameMode === 'rvb' ? selectedTeam : null, weapon: 'Bazooka', t: Date.now() }); const p2 = end.clone().project(camera); spawnDmgNum(dmg, (p2.x * .5 + .5) * GAME_W, (1 - (p2.y * .5 + .5)) * GAME_H, dmg >= 22); }
+            if (!isRemote && targetId) {
+              if (isWebRTCMode && rtcManager) {
+                rtcManager.broadcast({ type: 'hit', targetId, dmg, from: myName, team: gameMode === 'rvb' ? selectedTeam : null, weapon: 'Bazooka', t: Date.now() });
+              } else {
+                set(ref(db, `fps/hits_${gameMode}/${targetId}`), { dmg, from: myName, team: gameMode === 'rvb' ? selectedTeam : null, weapon: 'Bazooka', t: Date.now() });
+              }
+              const p2 = end.clone().project(camera); spawnDmgNum(dmg, (p2.x * .5 + .5) * GAME_W, (1 - (p2.y * .5 + .5)) * GAME_H, dmg >= 22);
+            }
           }
         });
       }
@@ -3378,10 +4261,17 @@
       }
 
       function createCustomModelMesh(code) {
+        if (!code) return null;
+        if (customModelCache.has(code)) {
+          return customModelCache.get(code).clone();
+        }
         try {
           const fn = new Function('THREE', code);
           const result = fn(THREE);
-          if (result && result.isObject3D) return result;
+          if (result && result.isObject3D) {
+            customModelCache.set(code, result);
+            return result.clone();
+          }
           return null;
         } catch (e) {
           console.error('Error recreando modelo custom:', e);
@@ -3434,6 +4324,21 @@
 
       function createPropMesh(prop) {
         let mesh;
+        let parsedColor = 0x888888;
+        if (prop.color !== undefined && prop.color !== null) {
+          if (typeof prop.color === 'string') {
+            if (prop.color.startsWith('#')) {
+              parsedColor = prop.color;
+            } else if (prop.color.startsWith('0x')) {
+              parsedColor = parseInt(prop.color);
+            } else {
+              parsedColor = parseInt(prop.color) || 0x888888;
+            }
+          } else if (typeof prop.color === 'number') {
+            parsedColor = prop.color;
+          }
+        }
+
         if (prop.type === 'chair') {
           const chairColor = (typeof prop.color === 'string' && prop.color.startsWith('0x'))
             ? '#' + prop.color.slice(2).padStart(6, '0')
@@ -3442,18 +4347,25 @@
         } else if (prop.type === 'custom_model' && prop.modelCode) {
           mesh = createCustomModelMesh(prop.modelCode);
           if (!mesh) {
-            mesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), new THREE.MeshPhongMaterial({ color: 0x888888 }));
+            mesh = new THREE.Mesh(getCachedBoxGeometry(2, 2, 2), getCachedMaterial(parsedColor));
           }
         } else {
           const w = parseFloat(prop.w) || 2;
           const h = parseFloat(prop.h) || 2;
           const d = parseFloat(prop.d) || 2;
-          const geo = new THREE.BoxGeometry(w, h, d);
-          mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ color: parseInt(prop.color) || 0x888888 }));
+          let geo;
+          if (prop.type === 'cylinder') {
+            geo = new THREE.CylinderGeometry(w / 2, w / 2, h, 16);
+          } else if (prop.type === 'cone') {
+            geo = new THREE.ConeGeometry(w / 2, h, 16);
+          } else {
+            geo = getCachedBoxGeometry(w, h, d);
+          }
+          mesh = new THREE.Mesh(geo, getCachedMaterial(parsedColor));
         }
         mesh.castShadow = true;
         mesh.receiveShadow = true;
-        if (prop.type === 'block') {
+        if (prop.type === 'block' || prop.type === 'cylinder' || prop.type === 'cone') {
           mesh.position.y = -2.0 + (parseFloat(prop.h) || 2) / 2;
         } else {
           mesh.position.y = -2.0;
@@ -3519,6 +4431,7 @@
 
       function transformPlayerInto(target) {
         const b = target.userData.blockData || { type: 'block', color: target.material?.color?.getHex() || 0x888888, w: 2, h: 2, d: 2 };
+        if (b.transformable === false) return;
         const snd = new Audio('ejemplo.mp3');
         snd.volume = 0.6;
         snd.play().catch(() => { });
@@ -3554,7 +4467,7 @@
         dronePitch = pitch;
         droneVelX = 0; droneVelY = 0; droneVelZ = 0; // reset inertia
         droneSignalLost = false;
-        droneAudio = new Audio('dron.mp3');
+        droneAudio = new Audio('soidodron.mp3');
         droneAudio.loop = true;
         droneAudio.volume = 0.5;
         droneAudio.play().catch(() => { });
@@ -3690,14 +4603,14 @@
           if (glitch) { glitch.classList.add('active'); glitch.style.opacity = '1'; }
           if (lostEl) { lostEl.style.display = 'flex'; }
 
-          // Sonido estático
-          if (droneAudio) { droneAudio.pause(); }
+          // Detener sonido del dron inmediatamente
+          if (droneAudio) { droneAudio.pause(); droneAudio = null; }
 
-          // Esperar 1.8 s y destruir dron
+          // Esperar 1.8 s y destruir dron CON EXPLOSION
           setTimeout(() => {
             if (glitch) { glitch.style.opacity = '0'; setTimeout(() => glitch.classList.remove('active'), 300); }
             if (lostEl) { lostEl.style.display = 'none'; }
-            destroyDrone(false);
+            destroyDrone(true);  // EXPLOTA al perder señal
             droneSignalLost = false;
           }, 1800);
           return;
@@ -3765,7 +4678,11 @@
         const damageVal = 20;
         if (bestHit) {
           const op = otherPlayers[bestHit.id]; if (!op) return;
-          set(ref(db, `fps/hits_${gameMode}/${bestHit.id}`), { dmg: damageVal, from: myName, team: gameMode === 'rvb' ? selectedTeam : null, weapon: 'Dron', t: Date.now() });
+          if (isWebRTCMode && rtcManager) {
+            rtcManager.broadcast({ type: 'hit', targetId: bestHit.id, dmg: damageVal, from: myName, team: gameMode === 'rvb' ? selectedTeam : null, weapon: 'Dron', t: Date.now() });
+          } else {
+            set(ref(db, `fps/hits_${gameMode}/${bestHit.id}`), { dmg: damageVal, from: myName, team: gameMode === 'rvb' ? selectedTeam : null, weapon: 'Dron', t: Date.now() });
+          }
           const p2 = bestHit.point.clone().project(camera); spawnDmgNum(damageVal, (p2.x * .5 + .5) * GAME_W, (1 - (p2.y * .5 + .5)) * GAME_H, false);
           tracerEnd = bestHit.point;
         } else {
@@ -3878,7 +4795,11 @@
               if (dist < radius) {
                 const dmg = Math.round(maxDmg * (1 - dist / radius));
                 if (dmg > 5) {
-                  set(ref(db, `fps/hits_${gameMode}/${id}`), { dmg, from: myName, team: gameMode === 'rvb' ? selectedTeam : null, weapon: 'Granada', t: Date.now() });
+                  if (isWebRTCMode && rtcManager) {
+                    rtcManager.broadcast({ type: 'hit', targetId: id, dmg, from: myName, team: gameMode === 'rvb' ? selectedTeam : null, weapon: 'Granada', t: Date.now() });
+                  } else {
+                    set(ref(db, `fps/hits_${gameMode}/${id}`), { dmg, from: myName, team: gameMode === 'rvb' ? selectedTeam : null, weapon: 'Granada', t: Date.now() });
+                  }
                   const p2 = op.group.position.clone().project(camera);
                   spawnDmgNum(dmg, (p2.x * .5 + .5) * GAME_W, (1 - (p2.y * .5 + .5)) * GAME_H, dmg >= 50);
                 }
@@ -3950,11 +4871,12 @@
               mesh = createChairMesh(chairColor);
             } else if (t === 'custom_model' && b.modelCode) {
               mesh = createCustomModelMesh(b.modelCode);
-              if (!mesh) { mesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), new THREE.MeshPhongMaterial({ color: 0x888888 })); }
+              if (!mesh) { mesh = new THREE.Mesh(getCachedBoxGeometry(2, 2, 2), getCachedMaterial(0x888888)); }
             } else {
-              const geo = new THREE.BoxGeometry(b.w || 2, b.h || 2, b.d || 2);
-              mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ color: parseInt(b.color) || 0x888888 }));
-              const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: .22 })); edges.name = 'wireframe'; edges.visible = showWireframes; mesh.add(edges);
+              const bw = b.w || 2, bh = b.h || 2, bd = b.d || 2;
+              const geo = getCachedBoxGeometry(bw, bh, bd);
+              mesh = new THREE.Mesh(geo, getCachedMaterial(b.color));
+              const edges = new THREE.LineSegments(getCachedEdgesGeometry(bw, bh, bd), getWireframeMaterial()); edges.name = 'wireframe'; edges.visible = showWireframes; mesh.add(edges);
             }
 
             mesh.position.set(b.x || 0, b.y != null ? b.y : (b.h / 2 - 2), b.z || 0);
@@ -3971,14 +4893,12 @@
             mesh.userData.active = true;
             mesh.userData.blockData = b;
             scene.add(mesh);
-            if (isSolid || isDestructible) {
-              mesh.updateMatrixWorld(true);
-              if (t !== 'chair' && t !== 'custom_model') {
-                mesh.geometry.computeBoundingBox();
-              }
-              mesh.userData.bbox = new THREE.Box3().setFromObject(mesh);
-              mapObjects.push(mesh);
+            mesh.updateMatrixWorld(true);
+            if (t !== 'chair' && t !== 'custom_model') {
+              mesh.geometry.computeBoundingBox();
             }
+            mesh.userData.bbox = new THREE.Box3().setFromObject(mesh);
+            mapObjects.push(mesh);
           });
         }
         if (data.groupMeta) Object.entries(data.groupMeta).forEach(([gid, meta]) => { structureGroups[gid] = { meshes: [], name: meta.name || gid }; });
@@ -3988,6 +4908,7 @@
 
       let unsubscribeMap = null;
       function listenToMap(t) {
+        if (isWebRTCMode) return; // Mapa ya cargado desde datos de sala custom
         if (unsubscribeMap) unsubscribeMap();
         unsubscribeMap = onValue(ref(db, 'fps/map_' + t), snap => {
           const val = snap.val();
@@ -4078,16 +4999,45 @@
       let lastKillFeedTime = Date.now(), lastStartTriggerTime = Date.now();
 
       function publishPos() {
-        if (inLobby || !myRef) return;
+        if (inLobby) return;
+        if (isWebRTCMode && rtcManager) { rtcManager.broadcast(buildMyPosData()); return; }
+        if (!myRef) return;
         const pos = dead ? (deathPos || camera.position) : (inDroneMode ? playerPhysicalPos : (emoteIsPlaying ? playerPhysicalPos : camera.position));
-        set(myRef, { name: myName, skin: selectedSkinUrl, x: +pos.x.toFixed(3), y: +pos.y.toFixed(3), z: +pos.z.toFixed(3), yaw: +yaw.toFixed(4), hp: myHp, dead, t: Date.now(), inPlane: brState === 'in_plane', team: gameMode === 'rvb' ? selectedTeam : null, lastShot: myLastShot, activeEmote: myActiveEmote || null, prop: myPropState || null, drone: inDroneMode && droneMesh ? { x: +droneMesh.position.x.toFixed(3), y: +droneMesh.position.y.toFixed(3), z: +droneMesh.position.z.toFixed(3), yaw: +droneYaw.toFixed(4), pitch: +dronePitch.toFixed(4), hp: droneHp } : null });
+        set(myRef, {
+          name: myName, skin: selectedSkinUrl, x: +pos.x.toFixed(3), y: +pos.y.toFixed(3), z: +pos.z.toFixed(3),
+          yaw: +yaw.toFixed(4), hp: myHp, dead, t: Date.now(), inPlane: brState === 'in_plane',
+          team: gameMode === 'rvb' ? selectedTeam : null, lastShot: myLastShot, activeEmote: myActiveEmote || null,
+          prop: myPropState || null,
+          drone: inDroneMode && droneMesh ? {
+            x: +droneMesh.position.x.toFixed(3), y: +droneMesh.position.y.toFixed(3), z: +droneMesh.position.z.toFixed(3),
+            yaw: +droneYaw.toFixed(4), pitch: +dronePitch.toFixed(4), hp: droneHp
+          } : null,
+          propHuntTeam: (gameMode === 'custom' || gameMode === 'propHunt') ? propHuntTeam : null
+        });
       }
 
       function connectFirebase() {
+        // Salas personalizadas usan WebRTC P2P
+        if (gameMode === 'custom' && window._activeCustomRoom?.roomId) {
+          isWebRTCMode = true;
+          connectWebRTC(window._activeCustomRoom.roomId);
+          // Mantener referencia de presencia para limpieza
+          myRef = ref(db, `fps/webrtc/${window._activeCustomRoom.roomId}/peers/${myId}`);
+          // Cargar mapa desde datos de la sala
+          const _crd = window._activeCustomRoom;
+          if (_crd && (_crd.blocks || _crd.blocksBR)) {
+            loadMapFromData({ floor: _crd.floor || {}, blocks: _crd.blocks || _crd.blocksBR || [], groupMeta: _crd.groupMeta || {} });
+          }
+          return;
+        }
         myRef = ref(db, `fps/players_${gameMode}/${myId}`); onDisconnect(myRef).remove();
         onValue(ref(db, 'fps/players_' + gameMode), snap => {
           const data = snap.val() || {};
           currentPlayersData = data;
+          if (gameMode === 'propHunt' || (gameMode === 'custom' && window._activeCustomRoom?.mode === 'propHunt')) {
+            updatePropHuntLobbyPrompt();
+            updateInGameTeamSelectUI();
+          }
           if (inLobby) return;
           const entries = document.getElementById('plEntries'); entries.innerHTML = '';
           Object.entries(data).forEach(([id, p]) => {
@@ -4308,6 +5258,7 @@
         window.addEventListener('beforeunload', () => {
           clearInterval(airdropCheck);
           clearInterval(botInterval);
+          phCleanup();
         });
       }
 
@@ -4326,6 +5277,19 @@
           if (!botData) {
             const team = gameMode === 'rvb' ? (i % 2 === 0 ? 'red' : 'blue') : null;
             const isBr = gameMode === 'br';
+            const isPH = gameMode === 'propHunt';
+            const phTeam = isPH ? (i % 3 === 0 ? 'hunters' : 'props') : null;
+            let botProp = null;
+            if (isPH && phTeam === 'props') {
+              botProp = {
+                type: ['block', 'cylinder', 'cone'][Math.floor(Math.random() * 3)],
+                color: ['#ff4444', '#44ff44', '#4444ff', '#ffcc00', '#ff00ff'][Math.floor(Math.random() * 5)],
+                w: 1.5 + Math.random() * 1.5,
+                h: 1.5 + Math.random() * 2.0,
+                d: 1.5 + Math.random() * 1.5,
+                animStart: Date.now()
+              };
+            }
             const inPlaneVal = isBr && brState === 'in_plane';
             let sp;
             if (isBr && brState === 'lobby') {
@@ -4352,6 +5316,8 @@
               t: Date.now(),
               inPlane: inPlaneVal,
               team: team,
+              propHuntTeam: phTeam,
+              prop: botProp,
               lastShot: null,
               activeEmote: null
             };
@@ -4367,6 +5333,19 @@
             if (Date.now() - (botData.t || 0) > 5000) {
               const team = botData.team;
               const isBr = gameMode === 'br';
+              const isPH = gameMode === 'propHunt';
+              const phTeam = botData.propHuntTeam || (isPH ? (i % 3 === 0 ? 'hunters' : 'props') : null);
+              let botProp = null;
+              if (isPH && phTeam === 'props') {
+                botProp = {
+                  type: ['block', 'cylinder', 'cone'][Math.floor(Math.random() * 3)],
+                  color: ['#ff4444', '#44ff44', '#4444ff', '#ffcc00', '#ff00ff'][Math.floor(Math.random() * 5)],
+                  w: 1.5 + Math.random() * 1.5,
+                  h: 1.5 + Math.random() * 2.0,
+                  d: 1.5 + Math.random() * 1.5,
+                  animStart: Date.now()
+                };
+              }
               let sp;
               if (isBr) {
                 if (brState === 'lobby') {
@@ -4390,7 +5369,9 @@
                 dead: false,
                 t: Date.now(),
                 lastShot: null,
-                inPlane: isBr && brState === 'in_plane'
+                inPlane: isBr && brState === 'in_plane',
+                propHuntTeam: phTeam,
+                prop: botProp
               };
               if (isBr) {
                 respawnData.jumpT = +(0.15 + Math.random() * 0.70).toFixed(3);
@@ -4518,16 +5499,43 @@
             }
           } else {
             let nearestTarget = null, nearestDist = Infinity;
-            if (!dead && (gameMode !== 'rvb' || selectedTeam !== botData.team)) {
-              const dist = new THREE.Vector3(botData.x, botData.y, botData.z).distanceTo(camera.position);
-              if (dist < nearestDist) { nearestDist = dist; nearestTarget = { id: myId, name: myName, team: gameMode === 'rvb' ? selectedTeam : null, pos: camera.position.clone() }; }
+            const isPH = gameMode === 'propHunt';
+
+            if (isPH) {
+              if (phMatchState === 'hiding') {
+                // Freeze hunters, Props roam randomly
+                if (botData.propHuntTeam === 'hunters') {
+                  newX = botData.x;
+                  newZ = botData.z;
+                }
+              } else if (botData.propHuntTeam === 'hunters') {
+                // Hunters look for Prop players
+                if (!dead && propHuntTeam === 'props') {
+                  const dist = new THREE.Vector3(botData.x, botData.y, botData.z).distanceTo(camera.position);
+                  if (dist < nearestDist) { nearestDist = dist; nearestTarget = { id: myId, name: myName, pos: camera.position.clone() }; }
+                }
+                // Hunters look for Prop bots
+                Object.entries(currentPlayersData).forEach(([otherId, otherP]) => {
+                  if (otherId === botId || otherP.dead || otherP.inPlane) return;
+                  const isOtherPProp = otherId === myId ? (propHuntTeam === 'props') : (otherP.propHuntTeam === 'props');
+                  if (!isOtherPProp) return;
+                  const dist = new THREE.Vector3(botData.x, botData.y, botData.z).distanceTo(new THREE.Vector3(otherP.x, otherP.y, otherP.z));
+                  if (dist < nearestDist) { nearestDist = dist; nearestTarget = { id: otherId, name: otherP.name, pos: new THREE.Vector3(otherP.x, otherP.y, otherP.z) }; }
+                });
+              }
+            } else {
+              // Normal or RvB AI
+              if (!dead && (gameMode !== 'rvb' || selectedTeam !== botData.team)) {
+                const dist = new THREE.Vector3(botData.x, botData.y, botData.z).distanceTo(camera.position);
+                if (dist < nearestDist) { nearestDist = dist; nearestTarget = { id: myId, name: myName, team: gameMode === 'rvb' ? selectedTeam : null, pos: camera.position.clone() }; }
+              }
+              Object.entries(currentPlayersData).forEach(([otherId, otherP]) => {
+                if (otherId === botId || otherP.dead || otherP.inPlane) return;
+                if (gameMode === 'rvb' && otherP.team === botData.team) return;
+                const dist = new THREE.Vector3(botData.x, botData.y, botData.z).distanceTo(new THREE.Vector3(otherP.x, otherP.y, otherP.z));
+                if (dist < nearestDist) { nearestDist = dist; nearestTarget = { id: otherId, name: otherP.name, team: otherP.team, pos: new THREE.Vector3(otherP.x, otherP.y, otherP.z) }; }
+              });
             }
-            Object.entries(currentPlayersData).forEach(([otherId, otherP]) => {
-              if (otherId === botId || otherP.dead || otherP.inPlane) return;
-              if (gameMode === 'rvb' && otherP.team === botData.team) return;
-              const dist = new THREE.Vector3(botData.x, botData.y, botData.z).distanceTo(new THREE.Vector3(otherP.x, otherP.y, otherP.z));
-              if (dist < nearestDist) { nearestDist = dist; nearestTarget = { id: otherId, name: otherP.name, team: otherP.team, pos: new THREE.Vector3(otherP.x, otherP.y, otherP.z) }; }
-            });
 
             if (nearestTarget && nearestDist < 45) {
               const dx = nearestTarget.pos.x - botData.x, dz = nearestTarget.pos.z - botData.z;
@@ -4558,18 +5566,22 @@
                 }
               }
             } else {
-              if (!botData.targetPos || Date.now() - (botData.lastDecisionTime || 0) > 4000) {
-                newYaw = +(Math.random() * Math.PI * 2).toFixed(4);
-                botData.targetPos = { x: botData.x + Math.sin(newYaw) * -15, z: botData.z + Math.cos(newYaw) * -15 };
-                botData.lastDecisionTime = Date.now();
-              } else {
-                const dx = botData.targetPos.x - botData.x, dz = botData.targetPos.z - botData.z;
-                const dist = Math.sqrt(dx * dx + dz * dz);
-                if (dist > 1) {
-                  newYaw = +Math.atan2(-dx, -dz).toFixed(4);
-                  const speed = 0.12;
-                  newX += Math.sin(newYaw) * -speed;
-                  newZ += Math.cos(newYaw) * -speed;
+              // No targets, patrol or hide
+              const isFreezePH = isPH && phMatchState === 'hiding' && botData.propHuntTeam === 'hunters';
+              if (!isFreezePH) {
+                if (!botData.targetPos || Date.now() - (botData.lastDecisionTime || 0) > 4000) {
+                  newYaw = +(Math.random() * Math.PI * 2).toFixed(4);
+                  botData.targetPos = { x: botData.x + Math.sin(newYaw) * -15, z: botData.z + Math.cos(newYaw) * -15 };
+                  botData.lastDecisionTime = Date.now();
+                } else {
+                  const dx = botData.targetPos.x - botData.x, dz = botData.targetPos.z - botData.z;
+                  const dist = Math.sqrt(dx * dx + dz * dz);
+                  if (dist > 1) {
+                    newYaw = +Math.atan2(-dx, -dz).toFixed(4);
+                    const speed = 0.12;
+                    newX += Math.sin(newYaw) * -speed;
+                    newZ += Math.cos(newYaw) * -speed;
+                  }
                 }
               }
             }
@@ -4619,6 +5631,11 @@
       }
 
       function broadcastKill(killer, victim, killerTeam, weapon) {
+        if (isWebRTCMode && rtcManager) {
+          rtcManager.broadcast({ type: 'kill', killer, victim, weapon, t: Date.now() });
+          addKillFeedEntry(killer, victim, weapon, killer === myName, victim === myName);
+          return;
+        }
         set(ref(db, 'fps/killfeed_' + gameMode + '/latest'), { killer, victim, weapon, t: Date.now() });
         if (gameMode === 'rvb') {
           let team = killerTeam || Object.values(otherPlayers).find(p => p.data.name === killer)?.data.team || (killer === myName ? selectedTeam : null);
@@ -4708,10 +5725,12 @@
         const lobbyReturnBtn = document.getElementById('lobbyReturnBtn');
         if (lobbyReturnBtn) lobbyReturnBtn.style.cssText = '';
 
+        updateWeaponSelectorVisibility();
         document.getElementById('deathScreen').style.display = 'none'; publishPos(); gameEl.requestPointerLock();
       });
 
       document.getElementById('lobbyReturnBtn').addEventListener('click', () => {
+        phCleanup();
         if (myRef) {
           remove(myRef).then(() => { window.location.reload(); }).catch(() => { window.location.reload(); });
         } else {
@@ -4736,19 +5755,41 @@
 
         raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
         let blockDist = Infinity, targetBlockMesh = null, blockHitPoint = null, blockHitNormal = null;
-        // Temporarily restore visibility for raycasting
-        const activeObjs = mapObjects.filter(o => o.userData.active !== false);
+        // Temporarily restore visibility for raycasting — recursive=true para detectar grupos (sillas, modelos custom)
+        const activeObjs = mapObjects.filter(o => o.userData.active !== false && (o.userData.solidCollision !== false || o.userData.destructible === true));
         const savedVis = activeObjs.map(o => o.visible);
-        activeObjs.forEach(o => o.visible = true);
-        const bh = raycaster.intersectObjects(activeObjs, false);
-        activeObjs.forEach((o, idx) => o.visible = savedVis[idx]);
-        if (bh.length > 0) { blockDist = bh[0].distance; targetBlockMesh = bh[0].object; blockHitPoint = bh[0].point; blockHitNormal = bh[0].face.normal; }
+        activeObjs.forEach(o => { o.visible = true; o.traverse(c => { if (c !== o) c.visible = true; }); });
+        const bh = raycaster.intersectObjects(activeObjs, true); // true = incluye hijos de grupos
+        activeObjs.forEach((o, idx) => { o.visible = savedVis[idx]; });
+        if (bh.length > 0) {
+          // Resolver el objeto raíz en mapObjects (igual que la Transformadora)
+          let hitRoot = bh[0].object;
+          while (hitRoot.parent && !mapObjects.includes(hitRoot)) hitRoot = hitRoot.parent;
+          if (!mapObjects.includes(hitRoot)) hitRoot = bh[0].object;
+          blockDist = bh[0].distance;
+          targetBlockMesh = hitRoot;
+          blockHitPoint = bh[0].point;
+          blockHitNormal = bh[0].face ? bh[0].face.normal : new THREE.Vector3(0, 1, 0);
+        }
 
         let bestHit = null, bestDist = Infinity;
         Object.entries(otherPlayers).forEach(([id, op]) => {
-          if (op.dead || !op.group.visible) return; if (gameMode === 'rvb' && op.data.team === selectedTeam) return;
-          const hits = raycaster.intersectObject(op.mesh, false);
-          if (hits.length > 0 && hits[0].distance < bestDist && hits[0].distance < blockDist) { bestDist = hits[0].distance; bestHit = { id, type: 'player', dist: hits[0].distance, point: hits[0].point }; }
+          if (op.dead || !op.group.visible) return;
+          if (gameMode === 'rvb' && op.data.team === selectedTeam) return;
+          if (gameMode === 'propHunt' || gameMode === 'custom' && window._activeCustomRoom?.mode === 'propHunt') {
+            const opPH = op.data.propHuntTeam || 'props';
+            if (opPH === propHuntTeam) return;
+          }
+          // Intentar hit en sprite del jugador (cuando no está transformado)
+          if (!op.data.prop) {
+            const hits = raycaster.intersectObject(op.mesh, false);
+            if (hits.length > 0 && hits[0].distance < bestDist && hits[0].distance < blockDist) { bestDist = hits[0].distance; bestHit = { id, type: 'player', dist: hits[0].distance, point: hits[0].point }; }
+          }
+          // En Prop Hunt: también intentar hit en propMesh (jugadores transformados en objetos)
+          if (op.propMesh && op.propMesh.visible) {
+            const propHits = raycaster.intersectObject(op.propMesh, true);
+            if (propHits.length > 0 && propHits[0].distance < bestDist && propHits[0].distance < blockDist) { bestDist = propHits[0].distance; bestHit = { id, type: 'player', dist: propHits[0].distance, point: propHits[0].point }; }
+          }
           if (op.droneMesh) {
             const dHits = raycaster.intersectObject(op.droneMesh, true);
             if (dHits.length > 0 && dHits[0].distance < bestDist && dHits[0].distance < blockDist) { bestDist = dHits[0].distance; bestHit = { id, type: 'drone', dist: dHits[0].distance, point: dHits[0].point }; }
@@ -4761,18 +5802,41 @@
           if (w.name !== 'Bazooka') {
             const dmg = w.damage[0] + Math.floor(Math.random() * (w.damage[1] - w.damage[0] + 1));
             if (bestHit.type === 'drone') {
-              set(ref(db, `fps/hits_drone_${gameMode}/${bestHit.id}`), { dmg, from: myName, t: Date.now() });
+              if (isWebRTCMode && rtcManager) {
+                rtcManager.broadcast({ type: 'hit_drone', targetId: bestHit.id, dmg, from: myName, t: Date.now() });
+              } else {
+                set(ref(db, `fps/hits_drone_${gameMode}/${bestHit.id}`), { dmg, from: myName, t: Date.now() });
+              }
               const p2 = bestHit.point.clone().project(camera); spawnDmgNum(dmg, (p2.x * .5 + .5) * GAME_W, (1 - (p2.y * .5 + .5)) * GAME_H, false);
             } else {
-              set(ref(db, `fps/hits_${gameMode}/${bestHit.id}`), { dmg, from: myName, team: gameMode === 'rvb' ? selectedTeam : null, weapon: w.name, t: Date.now() });
+              if (isWebRTCMode && rtcManager) {
+                rtcManager.broadcast({ type: 'hit', targetId: bestHit.id, dmg, from: myName, team: gameMode === 'rvb' ? selectedTeam : null, weapon: w.name, t: Date.now() });
+              } else {
+                set(ref(db, `fps/hits_${gameMode}/${bestHit.id}`), { dmg, from: myName, team: gameMode === 'rvb' ? selectedTeam : null, weapon: w.name, t: Date.now() });
+              }
               const p2 = bestHit.point.clone().project(camera); spawnDmgNum(dmg, (p2.x * .5 + .5) * GAME_W, (1 - (p2.y * .5 + .5)) * GAME_H, dmg >= 22);
             }
             if (debugMode) document.getElementById('dbHit').textContent = `LAST HIT: ${op.data.name || bestHit.id} -${dmg}hp @ ${camera.position.distanceTo(op.group.position).toFixed(1)}u${(bestHit.type !== 'drone' && dmg >= 22) ? ' 💥CRIT' : ''}`;
           }
           tracerEnd = bestHit.point;
         } else {
+          if (gameMode === 'propHunt' || gameMode === 'custom' && window._activeCustomRoom?.mode === 'propHunt') {
+            if (propHuntTeam === 'hunters' && targetBlockMesh) {
+              applyDamage(5, 'Auto-penalización', null, 'Fallo');
+            }
+          }
           if (debugMode) document.getElementById('dbHit').textContent = 'LAST HIT: MISS ✗';
-          if (targetBlockMesh) { tracerEnd = blockHitPoint; if (w.name !== 'Bazooka') { const c = targetBlockMesh.material.color?.getHex() || 0x888888; const wn = blockHitNormal.clone().transformDirection(targetBlockMesh.matrixWorld); spawnDebris(blockHitPoint, wn, c); } }
+          if (targetBlockMesh) {
+            tracerEnd = blockHitPoint;
+            if (w.name !== 'Bazooka') {
+              // Obtener color del material (puede ser un grupo o mesh simple)
+              let col = 0x888888;
+              if (targetBlockMesh.material && targetBlockMesh.material.color) col = targetBlockMesh.material.color.getHex();
+              else targetBlockMesh.traverse(c => { if (c.isMesh && c.material && c.material.color) { col = c.material.color.getHex(); } });
+              const wn = blockHitNormal.clone ? blockHitNormal.clone().transformDirection(targetBlockMesh.matrixWorld) : blockHitNormal;
+              spawnDebris(blockHitPoint, wn, col);
+            }
+          }
         }
 
         if (w.name === 'Sniper' || w.name === 'Bazooka' || w.name === 'Ametralladora' || w.name === 'Escopeta') {
@@ -5012,8 +6076,24 @@
       function switchWeapon(idx) {
         if (brState === 'in_plane' || brState === 'falling') return; if (idx === currentWeaponIdx || idx < 0 || idx >= WEAPONS.length) return;
         if (idx === 5 && !hasMythicWeapon) return;
+
+        // Prop Hunt limitations
+        if (gameMode === 'propHunt' || gameMode === 'custom' && window._activeCustomRoom?.mode === 'propHunt') {
+          if (propHuntTeam === 'props') {
+            if (idx !== 6) return;
+          } else {
+            if (idx === 6) return;
+          }
+        }
+
         if (inDroneMode) {
           destroyDrone(false);
+        }
+        // Si estoy transformado y cambio a un arma que no sea la Transformadora → quitar transformación
+        if (myPropState && WEAPONS[idx].name !== 'Transformadora') {
+          myPropState = null;
+          if (myLocalPropMesh) { scene.remove(myLocalPropMesh); myLocalPropMesh = null; }
+          publishPos();
         }
         if (switching) return; switching = true;
         isShooting = false; if (shootTimeout) { clearTimeout(shootTimeout); shootTimeout = null; }
@@ -5034,6 +6114,50 @@
         else { weapon.src = w.imgIdle; weapon.style.width = getWeaponIdleWidth(); weapon.style.left = 'auto'; weapon.style.right = '-20px'; weapon.style.transform = 'translateX(0)'; weapon.style.bottom = '-10px'; crosshair.style.opacity = '1'; targetFov = w.fovNormal; scopeOverlay.classList.remove('active'); weapon.style.opacity = '1'; }
       }
       updateWeaponUI();
+
+      function updateWeaponSelectorVisibility() {
+        const isPH = (gameMode === 'propHunt' || gameMode === 'custom' && window._activeCustomRoom?.mode === 'propHunt');
+        if (isPH) {
+          if (propHuntTeam === 'props') {
+            document.querySelectorAll('.ws-slot').forEach((el, i) => {
+              el.style.display = i === 6 ? 'flex' : 'none';
+            });
+            if (currentWeaponIdx !== 6) {
+              currentWeaponIdx = 6;
+              const w = curWeapon();
+              weapon.src = w.imgIdle;
+              document.querySelectorAll('.ws-slot').forEach((el, i) => el.classList.toggle('active', i === 6));
+              updateWeaponUI();
+            }
+          } else {
+            document.querySelectorAll('.ws-slot').forEach((el, i) => {
+              if (i === 6) {
+                el.style.display = 'none';
+              } else if (i === 5) {
+                el.style.display = hasMythicWeapon ? 'flex' : 'none';
+              } else {
+                el.style.display = 'flex';
+              }
+            });
+            if (currentWeaponIdx === 6) {
+              currentWeaponIdx = 0;
+              const w = curWeapon();
+              weapon.src = w.imgIdle;
+              document.querySelectorAll('.ws-slot').forEach((el, i) => el.classList.toggle('active', i === 0));
+              updateWeaponUI();
+            }
+          }
+        } else {
+          document.querySelectorAll('.ws-slot').forEach((el, i) => {
+            if (i === 5) {
+              el.style.display = hasMythicWeapon ? 'flex' : 'none';
+            } else {
+              el.style.display = 'flex';
+            }
+          });
+        }
+      }
+      window.updateWeaponSelectorVisibility = updateWeaponSelectorVisibility;
 
       window.addEventListener('resize', () => {
         if (selectedScreenMode === 'full') { GAME_W = window.innerWidth; GAME_H = window.innerHeight; } else { GAME_W = 800; GAME_H = 560; }
@@ -5070,6 +6194,21 @@
 
       function triggerBrStart() { if (gameMode === 'br' && brState === 'lobby') set(ref(db, 'fps/br_start_trigger'), Date.now()); }
 
+      function triggerPropHuntStart() {
+        if ((gameMode === 'propHunt' || gameMode === 'custom') && phMatchState === 'lobby') {
+          if (currentHostId === myId) {
+            const now = Date.now();
+            set(ref(db, 'fps/prophunt_match'), {
+              state: 'hiding',
+              timer: 30,
+              winner: null,
+              phaseEnd: now + 30 * 1000,
+              startedAt: now
+            });
+          }
+        }
+      }
+
       function lootAirdrop() {
         if (!currentAirdropData || currentAirdropData.state === 'opened') return;
         const dx2d = camera.position.x - currentAirdropData.x, dz2d = camera.position.z - currentAirdropData.z;
@@ -5104,7 +6243,11 @@
           }
           return;
         }
-        if (e.key.toLowerCase() === 'j') { triggerBrStart(); return; }
+        if (e.key.toLowerCase() === 'j') {
+          if (gameMode === 'br') triggerBrStart();
+          else if (gameMode === 'propHunt' || (gameMode === 'custom' && window._activeCustomRoom?.mode === 'propHunt')) triggerPropHuntStart();
+          return;
+        }
         const wKey = { '1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5, '7': 6, '8': 7, '9': 8 }[e.key]; if (wKey !== undefined) { switchWeapon(wKey); return; }
         keys[e.key.toLowerCase()] = true; if (e.key === ' ') e.preventDefault();
       });
@@ -5117,9 +6260,9 @@
       document.getElementById('dbMinimap').addEventListener('click', toggleMinimapDebug);
 
       const lockOverlay = document.getElementById('lockOverlay');
-      gameEl.addEventListener('click', () => { if (!dead && !inLobby && !mapExpanded) gameEl.requestPointerLock(); });
+      gameEl.addEventListener('click', () => { if (!dead && !inLobby && !mapExpanded && !isPropHuntTeamSelectActive) gameEl.requestPointerLock(); });
       document.addEventListener('pointerlockchange', () => {
-        if (inLobby || emoteWheel.classList.contains('active') || (dead && gameMode === 'br') || mapExpanded) { lockOverlay.style.display = 'none'; return; }
+        if (inLobby || emoteWheel.classList.contains('active') || (dead && gameMode === 'br') || mapExpanded || isPropHuntTeamSelectActive) { lockOverlay.style.display = 'none'; return; }
         lockOverlay.style.display = document.pointerLockElement === gameEl ? 'none' : 'flex';
       });
       document.addEventListener('mousemove', e => {
@@ -5142,7 +6285,10 @@
       window.addEventListener('contextmenu', e => e.preventDefault());
 
       function triggerSingleShot(w) {
-        if (dead || brState === 'in_plane' || brState === 'falling' || brState === 'lobby') return;
+        const isLobby = inLobby || brState === 'lobby' || (gameMode === 'propHunt' && phMatchState === 'lobby');
+        if (dead || brState === 'in_plane' || brState === 'falling' || isLobby) return;
+        // Bloquear todo si estamos transformados (modo objeto) excepto la propia transformadora
+        if (myPropState && w.name !== 'Transformadora') return;
         if (w.name === 'Transformadora') {
           if (transformTarget) {
             transformPlayerInto(transformTarget);
@@ -5165,7 +6311,10 @@
 
       let lastShot = 0;
       function attemptAutoFire() {
-        if (!isShooting || dead || brState === 'in_plane' || brState === 'falling' || brState === 'lobby' || switching) return;
+        const isLobby = inLobby || brState === 'lobby' || (gameMode === 'propHunt' && phMatchState === 'lobby');
+        if (!isShooting || dead || brState === 'in_plane' || brState === 'falling' || isLobby || switching) return;
+        // Bloquear disparo automático si estamos transformados
+        if (myPropState) return;
         const w = curWeapon(), now = Date.now();
         if (w.name === 'Granada') {
           isHoldingGrenade = true;
@@ -5184,6 +6333,7 @@
         if (inLobby) return; if (emoteIsPlaying) { closeEmote(); return; }
         if (dead || brState === 'in_plane' || brState === 'falling' || brState === 'lobby') return;
         if (e.button === 2) {
+          if (inDroneMode) { droneAiming = true; return; }
           if (curWeapon().name === 'Transformadora' && myPropState) {
             myPropState = null;
             publishPos();
@@ -5198,7 +6348,10 @@
       });
       window.addEventListener('mouseup', e => {
         if (inLobby) return;
-        if (e.button === 2) { aiming = false; updateWeaponUI(); }
+        if (e.button === 2) {
+          if (inDroneMode) { droneAiming = false; const _tb = document.getElementById('droneTargetBox'); if (_tb) _tb.classList.remove('visible', 'locked'); droneTargetedId = null; return; }
+          aiming = false; updateWeaponUI();
+        }
         if (e.button === 0) {
           isShooting = false;
           if (shootTimeout) { clearTimeout(shootTimeout); shootTimeout = null; }
@@ -5227,7 +6380,12 @@
       }
 
       function movePlayer() {
-        if (inLobby || dead) return;
+        if (inLobby || dead || isPropHuntTeamSelectActive) return;
+        if (gameMode === 'propHunt' || gameMode === 'custom' && window._activeCustomRoom?.mode === 'propHunt') {
+          if (phMatchState === 'hiding' && propHuntTeam === 'hunters') {
+            return;
+          }
+        }
         if (emoteIsPlaying) { if (keys['w'] || keys['a'] || keys['s'] || keys['d'] || keys[' ']) closeEmote(); return; }
         if (inDroneMode) {
           moveDrone();
@@ -5265,6 +6423,183 @@
 
       let lastPub = 0;
       function maybePublish() { const now = Date.now(); if (now - lastPub < 80) return; lastPub = now; publishPos(); }
+
+      /* ── WebRTC CONNECT + DATA HANDLERS ── */
+      async function connectWebRTC(roomId) {
+        rtcManager = new WebRTCRoomManager(roomId, myId, myName);
+        await rtcManager.init(
+          (peerId, data) => handleWebRTCData(peerId, data),
+          (peerId) => { removeOtherPlayer(peerId); }
+        );
+      }
+
+      function buildMyPosData() {
+        const pos = dead ? (deathPos || camera.position) : (inDroneMode ? playerPhysicalPos : (emoteIsPlaying ? playerPhysicalPos : camera.position));
+        return {
+          type: 'pos', id: myId, name: myName, skin: selectedSkinUrl,
+          x: +pos.x.toFixed(3), y: +pos.y.toFixed(3), z: +pos.z.toFixed(3),
+          yaw: +yaw.toFixed(4), hp: myHp, dead, t: Date.now(),
+          inPlane: brState === 'in_plane',
+          team: gameMode === 'rvb' ? selectedTeam : null,
+          lastShot: myLastShot, activeEmote: myActiveEmote || null, prop: myPropState || null,
+          drone: inDroneMode && droneMesh ? {
+            x: +droneMesh.position.x.toFixed(3), y: +droneMesh.position.y.toFixed(3), z: +droneMesh.position.z.toFixed(3),
+            yaw: +droneYaw.toFixed(4), pitch: +dronePitch.toFixed(4), hp: droneHp
+          } : null,
+          propHuntTeam: (gameMode === 'custom' || gameMode === 'propHunt') ? propHuntTeam : null
+        };
+      }
+
+      function handleWebRTCData(peerId, data) {
+        if (!data || !data.type) return;
+        switch (data.type) {
+          case 'pos':
+            if (data.id === myId) return;
+            updatePlayerFromWebRTC(data.id || peerId, data);
+            break;
+          case 'hit':
+            if (data.targetId === myId && !dead)
+              applyDamage(data.dmg || 0, data.from || 'Unknown', data.team || null, data.weapon || '');
+            break;
+          case 'hit_drone':
+            if (data.targetId === myId && inDroneMode && droneHp > 0)
+              applyDroneDamage(data.dmg || 0, data.from || 'Unknown');
+            break;
+          case 'kill': {
+            const isMeK = data.killer === myName, isMeV = data.victim === myName;
+            addKillFeedEntry(data.killer, data.victim, data.weapon || '', isMeK, isMeV);
+            if (isMeK) {
+              const now = Date.now();
+              myMultikillCount = now - myLastKillTime <= MULTIKILL_WINDOW ? myMultikillCount + 1 : 1;
+              myLastKillTime = now;
+              const ks = new Audio(SND_KILL); ks.volume = .6; ks.play().catch(() => { });
+              const streakMap = { 2: SND_DOUBLEKILL, 3: SND_TRIPLEKILL };
+              const src = myMultikillCount >= 4 ? SND_QUADKILL : streakMap[myMultikillCount];
+              if (src) setTimeout(() => { const s = new Audio(src); s.volume = .6; s.play().catch(() => { }); }, 800);
+            }
+            break;
+          }
+          case 'hello':
+            if (rtcManager) setTimeout(() => rtcManager._sendTo(peerId, buildMyPosData()), 150);
+            break;
+        }
+      }
+
+      function updatePlayerFromWebRTC(id, data) {
+        if (!otherPlayers[id]) spawnOtherPlayer(id, data);
+        const op = otherPlayers[id]; if (!op) return;
+        // Shots
+        if (data.lastShot && data.lastShot.t > (op.lastShotTime || 0)) {
+          op.lastShotTime = data.lastShot.t;
+          const start = new THREE.Vector3(data.lastShot.start.x, data.lastShot.start.y, data.lastShot.start.z);
+          const end = new THREE.Vector3(data.lastShot.end.x, data.lastShot.end.y, data.lastShot.end.z);
+          if (data.lastShot.weapon !== 'Bazooka') {
+            const wObj = WEAPONS.find(w => w.name === data.lastShot.weapon);
+            const sndUrl = (wObj && wObj.sndShoot) || SND_SHOOT;
+            const snd = getPooledAudio(sndUrl);
+            const dist = camera.position.distanceTo(start);
+            snd.volume = Math.max(0, 0.4 - dist * 0.005);
+            if (snd.volume > 0.05) snd.play().catch(() => { });
+          }
+          if (data.lastShot.weapon === 'Granada') spawnRemoteGrenade(start, end);
+          else if (data.lastShot.weapon === 'Bazooka') spawnRocketProjectile(start, end, null, 0, true);
+          else spawnTracer(start, end, data.lastShot.weapon === 'Ametralladora', data.lastShot.weapon === 'Escopeta');
+        }
+        // Skin update
+        if (op.data.skin !== data.skin) {
+          loadSkinTexture(data.skin || IMG_PLAYER, tex => {
+            if (otherPlayers[id]?.data.skin === data.skin && !otherPlayers[id]?.currentEmoteUrl) {
+              op.mesh.material.map = tex; op.mesh.material.needsUpdate = true;
+              if (op.shadowMesh) { op.shadowMesh.material.map = tex; op.shadowMesh.material.needsUpdate = true; }
+            }
+          });
+        }
+        op.data = { ...op.data, ...data }; op.hp = data.hp ?? op.hp; op.dead = !!data.dead;
+        op.nameMesh.visible = !op.dead;
+        if (op.shadowMesh) op.shadowMesh.visible = !op.dead && shadowsOn && op.group.visible;
+        let groupY = (data.y || 1.5) - 1.5;
+        if (op.dead) groupY += 0.01; else if (!data.prop) groupY += QUAD_H / 2;
+        op.group.position.set(data.x || 0, groupY, data.z || 0);
+        op.group.visible = !data.inPlane;
+        // Prop sync
+        if (data.prop) {
+          if (!op.propMesh || op.currentPropType !== data.prop.type || op.currentPropColor !== data.prop.color) {
+            if (op.propMesh) op.group.remove(op.propMesh);
+            op.propMesh = createPropMesh(data.prop);
+            op.group.add(op.propMesh);
+            op.currentPropType = data.prop.type; op.currentPropColor = data.prop.color;
+            op.propAnimStart = data.prop.animStart || Date.now();
+          }
+          op.mesh.visible = false; if (op.propMesh) op.propMesh.visible = true;
+        } else {
+          if (op.propMesh) { op.group.remove(op.propMesh); op.propMesh = null; op.currentPropType = null; op.currentPropColor = null; }
+          op.mesh.visible = !op.dead;
+        }
+        // Drone sync
+        if (data.drone) {
+          if (!op.droneMesh) { op.droneMesh = createDroneMesh3D(); scene.add(op.droneMesh); }
+          op.droneMesh.position.set(data.drone.x, data.drone.y, data.drone.z);
+          op.droneMesh.rotation.y = data.drone.yaw || 0;
+          const body = op.droneMesh.getObjectByName('droneBody');
+          if (body) body.rotation.x = data.drone.pitch || 0;
+        } else { if (op.droneMesh) { scene.remove(op.droneMesh); op.droneMesh = null; } }
+        // Actualizar lista de jugadores HUD
+        const entries = document.getElementById('plEntries');
+        if (entries && isWebRTCMode) {
+          entries.innerHTML = '';
+          [{ id: myId, name: myName, hp: myHp, isMe: true },
+          ...Object.entries(otherPlayers).map(([pid, p]) => ({ id: pid, name: p.data.name || pid, hp: p.hp, isMe: false }))]
+            .forEach(p => {
+              const div = document.createElement('div'); div.className = 'pl-entry';
+              const dot = document.createElement('div'); dot.className = 'pl-dot' + (p.isMe ? ' me' : '');
+              const ns = document.createElement('span'); ns.textContent = p.name;
+              const hs = document.createElement('span'); hs.className = 'pl-hp'; hs.textContent = (p.hp ?? MAX_HP) + ' hp';
+              div.appendChild(dot); div.appendChild(ns); div.appendChild(hs); entries.appendChild(div);
+            });
+        }
+      }
+
+      /* ── DRONE TARGET BOX (RMB en modo dron) ── */
+      let droneTargetedId = null;
+      function updateDroneTarget() {
+        const tb = document.getElementById('droneTargetBox');
+        if (!tb) return;
+        if (!inDroneMode || !droneAiming || !droneMesh) {
+          tb.classList.remove('visible', 'locked'); droneTargetedId = null; return;
+        }
+        let bestId = null, bestDist = Infinity, bestScreenPos = null, bestGroupPos = null;
+        Object.entries(otherPlayers).forEach(([id, op]) => {
+          if (op.dead || !op.group.visible) return;
+          if (gameMode === 'rvb' && op.data.team === selectedTeam) return;
+          const dist = droneMesh.position.distanceTo(op.group.position);
+          if (dist > 35) return;
+          const topPos = op.group.position.clone(); topPos.y += QUAD_H / 2;
+          const projected = topPos.clone().project(camera);
+          if (projected.z >= 1) return;
+          if (Math.abs(projected.x) > 0.75 || Math.abs(projected.y) > 0.75) return;
+          if (dist < bestDist) { bestDist = dist; bestId = id; bestGroupPos = op.group.position.clone(); bestScreenPos = { x: projected.x, y: projected.y }; }
+        });
+        droneTargetedId = bestId;
+        if (bestId && bestGroupPos) {
+          const hw = QUAD_W * 0.75, hh = QUAD_H * 0.75;
+          const corners = [
+            new THREE.Vector3(bestGroupPos.x - hw, bestGroupPos.y + hh, bestGroupPos.z).project(camera),
+            new THREE.Vector3(bestGroupPos.x + hw, bestGroupPos.y + hh, bestGroupPos.z).project(camera),
+            new THREE.Vector3(bestGroupPos.x - hw, bestGroupPos.y - hh + QUAD_H / 2, bestGroupPos.z).project(camera),
+            new THREE.Vector3(bestGroupPos.x + hw, bestGroupPos.y - hh + QUAD_H / 2, bestGroupPos.z).project(camera)
+          ].map(c => ({ x: (c.x * .5 + .5) * GAME_W, y: (1 - (c.y * .5 + .5)) * GAME_H }));
+          const minX = Math.min(...corners.map(c => c.x)), maxX = Math.max(...corners.map(c => c.x));
+          const minY = Math.min(...corners.map(c => c.y)), maxY = Math.max(...corners.map(c => c.y));
+          const pad = 10;
+          tb.style.left = (minX - pad) + 'px'; tb.style.top = (minY - pad) + 'px';
+          tb.style.width = (maxX - minX + pad * 2) + 'px'; tb.style.height = (maxY - minY + pad * 2) + 'px';
+          tb.classList.add('visible');
+          const isLocked = bestScreenPos && Math.abs(bestScreenPos.x) < 0.12 && Math.abs(bestScreenPos.y) < 0.12;
+          tb.classList.toggle('locked', isLocked);
+          const label = document.getElementById('droneTargetLabel');
+          if (label) { const op = otherPlayers[bestId]; label.textContent = (isLocked ? '🔴 LOCKED: ' : '▶ OBJETIVO: ') + (op?.data?.name || bestId); }
+        } else { tb.classList.remove('visible', 'locked'); }
+      }
 
       /* ── ANIMATE ── */
       function animate() {
@@ -5314,17 +6649,32 @@
 
         // ── BLUE HIGHLIGHT FOR TRANSFORMADORA ──
         let selectTarget = null;
-        if (!inLobby && !dead && curWeapon().name === 'Transformadora') {
+        if (!inLobby && !dead && curWeapon().name === 'Transformadora' && !myPropState) {
           raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-          // Temporarily set active objects visible for raycasting
+          // Temporarily set active objects visible for raycasting (recursive=true para Groups/sillas/modelos)
           const activeObjs = mapObjects.filter(o => o.userData.active !== false);
           const savedVis = activeObjs.map(o => o.visible);
           activeObjs.forEach(o => o.visible = true);
-          const hits = raycaster.intersectObjects(activeObjs, false);
+          const hits = raycaster.intersectObjects(activeObjs, true); // true = incluye hijos de grupos
           activeObjs.forEach((o, idx) => o.visible = savedVis[idx]);
 
           if (hits.length > 0 && hits[0].distance < 30) {
-            selectTarget = hits[0].object;
+            // Si el objeto golpeado es hijo de un grupo, subir al padre que está en mapObjects
+            let hitObj = hits[0].object;
+            // Buscar el ancestro raíz que esté en mapObjects
+            let rootObj = hitObj;
+            while (rootObj.parent && !mapObjects.includes(rootObj)) {
+              rootObj = rootObj.parent;
+            }
+            let candidate = null;
+            if (mapObjects.includes(rootObj)) {
+              candidate = rootObj;
+            } else if (mapObjects.includes(hitObj)) {
+              candidate = hitObj;
+            }
+            if (candidate && candidate.userData.blockData?.transformable !== false) {
+              selectTarget = candidate;
+            }
           }
         }
         transformTarget = selectTarget;
@@ -5376,6 +6726,8 @@
             myLocalPropMesh = null;
           }
         }
+
+        updateDroneTarget();
 
         // ── DRONE PROPELLER ANIMATION (LOCAL) ──
         if (inDroneMode && droneMesh) {
@@ -5525,7 +6877,7 @@
             const stepLen = step.length();
             if (stepLen > 0 && mapObjects.length > 0) {
               const midRay = new THREE.Raycaster(prevPos, step.clone().normalize(), 0, stepLen + 0.3);
-              const activeObjs = mapObjects.filter(o => o.userData.active !== false);
+              const activeObjs = mapObjects.filter(o => o.userData.active !== false && (o.userData.solidCollision !== false || o.userData.destructible === true));
               const savedVis = activeObjs.map(o => o.visible);
               activeObjs.forEach(o => o.visible = true);
               const hits = midRay.intersectObjects(activeObjs, true);
@@ -5566,17 +6918,17 @@
             -Math.sin(pitch),
             Math.cos(yaw) * Math.cos(pitch)
           ).normalize();
-          
+
           const rayStart = new THREE.Vector3(savedCamPos.x, savedCamPos.y, savedCamPos.z);
           const cameraRay = new THREE.Raycaster(rayStart, backVec, 0, dist);
           const activeObjs = mapObjects.filter(o => o.userData.active !== false && o.userData.solidCollision !== false);
           const hits = cameraRay.intersectObjects(activeObjs, false);
-          
+
           let targetDist = dist;
           if (hits.length > 0) {
             targetDist = Math.max(0.8, hits[0].distance - 0.3);
           }
-          
+
           camera.position.copy(rayStart).addScaledVector(backVec, targetDist);
         }
 
@@ -5615,7 +6967,10 @@
         updateDebugInfo(); updateMinimap();
       }
       animate();
-      window.addEventListener('beforeunload', () => { if (myRef) remove(myRef); });
+      window.addEventListener('beforeunload', () => {
+        if (isWebRTCMode && rtcManager) { rtcManager.destroy(); return; }
+        if (myRef) remove(myRef);
+      });
       listenToMap('lobby');
     }
     initGame();
@@ -5658,8 +7013,8 @@
           return;
         }
         rooms.forEach(([id, room]) => {
-          const modeIcon = room.mode === 'br' ? '🪂' : room.mode === 'rvb' ? '🔴' : '⚔️';
-          const modeLabel = room.mode === 'br' ? 'Battle Royale' : room.mode === 'rvb' ? 'Red vs Blue' : 'Normal';
+          const modeIcon = room.mode === 'br' ? '🪂' : room.mode === 'rvb' ? '🔴' : room.mode === 'propHunt' ? '🎭' : '⚔️';
+          const modeLabel = room.mode === 'br' ? 'Battle Royale' : room.mode === 'rvb' ? 'Red vs Blue' : room.mode === 'propHunt' ? '🎭 Prop Hunt' : 'Normal';
           const card = document.createElement('div');
           card.className = 'room-card';
           card.innerHTML = `
@@ -5702,7 +7057,7 @@
         }
         const maps = Object.entries(val).sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0));
         maps.forEach(([id, m]) => {
-          const modeIcon = m.mode === 'br' ? '🪂' : m.mode === 'rvb' ? '🔴' : '⚔️';
+          const modeIcon = m.mode === 'br' ? '🪂' : m.mode === 'rvb' ? '🔴' : m.mode === 'propHunt' ? '🎭' : '⚔️';
           const blockCount = (m.blocks || []).length + (m.blocksBR || []).length + (m.blocksLobby || []).length;
           const card = document.createElement('div');
           card.className = 'map-card';
@@ -5741,22 +7096,31 @@
       get(ref(db, 'fps/rooms/' + roomId + '/mapData')).then(snap => {
         const md = snap.val();
         window._activeCustomRoom = md
-          ? { mapName: room.mapName, mode: modeKey, ...md }
-          : { mapName: room.mapName, mode: modeKey, blocks: room.blocks || [], floor: room.floor || {}, groupMeta: room.groupMeta || {} };
+          ? { mapName: room.mapName, mode: modeKey, roomId, ...md }
+          : { mapName: room.mapName, mode: modeKey, roomId, blocks: room.blocks || [], floor: room.floor || {}, groupMeta: room.groupMeta || {} };
         updateMapBadge();
       }).catch(() => {
         window._activeCustomRoom = { mapName: room.mapName, mode: modeKey, blocks: [], floor: {}, groupMeta: {} };
         updateMapBadge();
       });
-      // Switch mode button in UI
-      const modeBtnId = modeKey === 'br' ? 'modeBR' : modeKey === 'rvb' ? 'modeRvB' : 'modeNormal';
-      document.getElementById(modeBtnId)?.click();
-      // After the mode click cleared _activeCustomRoom, restore it
+      // Switch mode button in UI — but keep label as the room name
+      const modeIcon = modeKey === 'br' ? '🪂' : modeKey === 'rvb' ? '🔴' : '🎮';
+      // Update the mode bar label with the chosen room name instead of the generic mode name
+      document.getElementById('currentModeIcon').textContent = modeIcon;
+      document.getElementById('currentModeText').textContent = room.mapName;
+      // Mark modeCustom as active in the dropdown list
+      ['modeNormal', 'modeBR', 'modeRvB', 'modeCustom'].forEach(id => document.getElementById(id).classList.remove('active'));
+      document.getElementById('modeCustom').classList.add('active');
+      selectedMode = 'custom';
+      // After the modal closes, restore active custom room
       setTimeout(() => {
         if (!window._activeCustomRoom) {
-          window._activeCustomRoom = { mapName: room.mapName, mode: modeKey, blocks: room.blocks || [], floor: room.floor || {}, groupMeta: room.groupMeta || {} };
+          window._activeCustomRoom = { mapName: room.mapName, mode: modeKey, roomId, blocks: room.blocks || [], floor: room.floor || {}, groupMeta: room.groupMeta || {} };
           updateMapBadge();
         }
+        // Re-apply label in case something overwrote it
+        document.getElementById('currentModeIcon').textContent = modeIcon;
+        document.getElementById('currentModeText').textContent = room.mapName;
       }, 50);
       showToast(
         `🎮 Uniéndote a <span style="color:#ffe600"><b>${room.mapName}</b></span>…<br><span style="color:#556;font-size:.8em">Modo: ${modeKey} · Haz clic en JUGAR</span>`,
@@ -5765,9 +7129,11 @@
     }
 
     /* ─── Create room: push mapData to room, NOT to fps/map_normal ─── */
+    // ─── Selector de modo al crear sala ───
     confirmCreateBtn.addEventListener('click', async () => {
       if (!selectedMapKey || !selectedMapData) return;
       const authorName = document.getElementById('nameInput').value.trim() || 'Anónimo';
+      // Modo determinado automáticamente por el mapa
       const mapMode = selectedMapData.mode || 'normal';
 
       confirmCreateBtn.textContent = '⏳ CREANDO…';
@@ -5797,6 +7163,7 @@
         window._activeCustomRoom = {
           mapName: selectedMapData.name || 'Sin nombre',
           mode: mapMode,
+          roomId: roomRef.key,
           floor: selectedMapData.floor || {},
           blocks: selectedMapData.blocks || [],
           blocksBR: selectedMapData.blocksBR || [],
@@ -5804,14 +7171,21 @@
           groupMeta: selectedMapData.groupMeta || {}
         };
 
-        // Switch mode button BEFORE updating badge (mode click clears _activeCustomRoom)
-        const modeBtnId = mapMode === 'br' ? 'modeBR' : mapMode === 'rvb' ? 'modeRvB' : 'modeNormal';
-        document.getElementById(modeBtnId)?.click();
-        // Restore after mode-click cleared it
+        // Update the mode bar label with the map name
+        const createModeIcon = mapMode === 'propHunt' ? '🎭' : mapMode === 'br' ? '🪂' : mapMode === 'rvb' ? '🔴' : '🎮';
+        document.getElementById('currentModeIcon').textContent = createModeIcon;
+        document.getElementById('currentModeText').textContent = selectedMapData.name || 'Sin nombre';
+        ['modeNormal', 'modeBR', 'modeRvB', 'modeCustom'].forEach(id => document.getElementById(id).classList.remove('active'));
+        document.getElementById('modeCustom').classList.add('active');
+        selectedMode = 'custom';
+        // Mostrar selector de equipo Prop Hunt si aplica
+        updateMapBadge();
+        // Restore after any potential override
         setTimeout(() => {
           window._activeCustomRoom = {
             mapName: selectedMapData.name || 'Sin nombre',
             mode: mapMode,
+            roomId: roomRef.key,
             floor: selectedMapData.floor || {},
             blocks: selectedMapData.blocks || [],
             blocksBR: selectedMapData.blocksBR || [],
@@ -5819,10 +7193,13 @@
             groupMeta: selectedMapData.groupMeta || {}
           };
           updateMapBadge();
+          document.getElementById('currentModeIcon').textContent = createModeIcon;
+          document.getElementById('currentModeText').textContent = selectedMapData.name || 'Sin nombre';
         }, 50);
 
+        const modeLabel = mapMode === 'propHunt' ? '🎭 Prop Hunt' : mapMode;
         showToast(
-          `🎮 <b>Sala creada</b> — <span style="color:#ffe600">${selectedMapData.name}</span><br><span style="color:#556;font-size:.8em">Haz clic en JUGAR para entrar ✅</span>`,
+          `🎮 <b>Sala creada</b> — <span style="color:#ffe600">${selectedMapData.name}</span><br><span style="color:#556;font-size:.8em">Modo: ${modeLabel} · Haz clic en JUGAR ✅</span>`,
           '#ff4444', 'rgba(255,68,68,.3)'
         );
       } catch (err) {

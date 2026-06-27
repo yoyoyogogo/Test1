@@ -1002,6 +1002,7 @@
         <button class="toggle-btn" id="mapModeBR" onclick="setMapMode('br')">🪂 BR</button>
         <button class="toggle-btn" id="mapModeLobby" onclick="setMapMode('lobby')">🏰 Lobby</button>
         <button class="toggle-btn" id="mapModeRvB" onclick="setMapMode('rvb')">🔴🔵 RvB</button>
+        <button class="toggle-btn" id="mapModePropHunt" onclick="setMapMode('propHunt')" style="grid-column: span 2;">🎭 Prop Hunt</button>
       </div>
       <div class="row" style="margin-top: 10px;">
         <label>Bots</label>
@@ -1069,9 +1070,32 @@
         <label for="blockDestructible" style="cursor: pointer; flex: 1; min-width: auto;">Destruible</label>
         <input type="checkbox" id="blockDestructible" style="width: 16px; height: 16px; cursor: pointer; flex: 0;">
       </div>
+      <div class="row" id="transformableRow" style="display: flex; align-items: center; gap: 8px;">
+        <label for="blockTransformable" style="cursor: pointer; flex: 1; min-width: auto;">Transformable</label>
+        <input type="checkbox" id="blockTransformable" checked style="width: 16px; height: 16px; cursor: pointer; flex: 0;">
+      </div>
       <div class="row">
         <label>Color</label>
         <input type="color" id="blockColor" value="#cc4444">
+      </div>
+      <div class="row">
+        <label>Girar Y</label>
+        <input type="range" id="blockRotation" min="0" max="360" value="0" step="15" style="flex:1;" oninput="updateBlockRotationText(this.value)">
+        <span id="blockRotationVal" style="font-size:10px;color:#888;min-width:32px;text-align:right;">0°</span>
+      </div>
+      <div class="row">
+        <label>Escala</label>
+        <select id="blockScale" onchange="updateGhost()">
+          <option value="1.0">1.0x (Normal)</option>
+          <option value="1.2">1.2x</option>
+          <option value="1.3">1.3x</option>
+          <option value="1.5">1.5x</option>
+          <option value="1.8">1.8x</option>
+          <option value="2.0">2.0x</option>
+          <option value="2.5">2.5x</option>
+          <option value="3.0">3.0x</option>
+          <option value="0.5">0.5x</option>
+        </select>
       </div>
       <div class="color-presets" id="colorPresets"></div>
       <div class="toggle-row">
@@ -1128,6 +1152,10 @@
           <label for="selBlockDestructible" style="cursor: pointer; flex: 1; min-width: auto; font-size:10px;">Destruible</label>
           <input type="checkbox" id="selBlockDestructible" style="width: 16px; height: 16px; cursor: pointer; flex: 0;" onchange="updateSelectedProperties({destructible: this.checked})">
         </div>
+        <div class="row" id="selTransformableRow" style="display: flex; align-items: center; gap: 8px;">
+          <label for="selBlockTransformable" style="cursor: pointer; flex: 1; min-width: auto; font-size:10px;">Transformable</label>
+          <input type="checkbox" id="selBlockTransformable" style="width: 16px; height: 16px; cursor: pointer; flex: 0;" onchange="updateSelectedProperties({transformable: this.checked})">
+        </div>
 
         <div class="row">
           <label>Color</label>
@@ -1149,6 +1177,35 @@
             <div>
               <div style="font-size: 8px; color: #667; text-align: center; margin-bottom: 2px;">LARGO</div>
               <input type="number" id="selBlockD" value="2" min="1" max="50" style="width: 100%; text-align: center;" onchange="updateSelectedProperties({d: parseInt(this.value)})">
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 10px;">
+          <label style="color: #888; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; display: block; margin-bottom: 5px;">Girar y Escala</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+            <div>
+              <div style="font-size: 8px; color: #667; text-align: center; margin-bottom: 2px;">ROTACIÓN (Y)</div>
+              <select id="selBlockRotation" style="width: 100%; text-align: center; background:#111; border:1px solid #333; color:#fff; border-radius:4px; padding:3px; font-family:monospace; font-size:10px;" onchange="updateSelectedProperties({rotation: parseFloat(this.value)})">
+                <option value="0">0°</option>
+                <option value="1.5707963267948966">90°</option>
+                <option value="3.141592653589793">180°</option>
+                <option value="4.71238898038469">270°</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size: 8px; color: #667; text-align: center; margin-bottom: 2px;">ESCALA</div>
+              <select id="selBlockScale" style="width: 100%; text-align: center; background:#111; border:1px solid #333; color:#fff; border-radius:4px; padding:3px; font-family:monospace; font-size:10px;" onchange="updateSelectedProperties({scale: parseFloat(this.value)})">
+                <option value="1.0">1.0x</option>
+                <option value="1.2">1.2x</option>
+                <option value="1.3">1.3x</option>
+                <option value="1.5">1.5x</option>
+                <option value="1.8">1.8x</option>
+                <option value="2.0">2.0x</option>
+                <option value="2.5">2.5x</option>
+                <option value="3.0">3.0x</option>
+                <option value="0.5">0.5x</option>
+              </select>
             </div>
           </div>
         </div>
@@ -1500,10 +1557,29 @@
       }
       currentCustomCode = code;
       currentCustomModelName = name;
+
+      // Generate preview thumbnail
+      let thumbnail = null;
+      try {
+        thumbnail = generateModelPreview(code);
+      } catch (err) {
+        console.error('Error generating thumbnail:', err);
+      }
+
       // Save to Firebase savedModels list
       const existing = savedModels.findIndex(m => m.name === name);
-      if (existing >= 0) savedModels[existing] = { name, code };
-      else savedModels.push({ name, code });
+      const modelObj = { name, code };
+      if (thumbnail) modelObj.thumbnail = thumbnail;
+
+      if (existing >= 0) {
+        if (!thumbnail && savedModels[existing].thumbnail) {
+          modelObj.thumbnail = savedModels[existing].thumbnail;
+        }
+        savedModels[existing] = modelObj;
+      } else {
+        savedModels.push(modelObj);
+      }
+
       saveCustomModelsToFirebase();
       renderSavedModelsList();
       closeCustomModelModal();
@@ -1516,14 +1592,107 @@
     };
 
     function createCustomModelMesh(code) {
+      if (!code) return null;
+      if (customModelCache.has(code)) {
+        return customModelCache.get(code).clone();
+      }
       try {
         const fn = new Function('THREE', code);
         const result = fn(THREE);
-        if (result && result.isObject3D) return result;
+        if (result && result.isObject3D) {
+          customModelCache.set(code, result);
+          return result.clone();
+        }
         return null;
       } catch(e) {
         console.error('Error creando modelo custom:', e);
         return null;
+      }
+    }
+
+    function generateModelPreview(code) {
+      const width = 64;
+      const height = 64;
+      let tempRenderer;
+      try {
+        tempRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+      } catch (err) {
+        console.error('WebGLRenderer initialization failed inside thumbnail generator:', err);
+        return null;
+      }
+      tempRenderer.setSize(width, height);
+
+      const tempScene = new THREE.Scene();
+      tempScene.background = null;
+
+      const tempCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+
+      const light1 = new THREE.DirectionalLight(0xffffff, 1.8);
+      light1.position.set(3, 4, 5);
+      tempScene.add(light1);
+      const light2 = new THREE.AmbientLight(0xffffff, 0.9);
+      tempScene.add(light2);
+
+      const mesh = createCustomModelMesh(code);
+      if (!mesh) {
+        tempRenderer.dispose();
+        return null;
+      }
+      tempScene.add(mesh);
+
+      const box = new THREE.Box3().setFromObject(mesh);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      const center = new THREE.Vector3();
+      box.getCenter(center);
+
+      mesh.position.sub(center);
+
+      const maxDim = Math.max(size.x, size.y, size.z) || 2;
+      const fov = tempCamera.fov * (Math.PI / 180);
+      let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+      cameraZ *= 1.6; // margin
+
+      tempCamera.position.set(cameraZ * 0.9, cameraZ * 0.8, cameraZ * 1.2);
+      tempCamera.lookAt(0, 0, 0);
+
+      tempRenderer.render(tempScene, tempCamera);
+      const dataUrl = tempRenderer.domElement.toDataURL('image/png');
+
+      tempScene.remove(mesh);
+      mesh.traverse(child => {
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) {
+          if (Array.isArray(child.material)) {
+            child.material.forEach(m => m.dispose());
+          } else {
+            child.material.dispose();
+          }
+        }
+      });
+      tempRenderer.dispose();
+
+      return dataUrl;
+    }
+
+    function ensureThumbnails() {
+      let updated = false;
+      savedModels.forEach(m => {
+        if (!m.thumbnail) {
+          try {
+            const thumb = generateModelPreview(m.code);
+            if (thumb) {
+              m.thumbnail = thumb;
+              updated = true;
+            }
+          } catch (e) {
+            console.error('Error generating thumbnail:', e);
+          }
+        }
+      });
+      if (updated) {
+        renderSavedModelsList();
+        saveCustomModelsToFirebase();
       }
     }
 
@@ -1542,8 +1711,13 @@
         const card = document.createElement('div');
         card.className = 'obj-card' + (currentCustomCode === m.code ? ' active' : '');
         card.style.cssText = 'border-color: rgba(0,200,255,0.2); gap:8px;';
+        
+        const iconHtml = m.thumbnail ? 
+          `<div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(0,200,255,.06);border-radius:5px;overflow:hidden;"><img src="${m.thumbnail}" style="width:100%;height:100%;object-fit:contain;" /></div>` :
+          `<div style="font-size:16px;background:rgba(0,200,255,.06);border-radius:5px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">🧩</div>`;
+
         card.innerHTML = `
-          <div style="font-size:16px;background:rgba(0,200,255,.06);border-radius:5px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">🧩</div>
+          ${iconHtml}
           <div style="flex:1;min-width:0;">
             <div style="font-weight:bold;color:#00ccff;font-size:10px;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name}</div>
             <div style="font-size:8px;color:#2a5a6a;margin-top:2px;font-family:sans-serif;">Modelo IA guardado</div>
@@ -1601,9 +1775,13 @@
     scene.add(sun);
     scene.add(new THREE.AmbientLight(0xffffff, 0.8));
 
+    // Raycaster targets cache for O(1) performance
+    const raycastTargets = [];
+
     // Floor
     let floorMesh;
     function makeFloor() {
+      const oldFloor = floorMesh;
       if (floorMesh) scene.remove(floorMesh);
       floorMesh = new THREE.Mesh(
         new THREE.PlaneGeometry(floorW, floorD),
@@ -1612,6 +1790,14 @@
       floorMesh.rotation.x = -Math.PI / 2;
       floorMesh.position.y = -2;
       scene.add(floorMesh);
+
+      // Update in raycastTargets cache
+      const idx = raycastTargets.indexOf(oldFloor);
+      if (idx >= 0) {
+        raycastTargets[idx] = floorMesh;
+      } else if (!raycastTargets.includes(floorMesh)) {
+        raycastTargets.unshift(floorMesh);
+      }
 
       // Grid helper on top of floor
       if (window._gridHelper) scene.remove(window._gridHelper);
@@ -1622,6 +1808,14 @@
       scene.add(window._gridHelper);
     }
     makeFloor();
+
+    // Collider material for 3D groups (invisible but raycastable)
+    const colliderMat = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.0,
+      depthWrite: false
+    });
 
     // ═══════ createChairMesh ═══════
     function createChairMesh(color) {
@@ -1647,6 +1841,13 @@
         group.add(leg);
       });
 
+      // Bounding box collider (chair: 1x1.5x1, center at y = 0.75)
+      const colliderGeo = new THREE.BoxGeometry(1, 1.5, 1);
+      const collider = new THREE.Mesh(colliderGeo, colliderMat);
+      collider.position.set(0, 0.75, 0);
+      collider.name = "collider";
+      group.add(collider);
+
       return group;
     }
 
@@ -1665,6 +1866,7 @@
       const colorPresets = document.getElementById('colorPresets');
       const collisionRow = document.getElementById('collisionRow');
       const destructibleRow = document.getElementById('destructibleRow');
+      const transformableRow = document.getElementById('transformableRow');
       
       if (type === 'spawn_red') {
         colorInput.value = '#ff4444';
@@ -1677,6 +1879,11 @@
         document.getElementById('blockDestructible').checked = false;
         destructibleRow.style.opacity = '0.5';
         destructibleRow.style.pointerEvents = 'none';
+        document.getElementById('blockTransformable').checked = false;
+        if (transformableRow) {
+          transformableRow.style.opacity = '0.5';
+          transformableRow.style.pointerEvents = 'none';
+        }
       } else if (type === 'spawn_blue') {
         colorInput.value = '#4444ff';
         colorInput.disabled = true;
@@ -1688,6 +1895,11 @@
         document.getElementById('blockDestructible').checked = false;
         destructibleRow.style.opacity = '0.5';
         destructibleRow.style.pointerEvents = 'none';
+        document.getElementById('blockTransformable').checked = false;
+        if (transformableRow) {
+          transformableRow.style.opacity = '0.5';
+          transformableRow.style.pointerEvents = 'none';
+        }
       } else if (type === 'plane_start') {
         colorInput.value = '#ffaa00';
         colorInput.disabled = true;
@@ -1699,6 +1911,11 @@
         document.getElementById('blockDestructible').checked = false;
         destructibleRow.style.opacity = '0.5';
         destructibleRow.style.pointerEvents = 'none';
+        document.getElementById('blockTransformable').checked = false;
+        if (transformableRow) {
+          transformableRow.style.opacity = '0.5';
+          transformableRow.style.pointerEvents = 'none';
+        }
       } else if (type === 'plane_end') {
         colorInput.value = '#00ffff';
         colorInput.disabled = true;
@@ -1710,6 +1927,11 @@
         document.getElementById('blockDestructible').checked = false;
         destructibleRow.style.opacity = '0.5';
         destructibleRow.style.pointerEvents = 'none';
+        document.getElementById('blockTransformable').checked = false;
+        if (transformableRow) {
+          transformableRow.style.opacity = '0.5';
+          transformableRow.style.pointerEvents = 'none';
+        }
       } else if (type === 'airdrop_spawn') {
         colorInput.value = '#ffe600';
         colorInput.disabled = true;
@@ -1721,6 +1943,11 @@
         document.getElementById('blockDestructible').checked = false;
         destructibleRow.style.opacity = '0.5';
         destructibleRow.style.pointerEvents = 'none';
+        document.getElementById('blockTransformable').checked = false;
+        if (transformableRow) {
+          transformableRow.style.opacity = '0.5';
+          transformableRow.style.pointerEvents = 'none';
+        }
       } else if (type === 'chair') {
         colorInput.disabled = false;
         colorPresets.style.pointerEvents = 'auto';
@@ -1731,6 +1958,11 @@
         document.getElementById('blockDestructible').checked = false;
         destructibleRow.style.opacity = '0.5';
         destructibleRow.style.pointerEvents = 'none';
+        document.getElementById('blockTransformable').checked = true;
+        if (transformableRow) {
+          transformableRow.style.opacity = '1.0';
+          transformableRow.style.pointerEvents = 'auto';
+        }
       } else if (type === 'custom_model') {
         colorInput.disabled = true;
         colorPresets.style.pointerEvents = 'none';
@@ -1741,6 +1973,11 @@
         document.getElementById('blockDestructible').checked = false;
         destructibleRow.style.opacity = '1.0';
         destructibleRow.style.pointerEvents = 'auto';
+        document.getElementById('blockTransformable').checked = true;
+        if (transformableRow) {
+          transformableRow.style.opacity = '1.0';
+          transformableRow.style.pointerEvents = 'auto';
+        }
       } else {
         colorInput.disabled = false;
         colorPresets.style.pointerEvents = 'auto';
@@ -1751,6 +1988,11 @@
         document.getElementById('blockDestructible').checked = false;
         destructibleRow.style.opacity = '1.0';
         destructibleRow.style.pointerEvents = 'auto';
+        document.getElementById('blockTransformable').checked = true;
+        if (transformableRow) {
+          transformableRow.style.opacity = '1.0';
+          transformableRow.style.pointerEvents = 'auto';
+        }
       }
       updateGhost();
     };
@@ -1775,46 +2017,56 @@
         ghostMesh.traverse(c => {
           if (c.isMesh) { c.material = c.material.clone(); c.material.transparent = true; c.material.opacity = 0.45; }
         });
-        ghostMesh.visible = false;
-        scene.add(ghostMesh);
-        return;
-      }
-
-      if (type === 'custom_model' && currentCustomCode) {
+      } else if (type === 'custom_model' && currentCustomCode) {
         ghostMesh = createCustomModelMesh(currentCustomCode);
         if (!ghostMesh) { ghostMesh = new THREE.Mesh(new THREE.BoxGeometry(2,2,2), ghostMat.clone()); }
         ghostMesh.traverse(c => {
           if (c.isMesh) { c.material = c.material.clone(); c.material.transparent = true; c.material.opacity = 0.4; }
         });
-        ghostMesh.visible = false;
-        scene.add(ghostMesh);
-        return;
+      } else {
+        const opacity = type !== 'block' ? 0.35 : (solid ? 0.35 : 0.18);
+        ghostMesh = new THREE.Mesh(
+          new THREE.BoxGeometry(bw, bh, bd),
+          new THREE.MeshPhongMaterial({
+            color: new THREE.Color(col),
+            transparent: true, opacity: opacity,
+            side: THREE.DoubleSide
+          })
+        );
+        // Wireframe overlay
+        const wire = new THREE.LineSegments(
+          new THREE.EdgesGeometry(new THREE.BoxGeometry(bw, bh, bd)),
+          new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 })
+        );
+        ghostMesh.add(wire);
       }
 
-      const opacity = type !== 'block' ? 0.35 : (solid ? 0.35 : 0.18);
-      ghostMesh = new THREE.Mesh(
-        new THREE.BoxGeometry(bw, bh, bd),
-        new THREE.MeshPhongMaterial({
-          color: new THREE.Color(col),
-          transparent: true, opacity: opacity,
-          side: THREE.DoubleSide
-        })
-      );
-      // Wireframe overlay
-      const wire = new THREE.LineSegments(
-        new THREE.EdgesGeometry(new THREE.BoxGeometry(bw, bh, bd)),
-        new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 })
-      );
-      ghostMesh.add(wire);
+      // Apply placement Y-rotation and scale
+      const rotDeg = parseInt(document.getElementById('blockRotation')?.value) || 0;
+      const rotRad = (rotDeg * Math.PI) / 180;
+      const scaleVal = parseFloat(document.getElementById('blockScale')?.value) || 1.0;
+
+      ghostMesh.rotation.y = rotRad;
+      ghostMesh.scale.set(scaleVal, scaleVal, scaleVal);
+
       ghostMesh.visible = false;
       scene.add(ghostMesh);
     }
     updateGhost();
 
+    window.updateBlockRotationText = function(val) {
+      const el = document.getElementById('blockRotationVal');
+      if (el) el.textContent = val + '°';
+      updateGhost();
+    };
+
     // Listen for block parameter changes
-    ['blockW', 'blockH', 'blockD', 'blockColor', 'blockCollision', 'blockDestructible'].forEach(id => {
-      document.getElementById(id).addEventListener('change', updateGhost);
-      document.getElementById(id).addEventListener('input', updateGhost);
+    ['blockW', 'blockH', 'blockD', 'blockColor', 'blockCollision', 'blockDestructible', 'blockRotation', 'blockScale'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('change', updateGhost);
+        el.addEventListener('input', updateGhost);
+      }
     });
 
     /* ═══════ RAYCASTER ═══════ */
@@ -1825,13 +2077,11 @@
       raycaster.setFromCamera(center, camera);
       raycaster.far = placeDist + 5;
 
-      // Collect all meshes to test against (floor + blocks, recursive for groups)
-      const targets = [floorMesh, ...blocks.map(b => b.mesh)];
-      const hits = raycaster.intersectObjects(targets, true);
+      const hits = raycaster.intersectObjects(raycastTargets, false);
 
       if (hits.length > 0) {
         const hit = hits[0];
-        // Skip hits that have no face (e.g. group container)
+        // Skip hits that have no face
         if (!hit.face) {
           if (placeMode === 'free') {
             const dir = new THREE.Vector3();
@@ -1887,14 +2137,11 @@
     function getRemoveTarget() {
       raycaster.setFromCamera(center, camera);
       raycaster.far = placeDist + 10;
-      const meshes = blocks.map(b => b.mesh);
-      // Use recursive=true to hit children of Group objects (chairs)
-      const hits = raycaster.intersectObjects(meshes, true);
+      const hits = raycaster.intersectObjects(raycastTargets, false);
       if (hits.length > 0) {
-        // Walk up to find the root block mesh
-        let obj = hits[0].object;
-        while (obj.parent && !meshes.includes(obj)) obj = obj.parent;
-        const idx = blocks.findIndex(b => b.mesh === obj);
+        const obj = hits[0].object;
+        // Match root mesh, parent, or direct raycastMesh
+        const idx = blocks.findIndex(b => b.mesh === obj || b.mesh === obj.parent || b.raycastMesh === obj);
         return idx;
       }
       return -1;
@@ -1911,6 +2158,7 @@
       const type = document.getElementById('blockType').value || 'block';
       const solid = document.getElementById('blockCollision').checked;
       const dest = document.getElementById('blockDestructible').checked;
+      const trans = document.getElementById('blockTransformable').checked;
       let col = document.getElementById('blockColor').value;
       if (type === 'spawn_red') col = '#ff4444';
       if (type === 'spawn_blue') col = '#4444ff';
@@ -1918,92 +2166,107 @@
       if (type === 'plane_end') col = '#00ffff';
       if (type === 'airdrop_spawn') col = '#ffe600';
 
-      // ── Chair: place as 3D Group ──
-      if (type === 'chair') {
-        const mesh = createChairMesh(col);
-        mesh.position.set(pos.x, pos.y, pos.z);
-        scene.add(mesh);
-        const data = {
-          x: pos.x, y: pos.y, z: pos.z,
-          w: 1, h: 1.5, d: 1,
-          color: col,
-          type: 'chair',
-          collision: false,
-          destructible: false
-        };
-        blocks.push({ mesh, data });
-        updateCount();
-        setStatus(`Silla en (${pos.x}, ${pos.y}, ${pos.z})`);
-        return;
-      }
+      const rotDeg = parseInt(document.getElementById('blockRotation')?.value) || 0;
+      const rotRad = (rotDeg * Math.PI) / 180;
+      const scaleVal = parseFloat(document.getElementById('blockScale')?.value) || 1.0;
 
-      // ── Custom Model ──
-      if (type === 'custom_model') {
-        if (!currentCustomCode) { setStatus('⚠ Primero pega un código de modelo'); return; }
-        const mesh = createCustomModelMesh(currentCustomCode);
-        if (!mesh) { setStatus('❌ Error al crear el modelo'); return; }
-        mesh.position.set(pos.x, pos.y, pos.z);
-        scene.add(mesh);
-        const data = {
-          x: pos.x, y: pos.y, z: pos.z,
-          w: 2, h: 2, d: 2,
-          color: '#888888',
-          type: 'custom_model',
-          modelCode: currentCustomCode,
-          modelName: currentCustomModelName,
-          collision: solid,
-          destructible: dest
-        };
-        if (dest) addDestructibleIndicator(mesh);
-        blocks.push({ mesh, data });
-        updateCount();
-        setStatus(`🧩 "${currentCustomModelName}" en (${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)})`);
-        return;
-      }
-
-      const geo = new THREE.BoxGeometry(bw, bh, bd);
-      let mat;
-      if (type === 'spawn_red') {
-        mat = new THREE.MeshPhongMaterial({ color: 0xff4444, transparent: true, opacity: 0.6 });
-      } else if (type === 'spawn_blue') {
-        mat = new THREE.MeshPhongMaterial({ color: 0x4444ff, transparent: true, opacity: 0.6 });
-      } else if (type === 'plane_start') {
-        mat = new THREE.MeshPhongMaterial({ color: 0xffaa00, transparent: true, opacity: 0.6 });
-      } else if (type === 'plane_end') {
-        mat = new THREE.MeshPhongMaterial({ color: 0x00ffff, transparent: true, opacity: 0.6 });
-      } else if (type === 'airdrop_spawn') {
-        mat = new THREE.MeshPhongMaterial({ color: 0xffe600, transparent: true, opacity: 0.6 });
-      } else {
-        mat = new THREE.MeshPhongMaterial({
-          color: new THREE.Color(col),
-          transparent: !solid,
-          opacity: solid ? 1.0 : 0.6
-        });
-      }
-      const mesh = new THREE.Mesh(geo, mat);
-
-      // Add edge wireframe for visibility
-      const edges = new THREE.LineSegments(
-        new THREE.EdgesGeometry(geo),
-        new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.15 })
-      );
-      mesh.add(edges);
-
-      mesh.position.set(pos.x, pos.y, pos.z);
-      scene.add(mesh);
-
+      let mesh;
       const data = {
         x: pos.x, y: pos.y, z: pos.z,
-        w: bw, h: bh, d: bd,
         color: col,
         type: type,
-        collision: type === 'block' ? solid : false,
-        destructible: type === 'block' ? dest : false
+        rotation: rotRad,
+        scale: scaleVal
       };
+
+      // ── Chair: place as 3D Group ──
+      if (type === 'chair') {
+        mesh = createChairMesh(col);
+        data.w = 1;
+        data.h = 1.5;
+        data.d = 1;
+        data.collision = false;
+        data.destructible = false;
+      }
+      // ── Custom Model ──
+      else if (type === 'custom_model') {
+        if (!currentCustomCode) { setStatus('⚠ Primero pega un código de modelo'); return; }
+        mesh = createCustomModelMesh(currentCustomCode);
+        if (!mesh) { setStatus('❌ Error al crear el modelo'); return; }
+
+        // Bounding box collider (custom model: 2x2x2 by default)
+        const colliderGeo = new THREE.BoxGeometry(2, 2, 2);
+        const collider = new THREE.Mesh(colliderGeo, colliderMat);
+        collider.position.set(0, 0, 0);
+        collider.name = "collider";
+        mesh.add(collider);
+
+        data.w = 2;
+        data.h = 2;
+        data.d = 2;
+        data.modelCode = currentCustomCode;
+        data.modelName = currentCustomModelName;
+        data.collision = solid;
+        data.destructible = dest;
+      }
+      // ── Normal Block ──
+      else {
+        const geo = getCachedBoxGeometry(bw, bh, bd);
+        let mat;
+        if (type === 'spawn_red') {
+          mat = new THREE.MeshPhongMaterial({ color: 0xff4444, transparent: true, opacity: 0.6 });
+        } else if (type === 'spawn_blue') {
+          mat = new THREE.MeshPhongMaterial({ color: 0x4444ff, transparent: true, opacity: 0.6 });
+        } else if (type === 'plane_start') {
+          mat = new THREE.MeshPhongMaterial({ color: 0xffaa00, transparent: true, opacity: 0.6 });
+        } else if (type === 'plane_end') {
+          mat = new THREE.MeshPhongMaterial({ color: 0x00ffff, transparent: true, opacity: 0.6 });
+        } else if (type === 'airdrop_spawn') {
+          mat = new THREE.MeshPhongMaterial({ color: 0xffe600, transparent: true, opacity: 0.6 });
+        } else {
+          if (solid) {
+            mat = getCachedMaterial(col);
+          } else {
+            const key = `${col}_nonsolid`;
+            if (!materialCache.has(key)) {
+              materialCache.set(key, new THREE.MeshPhongMaterial({ color: new THREE.Color(col), transparent: true, opacity: 0.6 }));
+            }
+            mat = materialCache.get(key);
+          }
+        }
+        mesh = new THREE.Mesh(geo, mat);
+
+        // Add edge wireframe for visibility
+        const edges = new THREE.LineSegments(
+          getCachedEdgesGeometry(bw, bh, bd),
+          getWireframeMaterial()
+        );
+        mesh.add(edges);
+
+        data.w = bw;
+        data.h = bh;
+        data.d = bd;
+        data.collision = type === 'block' ? solid : false;
+        data.destructible = type === 'block' ? dest : false;
+      }
+
+      mesh.position.set(pos.x, pos.y, pos.z);
+      mesh.rotation.y = rotRad;
+      mesh.scale.set(scaleVal, scaleVal, scaleVal);
+      scene.add(mesh);
+
       if (data.destructible) {
         addDestructibleIndicator(mesh);
       }
-      blocks.push({ mesh, data });
+
+      data.transformable = trans;
+      const blockObj = { mesh, data };
+      blockObj.raycastMesh = mesh.getObjectByName("collider") || mesh;
+      blocks.push(blockObj);
+
+      // Add to optimized raycastTargets cache
+      raycastTargets.push(blockObj.raycastMesh);
+
       updateCount();
       setStatus(`Bloque en (${pos.x}, ${pos.y}, ${pos.z})`);
     }
@@ -2012,6 +2275,13 @@
       if (idx < 0 || idx >= blocks.length) return;
       const block = blocks[idx];
       
+      // Remove from optimized raycastTargets cache
+      const targetMesh = block.raycastMesh || block.mesh;
+      const targetIdx = raycastTargets.indexOf(targetMesh);
+      if (targetIdx >= 0) {
+        raycastTargets.splice(targetIdx, 1);
+      }
+
       // Clean up selection tracking for this block
       if (selectedSet.has(block)) {
         selectedSet.delete(block);
@@ -2095,10 +2365,25 @@
     function addSelectionOutline(block) {
       if (selectionOutlines.has(block)) return;
       if (!block) return;
-      const geo = new THREE.EdgesGeometry(block.mesh.geometry);
+      let geo, posOffset = null;
+      if (block.mesh.geometry) {
+        geo = new THREE.EdgesGeometry(block.mesh.geometry);
+      } else {
+        const w = block.data.w || 2;
+        const h = block.data.h || 2;
+        const d = block.data.d || 2;
+        geo = new THREE.EdgesGeometry(new THREE.BoxGeometry(w, h, d));
+        const collider = block.mesh.getObjectByName("collider");
+        if (collider) {
+          posOffset = collider.position;
+        }
+      }
       const mat = new THREE.LineBasicMaterial({ color: 0xffe600 });
       const outline = new THREE.LineSegments(geo, mat);
       outline.scale.set(1.06, 1.06, 1.06);
+      if (posOffset) {
+        outline.position.copy(posOffset);
+      }
       block.mesh.add(outline);
       selectionOutlines.set(block, outline);
     }
@@ -2120,10 +2405,25 @@
       }
       if (!block || !block.data.groupId) return;
       const color = getGroupColor(block.data.groupId);
-      const geo = new THREE.EdgesGeometry(block.mesh.geometry);
+      let geo, posOffset = null;
+      if (block.mesh.geometry) {
+        geo = new THREE.EdgesGeometry(block.mesh.geometry);
+      } else {
+        const w = block.data.w || 2;
+        const h = block.data.h || 2;
+        const d = block.data.d || 2;
+        geo = new THREE.EdgesGeometry(new THREE.BoxGeometry(w, h, d));
+        const collider = block.mesh.getObjectByName("collider");
+        if (collider) {
+          posOffset = collider.position;
+        }
+      }
       const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.7 });
       const outline = new THREE.LineSegments(geo, mat);
       outline.scale.set(1.03, 1.03, 1.03);
+      if (posOffset) {
+        outline.position.copy(posOffset);
+      }
       block.mesh.add(outline);
       groupOutlines.set(block, outline);
     }
@@ -2170,6 +2470,7 @@
           document.getElementById('selBlockD').value = b.data.d;
           document.getElementById('selBlockCollision').checked = b.data.collision !== false;
           document.getElementById('selBlockDestructible').checked = b.data.destructible === true;
+          document.getElementById('selBlockTransformable').checked = b.data.transformable !== false;
           document.getElementById('selBlockColor').value = b.data.color || '#cc4444';
           
           const selColorBox = document.getElementById('selColorPresets');
@@ -2178,6 +2479,40 @@
               if (e.dataset.color === b.data.color) e.classList.add('active');
               else e.classList.remove('active');
             });
+          }
+
+          // Sync rotation select (find closest Y-rotation match from 0, 90, 180, 270 degrees)
+          const rotationSelect = document.getElementById('selBlockRotation');
+          if (rotationSelect) {
+            const currentRotRad = b.data.rotation || 0;
+            const degrees = Math.round((currentRotRad * 180 / Math.PI) / 90) * 90 % 360;
+            let selectVal = "0";
+            if (degrees === 90 || degrees === -270) selectVal = "1.5707963267948966";
+            if (degrees === 180 || degrees === -180) selectVal = "3.141592653589793";
+            if (degrees === 270 || degrees === -90) selectVal = "4.71238898038469";
+            rotationSelect.value = selectVal;
+          }
+
+          // Sync scale select
+          const scaleSelect = document.getElementById('selBlockScale');
+          if (scaleSelect) {
+            const scaleVal = b.data.scale !== undefined ? b.data.scale : 1.0;
+            const valStr = scaleVal.toString();
+            // check if option exists, if not create it
+            let exists = false;
+            for (let i = 0; i < scaleSelect.options.length; i++) {
+              if (scaleSelect.options[i].value === valStr) {
+                exists = true;
+                break;
+              }
+            }
+            if (!exists) {
+              const opt = document.createElement('option');
+              opt.value = valStr;
+              opt.textContent = scaleVal.toFixed(1) + 'x';
+              scaleSelect.appendChild(opt);
+            }
+            scaleSelect.value = valStr;
           }
         }
       } else {
@@ -2335,10 +2670,26 @@
     window.updateSelectedProperties = function(props) {
       if (selectedSet.size === 0) return;
       
+      // Temporarily remove outlines to avoid them scaling/shifting incorrectly
+      selectedSet.forEach(b => removeSelectionOutline(b));
+
       selectedSet.forEach(b => {
+        // Update Y-rotation
+        if (props.rotation !== undefined) {
+          b.data.rotation = props.rotation;
+          b.mesh.rotation.y = props.rotation;
+        }
+
+        // Update scale
+        if (props.scale !== undefined) {
+          b.data.scale = props.scale;
+          b.mesh.scale.set(props.scale, props.scale, props.scale);
+        }
+
         // Update data values if provided
         if (props.type !== undefined) b.data.type = props.type;
         if (props.collision !== undefined) b.data.collision = props.collision;
+        if (props.transformable !== undefined) b.data.transformable = props.transformable;
         if (props.destructible !== undefined) {
           b.data.destructible = props.destructible;
           if (props.destructible) {
@@ -2351,7 +2702,7 @@
           if (b.data.type === 'block') b.data.color = props.color;
         }
 
-        // Handle dimension changes
+        // Handle dimension changes (only for meshes, not groups)
         let geomChanged = false;
         if (props.w !== undefined) { b.data.w = props.w; geomChanged = true; }
         if (props.h !== undefined) { b.data.h = props.h; geomChanged = true; }
@@ -2365,13 +2716,13 @@
         // Update Three.js position
         b.mesh.position.set(b.data.x, b.data.y, b.data.z);
 
-        // Update Three.js geometry if dimensions changed
-        if (geomChanged) {
+        // Update Three.js geometry if dimensions changed (and it's a Mesh)
+        if (geomChanged && b.mesh.isMesh) {
           b.mesh.geometry.dispose();
           b.mesh.geometry = new THREE.BoxGeometry(b.data.w, b.data.h, b.data.d);
           
           // Recreate wireframe edges helper inside the mesh
-          const oldEdges = b.mesh.children.filter(child => child.isLineSegments);
+          const oldEdges = b.mesh.children.filter(child => child.isLineSegments && child !== selectionOutlines.get(b) && child !== groupOutlines.get(b));
           oldEdges.forEach(child => {
             b.mesh.remove(child);
             child.geometry.dispose();
@@ -2392,54 +2743,45 @@
           }
         }
 
-        // Update Three.js material
-        const type = b.data.type || 'block';
-        const solid = b.data.collision !== false;
-        let col = b.data.color;
-        if (type === 'spawn_red') col = '#ff4444';
-        if (type === 'spawn_blue') col = '#4444ff';
-        if (type === 'plane_start') col = '#ffaa00';
-        if (type === 'plane_end') col = '#00ffff';
-        if (type === 'airdrop_spawn') col = '#ffe600';
+        // Update Three.js material (only for meshes, not groups)
+        if (b.mesh.material) {
+          const type = b.data.type || 'block';
+          const solid = b.data.collision !== false;
+          let col = b.data.color;
+          if (type === 'spawn_red') col = '#ff4444';
+          if (type === 'spawn_blue') col = '#4444ff';
+          if (type === 'plane_start') col = '#ffaa00';
+          if (type === 'plane_end') col = '#00ffff';
+          if (type === 'airdrop_spawn') col = '#ffe600';
 
-        b.mesh.material.dispose();
-        if (type === 'spawn_red') {
-          b.mesh.material = new THREE.MeshPhongMaterial({ color: 0xff4444, transparent: true, opacity: 0.6 });
-        } else if (type === 'spawn_blue') {
-          b.mesh.material = new THREE.MeshPhongMaterial({ color: 0x4444ff, transparent: true, opacity: 0.6 });
-        } else if (type === 'plane_start') {
-          b.mesh.material = new THREE.MeshPhongMaterial({ color: 0xffaa00, transparent: true, opacity: 0.6 });
-        } else if (type === 'plane_end') {
-          b.mesh.material = new THREE.MeshPhongMaterial({ color: 0x00ffff, transparent: true, opacity: 0.6 });
-        } else if (type === 'airdrop_spawn') {
-          b.mesh.material = new THREE.MeshPhongMaterial({ color: 0xffe600, transparent: true, opacity: 0.6 });
-        } else {
-          b.mesh.material = new THREE.MeshPhongMaterial({
-            color: new THREE.Color(col),
-            transparent: !solid,
-            opacity: solid ? 1.0 : 0.6
-          });
+          b.mesh.material.dispose();
+          if (type === 'spawn_red') {
+            b.mesh.material = new THREE.MeshPhongMaterial({ color: 0xff4444, transparent: true, opacity: 0.6 });
+          } else if (type === 'spawn_blue') {
+            b.mesh.material = new THREE.MeshPhongMaterial({ color: 0x4444ff, transparent: true, opacity: 0.6 });
+          } else if (type === 'plane_start') {
+            b.mesh.material = new THREE.MeshPhongMaterial({ color: 0xffaa00, transparent: true, opacity: 0.6 });
+          } else if (type === 'plane_end') {
+            b.mesh.material = new THREE.MeshPhongMaterial({ color: 0x00ffff, transparent: true, opacity: 0.6 });
+          } else if (type === 'airdrop_spawn') {
+            b.mesh.material = new THREE.MeshPhongMaterial({ color: 0xffe600, transparent: true, opacity: 0.6 });
+          } else {
+            b.mesh.material = new THREE.MeshPhongMaterial({
+              color: new THREE.Color(col),
+              transparent: !solid,
+              opacity: solid ? 1.0 : 0.6
+            });
+          }
         }
       });
 
-      // Rebuild outlines for selection and groups
-      selectionOutlines.forEach((o) => { o.geometry.dispose(); o.material.dispose(); });
-      selectionOutlines.clear();
-      selectedSet.forEach(b => {
-        const oldSel = b.mesh.children.find(c => c.material && c.material.color && c.material.color.getHex() === 0xffe600);
-        if (oldSel) b.mesh.remove(oldSel);
-        
-        const geo = new THREE.EdgesGeometry(b.mesh.geometry);
-        const mat = new THREE.LineBasicMaterial({ color: 0xffe600 });
-        const outline = new THREE.LineSegments(geo, mat);
-        outline.scale.set(1.06, 1.06, 1.06);
-        b.mesh.add(outline);
-        selectionOutlines.set(b, outline);
-      });
+      // Rebuild outlines for selection and groups safely
+      selectedSet.forEach(b => addSelectionOutline(b));
 
       groupOutlines.forEach((o) => { o.geometry.dispose(); o.material.dispose(); });
       groupOutlines.clear();
       updateAllGroupOutlines();
+      
       updateCount();
       updateSelectionUI();
       setStatus('Estructura modificada', true);
@@ -2458,16 +2800,35 @@
         const newY = d.y;
         const newZ = d.z + offset;
 
-        const geo = new THREE.BoxGeometry(d.w, d.h, d.d);
-        const mat = b.mesh.material.clone();
-        const mesh = new THREE.Mesh(geo, mat);
-        
-        const edges = new THREE.LineSegments(
-          new THREE.EdgesGeometry(geo),
-          new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.15 })
-        );
-        mesh.add(edges);
+        let mesh;
+        if (d.type === 'chair') {
+          mesh = createChairMesh(d.color);
+        } else if (d.type === 'custom_model' && d.modelCode) {
+          mesh = createCustomModelMesh(d.modelCode);
+          if (mesh) {
+            const colliderGeo = new THREE.BoxGeometry(d.w || 2, d.h || 2, d.d || 2);
+            const collider = new THREE.Mesh(colliderGeo, colliderMat);
+            collider.position.set(0, 0, 0);
+            collider.name = "collider";
+            mesh.add(collider);
+          }
+        } else {
+          const geo = new THREE.BoxGeometry(d.w, d.h, d.d);
+          const mat = b.mesh.material.clone();
+          mesh = new THREE.Mesh(geo, mat);
+          
+          const edges = new THREE.LineSegments(
+            new THREE.EdgesGeometry(geo),
+            new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.15 })
+          );
+          mesh.add(edges);
+        }
+
+        if (!mesh) return;
+
         mesh.position.set(newX, newY, newZ);
+        if (d.rotation !== undefined) mesh.rotation.y = d.rotation;
+        if (d.scale !== undefined) mesh.scale.set(d.scale, d.scale, d.scale);
         mesh.visible = true; 
         scene.add(mesh);
 
@@ -2479,8 +2840,12 @@
         };
         
         const newBlock = { mesh, data };
+        newBlock.raycastMesh = mesh.getObjectByName("collider") || mesh;
         blocks.push(newBlock);
         newBlocks.push(newBlock);
+
+        // Add to optimized raycastTargets cache
+        raycastTargets.push(newBlock.raycastMesh);
       });
 
       selectedSet.forEach(b => removeSelectionOutline(b));
@@ -2579,6 +2944,26 @@
       if (e.key === 'Delete' && selectedSet.size > 0) { deleteSelected(); e.preventDefault(); }
       // Escape = cancel move or clear selection
       if (e.key === 'Escape') { if (moveMode) cancelMove(); else clearSelection(); }
+
+      // R = Rotate placement ghost or selected blocks by 90 degrees
+      if (e.key.toLowerCase() === 'r' && !ctrl && !e.altKey) {
+        if (selectedSet.size > 0) {
+          const firstBlock = Array.from(selectedSet)[0];
+          const currentRotRad = firstBlock.data.rotation || 0;
+          const nextRotRad = (currentRotRad + Math.PI / 2) % (Math.PI * 2);
+          updateSelectedProperties({ rotation: nextRotRad });
+          setStatus(`Giro: ${Math.round(nextRotRad * 180 / Math.PI)}°`, true);
+        } else {
+          const rotInput = document.getElementById('blockRotation');
+          if (rotInput) {
+            let nextVal = (parseInt(rotInput.value) + 90) % 360;
+            rotInput.value = nextVal;
+            updateBlockRotationText(nextVal);
+            setStatus(`Giro colocación: ${nextVal}°`, true);
+          }
+        }
+        e.preventDefault();
+      }
     });
     window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
     window.addEventListener('contextmenu', e => e.preventDefault());
@@ -2853,9 +3238,12 @@
           color: '0x' + (d.color || '#888888').slice(1),
           type: d.type || 'block',
           collision: d.collision !== false,
-          destructible: d.destructible === true
+          destructible: d.destructible === true,
+          transformable: d.transformable !== false
         };
         if (d.groupId) entry.groupId = d.groupId;
+        if (d.rotation !== undefined) entry.rotation = d.rotation;
+        if (d.scale !== undefined) entry.scale = d.scale;
         // Preserve custom model code
         if (d.type === 'custom_model' && d.modelCode) {
           entry.modelCode = d.modelCode;
@@ -2922,8 +3310,21 @@
           if (btype === 'chair') {
             const mesh = createChairMesh(d.color || '#8B6914');
             mesh.position.set(d.x, d.y, d.z);
+            if (d.rotation !== undefined) mesh.rotation.y = d.rotation;
+            if (d.scale !== undefined) mesh.scale.set(d.scale, d.scale, d.scale);
             scene.add(mesh);
-            blocks.push({ mesh, data: { ...d, type: 'chair', collision: false, destructible: false } });
+            const blockData = {
+              ...d,
+              type: 'chair',
+              rotation: d.rotation || 0,
+              scale: d.scale || 1,
+              collision: false,
+              destructible: false
+            };
+            const blockObj = { mesh, data: blockData };
+            blockObj.raycastMesh = mesh.getObjectByName("collider") || mesh;
+            blocks.push(blockObj);
+            raycastTargets.push(blockObj.raycastMesh);
             return;
           }
           // ── Custom Model ──
@@ -2931,8 +3332,30 @@
             const mesh = createCustomModelMesh(d.modelCode);
             if (mesh) {
               mesh.position.set(d.x, d.y, d.z);
+              if (d.rotation !== undefined) mesh.rotation.y = d.rotation;
+              if (d.scale !== undefined) mesh.scale.set(d.scale, d.scale, d.scale);
               scene.add(mesh);
-              blocks.push({ mesh, data: { ...d, type: 'custom_model', collision: false, destructible: false } });
+              // Bounding box collider
+              const w = d.w || 2;
+              const h = d.h || 2;
+              const d_ = d.d || 2;
+              const colliderGeo = new THREE.BoxGeometry(w, h, d_);
+              const collider = new THREE.Mesh(colliderGeo, colliderMat);
+              collider.position.set(0, 0, 0);
+              collider.name = "collider";
+              mesh.add(collider);
+              const blockData = {
+                ...d,
+                type: 'custom_model',
+                rotation: d.rotation || 0,
+                scale: d.scale || 1,
+                collision: false,
+                destructible: false
+              };
+              const blockObj = { mesh, data: blockData };
+              blockObj.raycastMesh = collider;
+              blocks.push(blockObj);
+              raycastTargets.push(blockObj.raycastMesh);
             }
             return;
           }
@@ -2963,18 +3386,25 @@
           );
           mesh.add(edges);
           mesh.position.set(d.x, d.y, d.z);
+          if (d.rotation !== undefined) mesh.rotation.y = d.rotation;
+          if (d.scale !== undefined) mesh.scale.set(d.scale, d.scale, d.scale);
           scene.add(mesh);
 
           const blockData = {
             ...d,
             type: btype,
+            rotation: d.rotation || 0,
+            scale: d.scale || 1,
             collision: solid,
             destructible: dest
           };
           if (dest) {
             addDestructibleIndicator(mesh);
           }
-          blocks.push({ mesh, data: blockData });
+          const blockObj = { mesh, data: blockData };
+          blockObj.raycastMesh = mesh;
+          blocks.push(blockObj);
+          raycastTargets.push(blockObj.raycastMesh);
         });
         updateCount();
         setStatus('📥 Mapa importado — ' + blocks.length + ' bloques', true);
@@ -3005,7 +3435,70 @@
     }
 
     // Active map mode state and controller
+    // Active map mode state and controller
     let activeMapMode = 'normal';
+
+    // Caches for rendering optimization
+    const boxGeometryCache = new Map();
+    const edgesGeometryCache = new Map();
+    const materialCache = new Map();
+    const customModelCache = new Map();
+    let wireframeMaterial = null;
+
+    function getCachedBoxGeometry(w, h, d) {
+      const key = `${w}_${h}_${d}`;
+      if (!boxGeometryCache.has(key)) {
+        boxGeometryCache.set(key, new THREE.BoxGeometry(w, h, d));
+      }
+      return boxGeometryCache.get(key);
+    }
+
+    function getCachedEdgesGeometry(w, h, d) {
+      const key = `${w}_${h}_${d}`;
+      if (!edgesGeometryCache.has(key)) {
+        const geo = getCachedBoxGeometry(w, h, d);
+        edgesGeometryCache.set(key, new THREE.EdgesGeometry(geo));
+      }
+      return edgesGeometryCache.get(key);
+    }
+
+    function getCachedMaterial(color) {
+      const colorVal = parseInt(color) || 0x888888;
+      if (!materialCache.has(colorVal)) {
+        materialCache.set(colorVal, new THREE.MeshPhongMaterial({ color: colorVal }));
+      }
+      return materialCache.get(colorVal);
+    }
+
+    function getWireframeMaterial() {
+      if (!wireframeMaterial) {
+        wireframeMaterial = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.15 });
+      }
+      return wireframeMaterial;
+    }
+
+    function clearRenderCaches() {
+      boxGeometryCache.forEach(g => g.dispose());
+      boxGeometryCache.clear();
+
+      edgesGeometryCache.forEach(g => g.dispose());
+      edgesGeometryCache.clear();
+
+      materialCache.forEach(m => m.dispose());
+      materialCache.clear();
+
+      customModelCache.forEach(model => {
+        model.traverse(child => {
+          if (child.geometry) child.geometry.dispose();
+          if (child.material) {
+            if (Array.isArray(child.material)) child.material.forEach(mat => mat.dispose());
+            else child.material.dispose();
+          }
+        });
+      });
+      customModelCache.clear();
+    }
+
     window.setMapMode = function (mode) {
       if (mode === activeMapMode) return;
       activeMapMode = mode;
@@ -3013,22 +3506,18 @@
       document.getElementById('mapModeBR').classList.toggle('active', mode === 'br');
       document.getElementById('mapModeLobby').classList.toggle('active', mode === 'lobby');
       document.getElementById('mapModeRvB').classList.toggle('active', mode === 'rvb');
+      document.getElementById('mapModePropHunt').classList.toggle('active', mode === 'propHunt');
       loadMapFromFirebase();
     };
 
     // Load from Firebase on start
     window.loadMapFromFirebase = function () {
+      clearRenderCaches();
       setStatus('Cargando mapa ' + activeMapMode.toUpperCase() + ' desde Firebase...');
       get(ref(db, 'fps/map_' + activeMapMode)).then(snap => {
         if (!snap.exists()) {
           // Reset to default empty map state
-          while (blocks.length > 0) {
-            const idx = blocks.length - 1;
-            scene.remove(blocks[idx].mesh);
-            blocks[idx].mesh.geometry.dispose();
-            blocks[idx].mesh.material.dispose();
-            blocks.pop();
-          }
+          while (blocks.length > 0) removeBlock(blocks.length - 1);
           floorW = 100;
           floorD = 100;
           floorColor = 0x4f9a45;
@@ -3057,13 +3546,7 @@
         }
 
         // Clear existing blocks
-        while (blocks.length > 0) {
-          const idx = blocks.length - 1;
-          scene.remove(blocks[idx].mesh);
-          blocks[idx].mesh.geometry.dispose();
-          blocks[idx].mesh.material.dispose();
-          blocks.pop();
-        }
+        while (blocks.length > 0) removeBlock(blocks.length - 1);
 
         // Load floor
         if (mapData.floor) {
@@ -3115,17 +3598,25 @@
             if (btype === 'chair') {
               const mesh = createChairMesh(colStr);
               mesh.position.set(bx, by, bz);
+              if (b.rotation !== undefined) mesh.rotation.y = b.rotation;
+              if (b.scale !== undefined) mesh.scale.set(b.scale, b.scale, b.scale);
               scene.add(mesh);
               const blockData = {
                 x: bx, y: by, z: bz,
                 w: 1, h: 1.5, d: 1,
                 color: colStr,
                 type: 'chair',
+                rotation: b.rotation || 0,
+                scale: b.scale || 1,
                 collision: false,
-                destructible: false
+                destructible: false,
+                transformable: b.transformable !== false
               };
               if (b.groupId) blockData.groupId = b.groupId;
-              blocks.push({ mesh, data: blockData });
+              const blockObj = { mesh, data: blockData };
+              blockObj.raycastMesh = mesh.getObjectByName("collider") || mesh;
+              blocks.push(blockObj);
+              raycastTargets.push(blockObj.raycastMesh);
               return;
             }
 
@@ -3134,26 +3625,43 @@
               const mesh = createCustomModelMesh(b.modelCode);
               if (mesh) {
                 mesh.position.set(bx, by, bz);
+                if (b.rotation !== undefined) mesh.rotation.y = b.rotation;
+                if (b.scale !== undefined) mesh.scale.set(b.scale, b.scale, b.scale);
                 scene.add(mesh);
+                // Bounding box collider
+                const w = b.w || 2;
+                const h = b.h || 2;
+                const d_ = b.d || 2;
+                const colliderGeo = new THREE.BoxGeometry(w, h, d_);
+                const collider = new THREE.Mesh(colliderGeo, colliderMat);
+                collider.position.set(0, 0, 0);
+                collider.name = "collider";
+                mesh.add(collider);
                 const blockData = {
                   x: bx, y: by, z: bz,
-                  w: 2, h: 2, d: 2,
+                  w: w, h: h, d: d_,
                   color: '#888888',
                   type: 'custom_model',
                   modelCode: b.modelCode,
                   modelName: b.modelName || 'Modelo IA',
+                  rotation: b.rotation || 0,
+                  scale: b.scale || 1,
                   collision: false,
-                  destructible: false
+                  destructible: false,
+                  transformable: b.transformable !== false
                 };
                 if (b.groupId) blockData.groupId = b.groupId;
-                blocks.push({ mesh, data: blockData });
+                const blockObj = { mesh, data: blockData };
+                blockObj.raycastMesh = collider;
+                blocks.push(blockObj);
+                raycastTargets.push(blockObj.raycastMesh);
               }
               return;
             }
 
-            const geo = new THREE.BoxGeometry(bw, bh, bd);
+            const geo = getCachedBoxGeometry(bw, bh, bd);
             let mat;
-             if (btype === 'spawn_red') {
+            if (btype === 'spawn_red') {
               mat = new THREE.MeshPhongMaterial({ color: 0xff4444, transparent: true, opacity: 0.6 });
             } else if (btype === 'spawn_blue') {
               mat = new THREE.MeshPhongMaterial({ color: 0x4444ff, transparent: true, opacity: 0.6 });
@@ -3164,34 +3672,46 @@
             } else if (btype === 'airdrop_spawn') {
               mat = new THREE.MeshPhongMaterial({ color: 0xffe600, transparent: true, opacity: 0.6 });
             } else {
-              mat = new THREE.MeshPhongMaterial({
-                color: new THREE.Color(colStr),
-                transparent: !solid,
-                opacity: solid ? 1.0 : 0.6
-              });
+              if (solid) {
+                mat = getCachedMaterial(colStr);
+              } else {
+                const key = `${colStr}_nonsolid`;
+                if (!materialCache.has(key)) {
+                  materialCache.set(key, new THREE.MeshPhongMaterial({ color: new THREE.Color(colStr), transparent: true, opacity: 0.6 }));
+                }
+                mat = materialCache.get(key);
+              }
             }
             const mesh = new THREE.Mesh(geo, mat);
             const edges = new THREE.LineSegments(
-              new THREE.EdgesGeometry(geo),
-              new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.15 })
+              getCachedEdgesGeometry(bw, bh, bd),
+              getWireframeMaterial()
             );
             mesh.add(edges);
             mesh.position.set(bx, by, bz);
+            if (b.rotation !== undefined) mesh.rotation.y = b.rotation;
+            if (b.scale !== undefined) mesh.scale.set(b.scale, b.scale, b.scale);
             scene.add(mesh);
 
             const blockData = {
-                x: bx, y: by, z: bz,
-                w: bw, h: bh, d: bd,
-                color: colStr,
-                type: btype,
-                collision: solid,
-                destructible: b.destructible === true
+              x: bx, y: by, z: bz,
+              w: bw, h: bh, d: bd,
+              color: colStr,
+              type: btype,
+              rotation: b.rotation || 0,
+              scale: b.scale || 1,
+              collision: solid,
+              destructible: b.destructible === true,
+              transformable: b.transformable !== false
             };
             if (b.groupId) blockData.groupId = b.groupId;
             if (blockData.destructible) {
               addDestructibleIndicator(mesh);
             }
-            blocks.push({ mesh, data: blockData });
+            const blockObj = { mesh, data: blockData };
+            blockObj.raycastMesh = mesh;
+            blocks.push(blockObj);
+            raycastTargets.push(blockObj.raycastMesh);
           });
         }
         updateCount();
@@ -3639,6 +4159,8 @@
           savedModels = [];
         }
         renderSavedModelsList();
+        // Automatically ensure all models have previews/thumbnails
+        setTimeout(ensureThumbnails, 500);
       }).catch(err => console.error('Error cargando modelos IA:', err));
     }
 
