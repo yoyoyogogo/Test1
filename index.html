@@ -2397,6 +2397,7 @@
             </div>
             <div class="mode-btn" id="modePropHunt" style="margin-bottom:6px"><span class="mode-icon">🎭</span> Prop
               Hunt</div>
+            <div class="mode-btn" id="modeNextbot" style="margin-bottom:6px"><span class="mode-icon">🤖</span> Nextbot</div>
             <div class="mode-btn" id="modeCustom" style="margin-top:6px"><span class="mode-icon">🎮</span> Partidas
               Personalizadas</div>
             <div id="teamSelect" class="setting-group"
@@ -2785,6 +2786,7 @@
     const rng = () => Math.random().toString(36).slice(2, 10);
 
     /* ── TRANSFORM & DRONE & GRENADE GLOBAL VARIABLES ── */
+    let animateFrameCount = 0;
     let selectHelper = null;
     let transformTarget = null;
     let myPropState = null;
@@ -2888,11 +2890,11 @@
 
     /* ── MODE SELECT ── */
     function setModeUI(mode, icon, label, showTeam = false) {
-      ['modeNormal', 'modeBR', 'modeRvB', 'modePropHunt', 'modeCustom'].forEach(id => {
+      ['modeNormal', 'modeBR', 'modeRvB', 'modePropHunt', 'modeNextbot', 'modeCustom'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.remove('active');
       });
-      const targetId = { normal: 'modeNormal', br: 'modeBR', rvb: 'modeRvB', propHunt: 'modePropHunt', custom: 'modeCustom' }[mode];
+      const targetId = { normal: 'modeNormal', br: 'modeBR', rvb: 'modeRvB', propHunt: 'modePropHunt', nextbot: 'modeNextbot', custom: 'modeCustom' }[mode];
       const targetEl = document.getElementById(targetId);
       if (targetEl) targetEl.classList.add('active');
       document.getElementById('currentModeIcon').textContent = icon;
@@ -2904,6 +2906,7 @@
     document.getElementById('modeBR').addEventListener('click', () => { selectedMode = 'br'; setModeUI('br', '🪂', 'Modo: Battle Royale'); modeDropdownList.classList.remove('active'); modeSelectBtn.classList.remove('open'); window._activeCustomRoom = null; updateMapBadge(); });
     document.getElementById('modeRvB').addEventListener('click', () => { selectedMode = 'rvb'; setModeUI('rvb', '🔴', 'Modo: Red vs Blue', true); window._activeCustomRoom = null; updateMapBadge(); });
     document.getElementById('modePropHunt').addEventListener('click', () => { selectedMode = 'propHunt'; setModeUI('propHunt', '🎭', 'Modo: Prop Hunt'); modeDropdownList.classList.remove('active'); modeSelectBtn.classList.remove('open'); window._activeCustomRoom = null; updateMapBadge(); });
+    document.getElementById('modeNextbot').addEventListener('click', () => { selectedMode = 'nextbot'; setModeUI('nextbot', '🤖', 'Modo: Nextbot'); modeDropdownList.classList.remove('active'); modeSelectBtn.classList.remove('open'); window._activeCustomRoom = null; updateMapBadge(); });
     document.getElementById('modeCustom').addEventListener('click', () => { /* no cambiar modo ni label — solo abre el modal (ver handler abajo) */ });
 
     /* ── TEAM SELECT ── */
@@ -3202,6 +3205,7 @@
 
       /* ── BOTS ── */
       let mapBotsCount = 0;
+      let activeMapNextbot = null; // Nextbot config loaded from map data { name, imageUrl, musicUrl }
       const BOT_NAMES = ["Rambo", "Terminator", "Robocop", "JohnWick", "Neo", "AgentSmith", "Conan", "Vito", "MaxPayne", "DukeNukem"];
       let currentPlayersData = {};
       let dbSkins = [];
@@ -3222,9 +3226,13 @@
       let currentAirdropData = null, airdropMeshGroup = null, airdropSmokeParticles = [];
       let hasMythicWeapon = false, localAirdropY = 50.0, currentHostId = null;
 
+      const _groundRaycaster = new THREE.Raycaster();
+      const _groundRayOrigin = new THREE.Vector3();
+      const _groundRayDir = new THREE.Vector3(0, -1, 0);
       function getGroundHeight(x, z) {
-        const ray = new THREE.Raycaster(new THREE.Vector3(x, 80, z), new THREE.Vector3(0, -1, 0));
-        const hits = ray.intersectObjects(mapObjects, false);
+        _groundRayOrigin.set(x, 80, z);
+        _groundRaycaster.set(_groundRayOrigin, _groundRayDir);
+        const hits = _groundRaycaster.intersectObjects(mapObjects, false);
         return hits.length > 0 ? hits[0].point.y : -2;
       }
 
@@ -3658,6 +3666,10 @@
           const s = spawnPos(); sp2 = { x: s.x, y: 1.5, z: s.z };
           initPropHuntMatch();
           updateWeaponSelectorVisibility();
+        } else if (gameMode === 'nextbot') {
+          // Nextbot mode: load map_nextbot
+          applyCustomMap('nextbot').then(() => listenToMap('nextbot'));
+          const s = spawnPos(); sp2 = { x: s.x, y: 1.5, z: s.z };
         } else {
           // Normal or custom-normal
           const mapMode = (crd?.mode === 'normal' || !crd) ? 'normal' : crd.mode;
@@ -4747,40 +4759,75 @@
 
         raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
 
-        // Temporarily set visible = true for culling objects
-        mapObjects.forEach(m => { if (m.userData.active !== false) m.visible = true; });
-
         let blockDist = Infinity, targetBlockMesh = null, blockHitPoint = null, blockHitNormal = null;
-        const bh = raycaster.intersectObjects(mapObjects, false);
-        if (bh.length > 0) { blockDist = bh[0].distance; targetBlockMesh = bh[0].object; blockHitPoint = bh[0].point; blockHitNormal = bh[0].face.normal; }
+        // Temporarily restore visibility for raycasting
+        const activeObjs = mapObjects.filter(o => o.userData.active !== false && (o.userData.solidCollision !== false || o.userData.destructible === true));
+        const savedVis = activeObjs.map(o => o.visible);
+        activeObjs.forEach(o => { o.visible = true; o.traverse(c => { if (c !== o) c.visible = true; }); });
+        const bh = raycaster.intersectObjects(activeObjs, true);
+        activeObjs.forEach((o, idx) => { o.visible = savedVis[idx]; });
+
+        if (bh.length > 0) {
+          let hitRoot = bh[0].object;
+          while (hitRoot.parent && !mapObjects.includes(hitRoot)) hitRoot = hitRoot.parent;
+          if (!mapObjects.includes(hitRoot)) hitRoot = bh[0].object;
+          blockDist = bh[0].distance;
+          targetBlockMesh = hitRoot;
+          blockHitPoint = bh[0].point;
+          blockHitNormal = bh[0].face ? bh[0].face.normal : new THREE.Vector3(0, 1, 0);
+        }
 
         let bestHit = null, bestDist = Infinity;
         Object.entries(otherPlayers).forEach(([id, op]) => {
           if (op.dead || !op.group.visible) return;
           if (gameMode === 'rvb' && op.data.team === selectedTeam) return;
-          const hits = raycaster.intersectObject(op.mesh, false);
-          if (hits.length > 0 && hits[0].distance < bestDist && hits[0].distance < blockDist) { bestDist = hits[0].distance; bestHit = { id, dist: hits[0].distance, point: hits[0].point }; }
-        });
-
-        // Restore culling
-        mapObjects.forEach(m => {
-          if (m.userData.active === false) m.visible = false;
-          else m.visible = camera.position.distanceToSquared(m.position) <= 22500;
+          if (gameMode === 'propHunt' || gameMode === 'custom' && window._activeCustomRoom?.mode === 'propHunt') {
+            const opPH = op.data.propHuntTeam || 'props';
+            if (opPH === propHuntTeam) return;
+          }
+          if (!op.data.prop) {
+            const hits = raycaster.intersectObject(op.mesh, false);
+            if (hits.length > 0 && hits[0].distance < bestDist && hits[0].distance < blockDist) { bestDist = hits[0].distance; bestHit = { id, type: 'player', dist: hits[0].distance, point: hits[0].point }; }
+          }
+          if (op.propMesh && op.propMesh.visible) {
+            const propHits = raycaster.intersectObject(op.propMesh, true);
+            if (propHits.length > 0 && propHits[0].distance < bestDist && propHits[0].distance < blockDist) { bestDist = propHits[0].distance; bestHit = { id, type: 'player', dist: propHits[0].distance, point: propHits[0].point }; }
+          }
+          if (op.droneMesh) {
+            const dHits = raycaster.intersectObject(op.droneMesh, true);
+            if (dHits.length > 0 && dHits[0].distance < bestDist && dHits[0].distance < blockDist) { bestDist = dHits[0].distance; bestHit = { id, type: 'drone', dist: dHits[0].distance, point: dHits[0].point }; }
+          }
         });
 
         let tracerEnd = null;
         const damageVal = 20;
         if (bestHit) {
           const op = otherPlayers[bestHit.id]; if (!op) return;
-          if (isWebRTCMode && rtcManager) {
-            rtcManager.broadcast({ type: 'hit', targetId: bestHit.id, dmg: damageVal, from: myName, team: gameMode === 'rvb' ? selectedTeam : null, weapon: 'Dron', t: Date.now() });
+          if (bestHit.type === 'drone') {
+            if (isWebRTCMode && rtcManager) {
+              rtcManager.broadcast({ type: 'hit_drone', targetId: bestHit.id, dmg: damageVal, from: myName, t: Date.now() });
+            } else {
+              set(ref(db, `fps/hits_drone_${gameMode}/${bestHit.id}`), { dmg: damageVal, from: myName, t: Date.now() });
+            }
+            const p2 = bestHit.point.clone().project(camera); spawnDmgNum(damageVal, (p2.x * .5 + .5) * GAME_W, (1 - (p2.y * .5 + .5)) * GAME_H, false);
           } else {
-            set(ref(db, `fps/hits_${gameMode}/${bestHit.id}`), { dmg: damageVal, from: myName, team: gameMode === 'rvb' ? selectedTeam : null, weapon: 'Dron', t: Date.now() });
+            if (isWebRTCMode && rtcManager) {
+              rtcManager.broadcast({ type: 'hit', targetId: bestHit.id, dmg: damageVal, from: myName, team: gameMode === 'rvb' ? selectedTeam : null, weapon: 'Dron', t: Date.now() });
+            } else {
+              set(ref(db, `fps/hits_${gameMode}/${bestHit.id}`), { dmg: damageVal, from: myName, team: gameMode === 'rvb' ? selectedTeam : null, weapon: 'Dron', t: Date.now() });
+            }
+            const p2 = bestHit.point.clone().project(camera); spawnDmgNum(damageVal, (p2.x * .5 + .5) * GAME_W, (1 - (p2.y * .5 + .5)) * GAME_H, false);
           }
-          const p2 = bestHit.point.clone().project(camera); spawnDmgNum(damageVal, (p2.x * .5 + .5) * GAME_W, (1 - (p2.y * .5 + .5)) * GAME_H, false);
           tracerEnd = bestHit.point;
         } else {
-          if (targetBlockMesh) { tracerEnd = blockHitPoint; const c = targetBlockMesh.material.color?.getHex() || 0x888888; const wn = blockHitNormal.clone().transformDirection(targetBlockMesh.matrixWorld); spawnDebris(blockHitPoint, wn, c); }
+          if (targetBlockMesh) {
+            tracerEnd = blockHitPoint;
+            let col = 0x888888;
+            if (targetBlockMesh.material && targetBlockMesh.material.color) col = targetBlockMesh.material.color.getHex();
+            else targetBlockMesh.traverse(c => { if (c.isMesh && c.material && c.material.color) { col = c.material.color.getHex(); } });
+            const wn = blockHitNormal.clone ? blockHitNormal.clone().transformDirection(targetBlockMesh.matrixWorld) : blockHitNormal;
+            spawnDebris(blockHitPoint, wn, col);
+          }
         }
 
         const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
@@ -4798,9 +4845,12 @@
         publishPos();
       }
 
+      const _grenadeRaycaster = new THREE.Raycaster();
+      const _grenadeRayDir = new THREE.Vector3();
+      const _grenadeStartOffset = new THREE.Vector3(0, -0.2, 0);
       function calculateGrenadeTrajectory() {
         const points = [];
-        const start = camera.position.clone().add(new THREE.Vector3(0, -0.2, 0));
+        const start = camera.position.clone().add(_grenadeStartOffset);
         const dir = new THREE.Vector3();
         camera.getWorldDirection(dir);
 
@@ -4810,17 +4860,19 @@
 
         points.push(pos.clone());
 
+        // Temporarily make collidable active objects visible once before the loop (avoids 120 object culling iterations per frame)
+        const activeObjs = mapObjects.filter(o => o.userData.active !== false && (o.userData.solidCollision !== false || o.userData.destructible === true));
+        const savedVis = activeObjs.map(o => o.visible);
+        activeObjs.forEach(o => { o.visible = true; o.traverse(c => { if (c !== o) c.visible = true; }); });
+
         for (let i = 0; i < 60; i++) {
           const nextPos = pos.clone().add(vel);
           vel.y += gravity;
 
-          const ray = new THREE.Raycaster(pos, vel.clone().normalize(), 0, vel.length());
-          mapObjects.forEach(m => { if (m.userData.active !== false) m.visible = true; });
-          const hits = ray.intersectObjects(mapObjects, false);
-          mapObjects.forEach(m => {
-            if (m.userData.active === false) m.visible = false;
-            else m.visible = camera.position.distanceToSquared(m.position) <= 22500;
-          });
+          _grenadeRayDir.copy(vel).normalize();
+          _grenadeRaycaster.set(pos, _grenadeRayDir);
+          _grenadeRaycaster.far = vel.length();
+          const hits = _grenadeRaycaster.intersectObjects(activeObjs, true);
 
           if (hits.length > 0) {
             points.push(hits[0].point);
@@ -4838,6 +4890,10 @@
           pos.copy(nextPos);
           points.push(pos.clone());
         }
+
+        // Restore visibility once
+        activeObjs.forEach((o, idx) => { o.visible = savedVis[idx]; });
+
         return points;
       }
 
@@ -4947,6 +5003,7 @@
       function loadMapFromData(data) {
         clearMapObjects(); redSpawns = []; blueSpawns = []; editorPlaneStart = null; editorPlaneEnd = null;
         mapBotsCount = data ? (data.botsCount || 0) : 0;
+        activeMapNextbot = (data && data.nextbot && data.nextbot.name) ? data.nextbot : null;
         if (!data) return;
         if (data.floor) setFloor(data.floor.w || 500, data.floor.d || 500, parseInt(data.floor.color) || 0x4f9a45);
         if (data.blocks) {
@@ -5013,6 +5070,7 @@
             get(ref(db, 'fps/map_br')).then(snapBR => {
               const brData = snapBR.val();
               if (brData && brData.botsCount !== undefined) mapBotsCount = brData.botsCount;
+              if (brData && brData.nextbot) activeMapNextbot = brData.nextbot;
             });
           }
         });
@@ -5033,6 +5091,37 @@
       const otherPlayers = {};
 
       function spawnOtherPlayer(id, pData) {
+        // ── NEXTBOT SPECIAL RENDERING ──
+        const isNextbot = id.startsWith('nextbot_');
+        if (isNextbot) {
+          const nbConfig = activeMapNextbot || {};
+          const geoNb = new THREE.PlaneGeometry(2.8, 3.2);
+          const nbMat = new THREE.MeshBasicMaterial({ transparent: true, side: THREE.DoubleSide, alphaTest: 0.05, depthWrite: false });
+          const imageUrl = pData.skin || nbConfig.imageUrl;
+          if (imageUrl) {
+            new THREE.TextureLoader().load(imageUrl, tex => {
+              tex.minFilter = tex.magFilter = THREE.LinearFilter;
+              nbMat.map = tex;
+              nbMat.needsUpdate = true;
+            });
+          }
+          const nbMesh = new THREE.Mesh(geoNb, nbMat);
+          const group = new THREE.Group();
+          group.add(nbMesh);
+          group.position.set(pData.x || 0, (pData.y || 1.5) - 1.5 + 1.6, pData.z || 0);
+          scene.add(group);
+          // Positional audio
+          let nbAudio = null;
+          if (nbConfig.musicUrl) {
+            nbAudio = new Audio(nbConfig.musicUrl);
+            nbAudio.loop = true;
+            nbAudio.volume = 0;
+            nbAudio.play().catch(() => {});
+          }
+          otherPlayers[id] = { id, mesh: nbMesh, nameMesh: null, shadowMesh: null, group, data: pData, hp: 9999, dead: false, lastShotTime: 0, isNextbot: true, nextbotAudio: nbAudio, targetPosition: group.position.clone(), loadedSkinUrl: imageUrl };
+          return;
+        }
+
         const bodyMat = new THREE.MeshBasicMaterial({ map: playerTex || null, transparent: true, side: THREE.DoubleSide, depthTest: true, depthWrite: false, alphaTest: .05 });
         const mesh = new THREE.Mesh(geoPlayer, bodyMat);
         const isDead = !!pData.dead;
@@ -5055,7 +5144,7 @@
         if (isDead) { group.position.set(pData.x || 0, (pData.y || 1.5) - 1.5 + .01, pData.z || 0); mesh.rotation.x = -Math.PI / 2; }
         else group.position.set(pData.x || 0, (pData.y || 1.5) - 1.5 + QUAD_H / 2, pData.z || 0);
         group.visible = !pData.inPlane; scene.add(group);
-        otherPlayers[id] = { id, mesh, nameMesh, shadowMesh, group, data: pData, hp: MAX_HP, dead: isDead, lastShotTime: pData.lastShot ? pData.lastShot.t : 0 };
+        otherPlayers[id] = { id, mesh, nameMesh, shadowMesh, group, data: pData, hp: MAX_HP, dead: isDead, lastShotTime: pData.lastShot ? pData.lastShot.t : 0, targetPosition: group.position.clone() };
       }
 
       function removeOtherPlayer(id) {
@@ -5073,8 +5162,16 @@
       }
 
       function billboardAll() {
-        Object.values(otherPlayers).forEach(op => {
-          if (!op.group.visible) return;
+        for (const id in otherPlayers) {
+          const op = otherPlayers[id];
+          if (!op.group.visible) continue;
+          if (op.isNextbot) {
+            // Always face camera on Y axis
+            const dx = camera.position.x - op.group.position.x, dz = camera.position.z - op.group.position.z;
+            op.group.rotation.y = Math.atan2(dx, dz);
+            op.mesh.rotation.set(0, 0, 0);
+            continue;
+          }
           if (op.dead) {
             op.mesh.rotation.set(-Math.PI / 2, 0, 0);
           } else {
@@ -5086,7 +5183,7 @@
             }
             op.mesh.rotation.set(0, 0, 0);
           }
-        });
+        }
       }
 
       /* ── FIREBASE ── */
@@ -5136,19 +5233,49 @@
             updateInGameTeamSelectUI();
           }
           if (inLobby) return;
-          const entries = document.getElementById('plEntries'); entries.innerHTML = '';
-          Object.entries(data).forEach(([id, p]) => {
-            const div = document.createElement('div'); div.className = 'pl-entry';
-            const dot = document.createElement('div'); dot.className = 'pl-dot' + (id === myId ? ' me' : '');
-            const ns = document.createElement('span'); ns.textContent = p.name || id;
-            const hs = document.createElement('span'); hs.className = 'pl-hp'; hs.textContent = (p.hp ?? MAX_HP) + ' hp';
-            div.appendChild(dot); div.appendChild(ns); div.appendChild(hs); entries.appendChild(div);
-          });
+          const entries = document.getElementById('plEntries');
+          if (entries) {
+            let htmlStr = '';
+            Object.entries(data).forEach(([id, p]) => {
+              const dotClass = 'pl-dot' + (id === myId ? ' me' : '');
+              const name = p.name || id;
+              const hp = (p.hp ?? MAX_HP) + ' hp';
+              htmlStr += `<div class="pl-entry"><div class="${dotClass}"></div><span>${name}</span><span class="pl-hp">${hp}</span></div>`;
+            });
+            if (entries.innerHTML !== htmlStr) {
+              entries.innerHTML = htmlStr;
+            }
+          }
           const seen = new Set();
-          Object.entries(data).forEach(([id, p]) => {
-            if (id === myId) return; seen.add(id);
+          for (const [id, p] of Object.entries(data)) {
+            if (id === myId) { continue; } seen.add(id);
             if (!otherPlayers[id]) spawnOtherPlayer(id, p);
             const op = otherPlayers[id];
+            if (id.startsWith('nextbot_')) {
+              op.data = p;
+              if (!op.targetPosition) op.targetPosition = new THREE.Vector3();
+              op.targetPosition.set(p.x || 0, (p.y || 1.5) - 1.5 + 1.6, p.z || 0);
+
+              // Dynamically load music audio if not initialized yet
+              if (!op.nextbotAudio && activeMapNextbot && activeMapNextbot.musicUrl) {
+                op.nextbotAudio = new Audio(activeMapNextbot.musicUrl);
+                op.nextbotAudio.loop = true;
+                op.nextbotAudio.volume = 0;
+                op.nextbotAudio.play().catch(() => {});
+              }
+
+              // Dynamically load skin texture if not loaded yet or if it changed
+              const currentSkin = p.skin || (activeMapNextbot && activeMapNextbot.imageUrl);
+              if (currentSkin && (!op.mesh.material.map || op.loadedSkinUrl !== currentSkin)) {
+                op.loadedSkinUrl = currentSkin;
+                new THREE.TextureLoader().load(currentSkin, tex => {
+                  tex.minFilter = tex.magFilter = THREE.LinearFilter;
+                  op.mesh.material.map = tex;
+                  op.mesh.material.needsUpdate = true;
+                });
+              }
+              continue;
+            }
             if (op.data.team !== p.team) { op.nameMesh.material.map.dispose(); op.nameMesh.material.map = makeNameTex(p.name || id, p.team); op.nameMesh.material.needsUpdate = true; }
             if (op.data.skin !== p.skin) { loadSkinTexture(p.skin || IMG_PLAYER, tex => { if (otherPlayers[id]?.data.skin === p.skin && !otherPlayers[id]?.currentEmoteUrl) { op.mesh.material.map = tex; op.mesh.material.needsUpdate = true; if (op.shadowMesh) { op.shadowMesh.material.map = tex; op.shadowMesh.material.needsUpdate = true; } } }); }
             op.data = p; op.hp = p.hp ?? MAX_HP; op.dead = !!p.dead; op.nameMesh.visible = !op.dead; if (op.shadowMesh) op.shadowMesh.visible = !op.dead && shadowsOn && op.group.visible;
@@ -5158,7 +5285,8 @@
             } else if (!p.prop) {
               groupY += QUAD_H / 2;
             }
-            op.group.position.set(p.x || 0, groupY, p.z || 0);
+            if (!op.targetPosition) op.targetPosition = new THREE.Vector3();
+            op.targetPosition.set(p.x || 0, groupY, p.z || 0);
             op.group.visible = !p.inPlane;
             const ps = op.group.getObjectByName('parachuteSprite');
             if (ps) ps.visible = !!p.isFalling;
@@ -5262,7 +5390,7 @@
               else if (p.lastShot.weapon === 'Bazooka') spawnRocketProjectile(start, end, null, 0, true);
               else spawnTracer(start, end, p.lastShot.weapon === 'Ametralladora', p.lastShot.weapon === 'Escopeta');
             }
-          });
+          }
           Object.keys(otherPlayers).forEach(id => { if (!seen.has(id)) removeOtherPlayer(id); });
           if (myActiveEmote?.waiting) Object.entries(data).forEach(([id, p]) => { if (id !== myId && p.activeEmote?.targetPlayerId === myId && p.activeEmote.name === myActiveEmote.name) startInitiatorDance(); });
         });
@@ -5303,7 +5431,7 @@
           if (t && t > lastStartTriggerTime) { lastStartTriggerTime = t; if (brState === 'lobby') startMatchFromLobby(); }
         });
 
-        onValue(ref(db, 'fps/players_' + gameMode), snap => { if (inLobby) return; const pl = Object.keys(snap.val() || {}).filter(id => !id.startsWith('bot_')).sort(); currentHostId = pl[0] || null; });
+        onValue(ref(db, 'fps/players_' + gameMode), snap => { if (inLobby) return; const pl = Object.keys(snap.val() || {}).filter(id => !id.startsWith('bot_') && !id.startsWith('nextbot_')).sort(); currentHostId = pl[0] || null; });
 
         onValue(ref(db, 'fps/airdrop_' + gameMode), snap => {
           if (inLobby) return; const data = snap.val();
@@ -5337,6 +5465,7 @@
           if (inLobby) return;
           if (currentHostId === myId) {
             simulateBots();
+            simulateNextbot();
           }
         }, 150);
 
@@ -5379,6 +5508,21 @@
           if (pool.length) { const s = pool[Math.floor(Math.random() * pool.length)]; return { x: s.x, y: s.y + 1.5, z: s.z }; }
         }
         const s = spawnPos(); return { x: s.x, y: 1.5, z: s.z };
+      }
+
+      function checkBotLineOfSight(botPos, targetPos) {
+        const dir = new THREE.Vector3().subVectors(targetPos, botPos);
+        const dist = dir.length();
+        dir.normalize();
+        const botRay = new THREE.Raycaster(botPos, dir, 0.1, dist);
+
+        const activeObjs = mapObjects.filter(o => o.userData.active !== false && (o.userData.solidCollision !== false || o.userData.destructible === true));
+        const savedVis = activeObjs.map(o => o.visible);
+        activeObjs.forEach(o => { o.visible = true; o.traverse(c => { if (c !== o) c.visible = true; }); });
+        const hits = botRay.intersectObjects(activeObjs, true);
+        activeObjs.forEach((o, idx) => { o.visible = savedVis[idx]; });
+
+        return hits.length === 0;
       }
 
       function simulateBots() {
@@ -5650,30 +5794,66 @@
 
             if (nearestTarget && nearestDist < 45) {
               const dx = nearestTarget.pos.x - botData.x, dz = nearestTarget.pos.z - botData.z;
-              newYaw = +Math.atan2(-dx, -dz).toFixed(4);
+              const targetAngle = Math.atan2(-dx, -dz);
+              newYaw = +targetAngle.toFixed(4);
+
+              let moveAngle = targetAngle;
+              let speed = 0;
               if (nearestDist > 12) {
-                const speed = 0.22;
-                newX += Math.sin(newYaw) * -speed;
-                newZ += Math.cos(newYaw) * -speed;
+                speed = 0.22;
               } else if (nearestDist < 6) {
-                const speed = 0.15;
-                newX -= Math.sin(newYaw) * -speed;
-                newZ -= Math.cos(newYaw) * -speed;
+                speed = -0.15;
               }
+
+              let nextX = botData.x + Math.sin(moveAngle) * -speed;
+              let nextZ = botData.z + Math.cos(moveAngle) * -speed;
+
+              if (speed !== 0) {
+                const testPos = new THREE.Vector3(nextX, botData.y, nextZ);
+                if (checkPlayerCollision(testPos)) {
+                  // Obstacle detected! Try to slide around it by checking offset angles
+                  const offsets = [Math.PI / 4, -Math.PI / 4, Math.PI / 2, -Math.PI / 2, 3 * Math.PI / 4, -3 * Math.PI / 4];
+                  let foundPath = false;
+                  for (let angleOffset of offsets) {
+                    let tryAngle = moveAngle + angleOffset;
+                    let tryX = botData.x + Math.sin(tryAngle) * -speed;
+                    let tryZ = botData.z + Math.cos(tryAngle) * -speed;
+                    let tryPos = new THREE.Vector3(tryX, botData.y, tryZ);
+                    if (!checkPlayerCollision(tryPos)) {
+                      nextX = tryX;
+                      nextZ = tryZ;
+                      newYaw = +tryAngle.toFixed(4);
+                      foundPath = true;
+                      break;
+                    }
+                  }
+                  if (!foundPath) {
+                    nextX = botData.x;
+                    nextZ = botData.z;
+                  }
+                }
+              }
+              newX = nextX;
+              newZ = nextZ;
+
+              // Only shoot if there is line of sight to the target
               const lastShotTime = botData.lastShot?.t || 0;
               if (Date.now() - lastShotTime > 1500 + Math.random() * 1000) {
                 const startPos = new THREE.Vector3(botData.x, botData.y + 0.3, botData.z);
                 const endPos = nearestTarget.pos.clone().add(new THREE.Vector3((Math.random() - .5) * 1.5, (Math.random() - .5) * 1.0, (Math.random() - .5) * 1.5));
                 const weaponName = gameMode === 'rvb' ? (i % 2 === 0 ? 'Rifle' : 'Sniper') : (i % 3 === 0 ? 'Bazooka' : (i % 3 === 1 ? 'Sniper' : 'Rifle'));
-                lastShotVal = {
-                  start: { x: +startPos.x.toFixed(2), y: +startPos.y.toFixed(2), z: +startPos.z.toFixed(2) },
-                  end: { x: +endPos.x.toFixed(2), y: +endPos.y.toFixed(2), z: +endPos.z.toFixed(2) },
-                  weapon: weaponName,
-                  t: Date.now()
-                };
-                if (nearestDist < 35 && Math.random() < 0.45) {
-                  const dmg = weaponName === 'Sniper' ? 50 : (weaponName === 'Bazooka' ? 70 : 20);
-                  set(ref(db, `fps/hits_${gameMode}/${nearestTarget.id}`), { dmg, from: botData.name, team: botData.team, weapon: weaponName, t: Date.now() });
+                
+                if (checkBotLineOfSight(startPos, nearestTarget.pos)) {
+                  lastShotVal = {
+                    start: { x: +startPos.x.toFixed(2), y: +startPos.y.toFixed(2), z: +startPos.z.toFixed(2) },
+                    end: { x: +endPos.x.toFixed(2), y: +endPos.y.toFixed(2), z: +endPos.z.toFixed(2) },
+                    weapon: weaponName,
+                    t: Date.now()
+                  };
+                  if (nearestDist < 35 && Math.random() < 0.45) {
+                    const dmg = weaponName === 'Sniper' ? 50 : (weaponName === 'Bazooka' ? 70 : 20);
+                    set(ref(db, `fps/hits_${gameMode}/${nearestTarget.id}`), { dmg, from: botData.name, team: botData.team, weapon: weaponName, t: Date.now() });
+                  }
                 }
               }
             } else {
@@ -5729,6 +5909,117 @@
             jumpT: botJumpT
           });
         }
+      }
+
+      /* ── NEXTBOT SIMULATION (host only) ── */
+      function simulateNextbot() {
+        if (!activeMapNextbot || !activeMapNextbot.name) return;
+        const nbId = 'nextbot_0';
+        const nbData = currentPlayersData[nbId];
+
+        if (!nbData) {
+          // Spawn nextbot at map center
+          const sp = spawnPos ? spawnPos() : { x: 0, z: 0 };
+          const gh = getGroundHeight(sp.x, sp.z);
+          const groundY = gh === -2 ? 0 : gh;
+          set(ref(db, `fps/players_${gameMode}/${nbId}`), {
+            name: activeMapNextbot.name,
+            skin: activeMapNextbot.imageUrl || '',
+            x: sp.x, y: groundY + 1.5, z: sp.z,
+            yaw: 0, hp: 9999, dead: false, t: Date.now(),
+            isNextbot: true
+          });
+          return;
+        }
+
+        // Find nearest living target (local player or any other bot)
+        let nearestPos = null;
+        let nearestDist = Infinity;
+
+        if (!dead) {
+          const d = new THREE.Vector3(nbData.x, nbData.y, nbData.z).distanceTo(camera.position);
+          if (d < nearestDist) { nearestDist = d; nearestPos = camera.position.clone(); }
+        }
+        Object.entries(currentPlayersData).forEach(([pid, p]) => {
+          if (pid === nbId || p.dead || p.isNextbot) return;
+          const d = new THREE.Vector3(nbData.x, nbData.y, nbData.z).distanceTo(new THREE.Vector3(p.x, p.y, p.z));
+          if (d < nearestDist) { nearestDist = d; nearestPos = new THREE.Vector3(p.x, p.y, p.z); }
+        });
+
+        const NEXTBOT_SPEED = 1.65;
+        let newX = nbData.x, newZ = nbData.z, newYaw = nbData.yaw || 0;
+
+        if (nearestPos) {
+          const dx = nearestPos.x - nbData.x;
+          const dz = nearestPos.z - nbData.z;
+          const targetAngle = Math.atan2(-dx, -dz);
+          newYaw = +targetAngle.toFixed(4);
+
+          // Sub-stepping movement to prevent clipping through walls at high speeds
+          const stepSize = 0.25;
+          let currX = nbData.x;
+          let currZ = nbData.z;
+          let remainingDist = NEXTBOT_SPEED;
+          let currentAngle = targetAngle;
+
+          while (remainingDist > 0) {
+            const currentStep = Math.min(remainingDist, stepSize);
+            remainingDist -= currentStep;
+
+            let nextX = currX + Math.sin(currentAngle) * -currentStep;
+            let nextZ = currZ + Math.cos(currentAngle) * -currentStep;
+            const testPos = new THREE.Vector3(nextX, nbData.y, nextZ);
+
+            if (checkPlayerCollision(testPos)) {
+              // Obstacle: try lateral offsets
+              const offsets = [Math.PI / 3, -Math.PI / 3, Math.PI * 0.6, -Math.PI * 0.6, Math.PI / 2, -Math.PI / 2];
+              let found = false;
+              for (let off of offsets) {
+                let ta = targetAngle + off;
+                let tx = currX + Math.sin(ta) * -currentStep;
+                let tz = currZ + Math.cos(ta) * -currentStep;
+                if (!checkPlayerCollision(new THREE.Vector3(tx, nbData.y, tz))) {
+                  nextX = tx; nextZ = tz; currentAngle = ta; found = true; break;
+                }
+              }
+              if (!found) {
+                // Stuck completely, stop moving
+                break;
+              }
+            }
+            currX = nextX;
+            currZ = nextZ;
+          }
+          newX = currX;
+          newZ = currZ;
+          newYaw = +currentAngle.toFixed(4);
+
+          // Kill bots on contact
+          Object.entries(currentPlayersData).forEach(([pid, p]) => {
+            if (pid === nbId || p.dead || p.isNextbot || pid.startsWith('nextbot_')) return;
+            const d = Math.sqrt((p.x - nbData.x) ** 2 + (p.z - nbData.z) ** 2);
+            if (d < 1.8 && pid.startsWith('bot_')) {
+              set(ref(db, `fps/players_${gameMode}/${pid}`), { ...p, hp: 0, dead: true, t: Date.now() });
+              set(ref(db, `fps/killfeed_${gameMode}/latest`), { killer: activeMapNextbot.name, victim: p.name, weapon: 'Atrapado', t: Date.now() });
+            }
+          });
+        }
+
+        const gh = getGroundHeight(newX, newZ);
+        const groundY = gh === -2 ? 0 : gh;
+        const halfW = currentFloorW / 2 - 2;
+        const halfD = currentFloorD / 2 - 2;
+        newX = Math.max(-halfW, Math.min(halfW, newX));
+        newZ = Math.max(-halfD, Math.min(halfD, newZ));
+
+        set(ref(db, `fps/players_${gameMode}/${nbId}`), {
+          ...nbData,
+          x: +newX.toFixed(3),
+          y: +(groundY + 1.5).toFixed(3),
+          z: +newZ.toFixed(3),
+          yaw: newYaw,
+          t: Date.now()
+        });
       }
 
       /* ── KILL FEED ── */
@@ -6078,6 +6369,8 @@
         ctx.restore();
       }
 
+      const nextbotMinimapImages = {};
+
       function updateMinimap() {
         if (!minimapCanvas || inLobby) return;
         const ctx = minimapCanvas.getContext('2d');
@@ -6116,6 +6409,43 @@
           if (op.dead || !op.group.visible) return;
           const rx = mapExpanded ? op.group.position.x : op.group.position.x - camera.position.x;
           const rz = mapExpanded ? op.group.position.z : op.group.position.z - camera.position.z;
+
+          if (op.isNextbot) {
+            const imgUrl = op.loadedSkinUrl || (op.data && op.data.skin);
+            if (imgUrl) {
+              let img = nextbotMinimapImages[imgUrl];
+              if (!img) {
+                img = new Image();
+                img.src = imgUrl;
+                nextbotMinimapImages[imgUrl] = img;
+              }
+              if (img.complete && img.naturalWidth !== 0) {
+                const size = 16 * scale;
+                ctx.save();
+                ctx.translate(rx * scale, rz * scale);
+                if (!mapExpanded) {
+                  ctx.rotate(yaw); // Keep nextbot image upright relative to player's screen view
+                }
+                ctx.beginPath();
+                ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
+                ctx.clip();
+                ctx.drawImage(img, -size / 2, -size / 2, size, size);
+                ctx.restore();
+
+                // Draw nice red border around the circle
+                ctx.save();
+                ctx.translate(rx * scale, rz * scale);
+                ctx.strokeStyle = '#ff3333';
+                ctx.lineWidth = 1.5 * scale;
+                ctx.beginPath();
+                ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+                return;
+              }
+            }
+          }
+
           let col = '#ff3333';
           if (gameMode === 'rvb') col = op.data.team === selectedTeam ? '#4444ff' : '#ff4444';
           ctx.fillStyle = col;
@@ -6475,13 +6805,18 @@
       });
 
       /* ── MOVEMENT ── */
+      const _playerMin = new THREE.Vector3();
+      const _playerMax = new THREE.Vector3();
+      const _playerBox = new THREE.Box3();
       function checkPlayerCollision(pos) {
-        const pb = new THREE.Box3(new THREE.Vector3(pos.x - .4, pos.y - 1.5, pos.z - .4), new THREE.Vector3(pos.x + .4, pos.y + .3, pos.z + .4));
+        _playerMin.set(pos.x - 0.4, pos.y - 1.5, pos.z - 0.4);
+        _playerMax.set(pos.x + 0.4, pos.y + 0.3, pos.z + 0.4);
+        _playerBox.set(_playerMin, _playerMax);
         for (let i = 0; i < mapObjects.length; i++) {
           const b = mapObjects[i];
           if (b.userData.active === false) continue;
           if (b.userData.solidCollision === false) continue;
-          if (b.userData.bbox && pb.intersectsBox(b.userData.bbox)) {
+          if (b.userData.bbox && _playerBox.intersectsBox(b.userData.bbox)) {
             return true;
           }
         }
@@ -6528,6 +6863,17 @@
         if (moving && onGround) walkTime += sprint ? .22 : .12; else walkTime *= .9;
         const bX = Math.sin(walkTime * 2) * 8, bY = Math.abs(Math.cos(walkTime * 2)) * 6;
         if (!aiming) { weapon.style.bottom = (-10 + bY) + 'px'; weapon.style.right = (-20 + bX) + 'px'; } else weapon.style.bottom = (-60 + bY * .3) + 'px';
+
+        // ── NEXTBOT KILL CHECK ──
+        if (!dead && activeMapNextbot) {
+          const op = otherPlayers['nextbot_0'];
+          if (op && op.group.visible) {
+            const nbDist = camera.position.distanceTo(op.group.position);
+            if (nbDist < 1.8) {
+              applyDamage(MAX_HP, activeMapNextbot.name, null, 'Atrapado 👻');
+            }
+          }
+        }
       }
 
       let lastPub = 0;
@@ -6628,7 +6974,8 @@
         if (op.shadowMesh) op.shadowMesh.visible = !op.dead && shadowsOn && op.group.visible;
         let groupY = (data.y || 1.5) - 1.5;
         if (op.dead) groupY += 0.01; else if (!data.prop) groupY += QUAD_H / 2;
-        op.group.position.set(data.x || 0, groupY, data.z || 0);
+        if (!op.targetPosition) op.targetPosition = new THREE.Vector3();
+        op.targetPosition.set(data.x || 0, groupY, data.z || 0);
         op.group.visible = !data.inPlane;
         // Prop sync
         if (data.prop) {
@@ -6655,16 +7002,16 @@
         // Actualizar lista de jugadores HUD
         const entries = document.getElementById('plEntries');
         if (entries && isWebRTCMode) {
-          entries.innerHTML = '';
-          [{ id: myId, name: myName, hp: myHp, isMe: true },
-          ...Object.entries(otherPlayers).map(([pid, p]) => ({ id: pid, name: p.data.name || pid, hp: p.hp, isMe: false }))]
-            .forEach(p => {
-              const div = document.createElement('div'); div.className = 'pl-entry';
-              const dot = document.createElement('div'); dot.className = 'pl-dot' + (p.isMe ? ' me' : '');
-              const ns = document.createElement('span'); ns.textContent = p.name;
-              const hs = document.createElement('span'); hs.className = 'pl-hp'; hs.textContent = (p.hp ?? MAX_HP) + ' hp';
-              div.appendChild(dot); div.appendChild(ns); div.appendChild(hs); entries.appendChild(div);
-            });
+          let htmlStr = '';
+          const list = [{ id: myId, name: myName, hp: myHp, isMe: true },
+                        ...Object.entries(otherPlayers).map(([pid, p]) => ({ id: pid, name: p.data.name || pid, hp: p.hp, isMe: false }))];
+          list.forEach(p => {
+            const dotClass = 'pl-dot' + (p.isMe ? ' me' : '');
+            htmlStr += `<div class="pl-entry"><div class="${dotClass}"></div><span>${p.name}</span><span class="pl-hp">${(p.hp ?? MAX_HP)} hp</span></div>`;
+          });
+          if (entries.innerHTML !== htmlStr) {
+            entries.innerHTML = htmlStr;
+          }
         }
       }
 
@@ -6723,8 +7070,28 @@
           billboardAll(); renderer.render(scene, camera); return;
         }
 
-        // Optimización de Oclusión por Distancia de Otros Jugadores y Sombras
-        Object.values(otherPlayers).forEach(op => {
+        // Optimización de Oclusión por Distancia de Otros Jugadores y Sombras (Usa bucle for...in para evitar crear arrays cada frame)
+        for (const id in otherPlayers) {
+          const op = otherPlayers[id];
+
+          // Interpolate player/bot position smoothly
+          if (op.targetPosition) {
+            const dist = op.group.position.distanceTo(op.targetPosition);
+            if (dist > 15) {
+              op.group.position.copy(op.targetPosition);
+            } else {
+              op.group.position.lerp(op.targetPosition, 0.18);
+            }
+          }
+
+          // Smooth nextbot audio volume updates (60fps)
+          if (op.isNextbot && op.nextbotAudio) {
+            const nbDist = camera.position.distanceTo(op.group.position);
+            // Volume rises as nextbot gets closer (max at dist 2, silent at dist 40)
+            const vol = Math.max(0, Math.min(1.0, 1.0 - (nbDist - 2) / 38));
+            op.nextbotAudio.volume = vol;
+          }
+
           const isFar = camera.position.distanceToSquared(op.group.position) > 10000; // Límite de 100 unidades (100^2)
           const shouldBeVisible = !op.data.inPlane && !isFar;
           if (op.group.visible !== shouldBeVisible) {
@@ -6740,21 +7107,26 @@
           if (op.shadowMesh) {
             op.shadowMesh.visible = !op.dead && shadowsOn && op.group.visible;
           }
-        });
+        }
 
-        // Optimización de Oclusión por Distancia de Objetos del Mapa
-        const maxMapDistSq = 150 * 150;
-        mapObjects.forEach(m => {
-          if (m.userData.active === false) {
-            m.visible = false;
-            return;
+        // Optimización de Oclusión por Distancia de Objetos del Mapa (Ejecutada cada 8 frames para reducir impacto CPU dramáticamente)
+        animateFrameCount++;
+        if (animateFrameCount % 8 === 0) {
+          const maxMapDistSq = 150 * 150;
+          const camPos = camera.position;
+          for (let i = 0; i < mapObjects.length; i++) {
+            const m = mapObjects[i];
+            if (m.userData.active === false) {
+              m.visible = false;
+              continue;
+            }
+            const distSq = camPos.distanceToSquared(m.position);
+            const shouldBeVisible = distSq <= maxMapDistSq;
+            if (m.visible !== shouldBeVisible) {
+              m.visible = shouldBeVisible;
+            }
           }
-          const distSq = camera.position.distanceToSquared(m.position);
-          const shouldBeVisible = distSq <= maxMapDistSq;
-          if (m.visible !== shouldBeVisible) {
-            m.visible = shouldBeVisible;
-          }
-        });
+        }
 
         // ── BLUE HIGHLIGHT FOR TRANSFORMADORA ──
         let selectTarget = null;
@@ -6802,7 +7174,8 @@
         }
 
         // ── ANIMATE PROP MESH & ROTORS FOR OTHER PLAYERS ──
-        Object.values(otherPlayers).forEach(op => {
+        for (const id in otherPlayers) {
+          const op = otherPlayers[id];
           if (op.propMesh && op.propAnimStart) {
             const t = (Date.now() - op.propAnimStart) / 500;
             const scale = Math.min(1.0, 0.05 + 0.95 * t);
@@ -6815,7 +7188,7 @@
               }
             });
           }
-        });
+        }
 
         // ── ANIMATE LOCAL PROP MESH ──
         if (myPropState) {
@@ -7019,26 +7392,30 @@
         if (brState === 'none' && !dead && (keys['w'] || keys['a'] || keys['s'] || keys['d'])) camera.position.y += Math.sin(walkTime * 2) * .003;
 
         savedCamPos = null;
+        const _propBackVec = new THREE.Vector3();
+        const _propRaycaster = new THREE.Raycaster();
+        const _propRayStart = new THREE.Vector3();
         if (myPropState && !dead) {
           savedCamPos = camera.position.clone();
           const dist = 5.0;
-          const backVec = new THREE.Vector3(
+          _propBackVec.set(
             Math.sin(yaw) * Math.cos(pitch),
             -Math.sin(pitch),
             Math.cos(yaw) * Math.cos(pitch)
           ).normalize();
 
-          const rayStart = new THREE.Vector3(savedCamPos.x, savedCamPos.y, savedCamPos.z);
-          const cameraRay = new THREE.Raycaster(rayStart, backVec, 0, dist);
+          _propRayStart.copy(savedCamPos);
+          _propRaycaster.set(_propRayStart, _propBackVec);
+          _propRaycaster.far = dist;
           const activeObjs = mapObjects.filter(o => o.userData.active !== false && o.userData.solidCollision !== false);
-          const hits = cameraRay.intersectObjects(activeObjs, false);
+          const hits = _propRaycaster.intersectObjects(activeObjs, false);
 
           let targetDist = dist;
           if (hits.length > 0) {
             targetDist = Math.max(0.8, hits[0].distance - 0.3);
           }
 
-          camera.position.copy(rayStart).addScaledVector(backVec, targetDist);
+          camera.position.copy(_propRayStart).addScaledVector(_propBackVec, targetDist);
         }
 
         if (localPlayerEmoteMesh?.visible) localPlayerEmoteMesh.lookAt(camera.position.x, localPlayerEmoteMesh.position.y, camera.position.z);
@@ -7046,22 +7423,24 @@
 
         billboardAll();
 
-        Object.values(otherPlayers).forEach(op => {
-          if (!op.group.visible) return;
+        for (const id in otherPlayers) {
+          const op = otherPlayers[id];
+          if (!op.group.visible) continue;
           if (op.video && op.currentEmoteUrl) {
             const d = camera.position.distanceTo(op.group.position);
             op.video.volume = (emoteIsPlaying && myActiveEmote && op.data?.activeEmote && myActiveEmote.name === op.data.activeEmote.name) ? 0 : Math.max(0, Math.min(.7, 1 - (d / 45))) * .7;
           }
-        });
+        }
 
         let foundCand = null, foundInit = null;
         if (!inLobby && !dead && !emoteIsPlaying && !emoteWheel.classList.contains('active')) {
           let closest = 5.0;
-          Object.values(otherPlayers).forEach(op => {
-            if (op.dead || !op.group.visible || !op.data?.activeEmote?.name) return;
+          for (const id in otherPlayers) {
+            const op = otherPlayers[id];
+            if (op.dead || !op.group.visible || !op.data?.activeEmote?.name) continue;
             const d = camera.position.distanceTo(op.group.position);
             if (d < closest) { const eo = RAW_EMOTE_LIST.find(e => e.name === op.data.activeEmote.name); if (eo && getEmoteVideoForCharacter(eo, selectedSkinName)) { closest = d; foundCand = eo; foundInit = op; } }
-          });
+          }
         }
         closestSharedEmoteCandidate = foundCand; closestSharedEmoteInitiator = foundInit;
         const spe = document.getElementById('sharedEmotePrompt');
