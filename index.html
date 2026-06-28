@@ -7,6 +7,7 @@
   <title>Zone War – FPS Multijugador</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;800;900&display=swap');
+
     * {
       margin: 0;
       padding: 0;
@@ -2320,18 +2321,22 @@
     #propHuntInGameTeamSelect {
       transition: all 0.5s ease;
     }
+
     .ph-in-game-card {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
+
     .ph-in-game-card:hover {
       transform: translateY(-8px) scale(1.02);
       background: rgba(255, 255, 255, 0.06) !important;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5) !important;
     }
+
     .ph-in-game-card.props:hover {
       border-color: rgba(0, 255, 136, 0.8) !important;
       box-shadow: 0 20px 40px rgba(0, 255, 136, 0.15) !important;
     }
+
     .ph-in-game-card.hunters:hover {
       border-color: rgba(255, 68, 68, 0.8) !important;
       box-shadow: 0 20px 40px rgba(255, 68, 68, 0.15) !important;
@@ -2471,9 +2476,17 @@
       <div
         style="position:absolute; bottom:120px; right:40px; border-bottom:3px solid #00ffcc; border-right:3px solid #00ffcc; width:30px; height:30px;">
       </div>
-      <div
-        style="position:absolute; top:40px; left:90px; color:#00ffcc; font-family:'Courier New',monospace; font-size:12px; font-weight:bold; letter-spacing:2px;">
-        📶 SEÑAL: 98% | BATERÍA: 85%</div>
+      <!-- Dynamic signal + timer -->
+      <div style="position:absolute; top:40px; left:90px; font-family:'Courier New',monospace; font-size:12px; font-weight:bold; letter-spacing:2px;">
+        <span id="droneSignalText" style="color:#00ffcc;">📶 SEÑAL: 100%</span>
+        <div style="margin-top:5px; display:flex; align-items:center; gap:6px;">
+          <span style="color:#ffaa00; font-size:10px;">⏱ VIDA:</span>
+          <div style="width:110px; height:5px; background:rgba(0,0,0,0.5); border:1px solid rgba(255,170,0,0.4); border-radius:3px; overflow:hidden;">
+            <div id="droneBatteryBar" style="height:100%; width:100%; background:#00ffcc; border-radius:3px; transition:width 0.5s, background 0.3s;"></div>
+          </div>
+          <span id="droneBatteryText" style="color:#ffaa00; font-size:10px;">45s</span>
+        </div>
+      </div>
       <div
         style="position:absolute; top:40px; right:90px; color:#ff4444; font-family:'Courier New',monospace; font-size:12px; font-weight:bold; letter-spacing:2px;">
         DRON HP: <span id="droneHpText">50</span> / 50</div>
@@ -2498,34 +2511,48 @@
     </div>
 
     <!-- In-Game Prop Hunt Team Selection Overlay -->
-    <div id="propHuntInGameTeamSelect" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(6,6,10,0.85); z-index:99999; flex-direction:column; align-items:center; justify-content:center; backdrop-filter:blur(15px); pointer-events:auto; font-family:'Outfit', 'Segoe UI', system-ui, sans-serif;">
+    <div id="propHuntInGameTeamSelect"
+      style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(6,6,10,0.85); z-index:99999; flex-direction:column; align-items:center; justify-content:center; backdrop-filter:blur(15px); pointer-events:auto; font-family:'Outfit', 'Segoe UI', system-ui, sans-serif;">
       <!-- Title -->
-      <h2 style="color:#00ff88; font-size:24px; letter-spacing:4px; text-transform:uppercase; margin-bottom:40px; text-shadow:0 0 20px rgba(0,255,136,0.3); font-weight:900;">🎭 ELIGE TU EQUIPO</h2>
-      
+      <h2
+        style="color:#00ff88; font-size:24px; letter-spacing:4px; text-transform:uppercase; margin-bottom:40px; text-shadow:0 0 20px rgba(0,255,136,0.3); font-weight:900;">
+        🎭 ELIGE TU EQUIPO</h2>
+
       <!-- Cards Container -->
       <div style="display:flex; gap:30px; max-width:800px; width:90%; justify-content:center; flex-wrap:wrap;">
-        
+
         <!-- Props Card -->
-        <div id="phInGamePropsCard" class="ph-in-game-card props" style="flex:1; background:rgba(255,255,255,0.03); border:2px solid rgba(0,255,136,0.2); border-radius:20px; padding:35px 25px; text-align:center; cursor:pointer; display:flex; flex-direction:column; align-items:center; box-shadow:0 10px 30px rgba(0,0,0,0.3); min-width:250px;">
+        <div id="phInGamePropsCard" class="ph-in-game-card props"
+          style="flex:1; background:rgba(255,255,255,0.03); border:2px solid rgba(0,255,136,0.2); border-radius:20px; padding:35px 25px; text-align:center; cursor:pointer; display:flex; flex-direction:column; align-items:center; box-shadow:0 10px 30px rgba(0,0,0,0.3); min-width:250px;">
           <div style="font-size:64px; margin-bottom:20px; filter:drop-shadow(0 0 10px rgba(0,255,136,0.2));">🟢</div>
           <h3 style="color:#00ff88; font-size:28px; margin:0 0 15px 0; font-weight:800; letter-spacing:1px;">PROPS</h3>
-          <p style="color:#a0a5b5; font-size:14px; line-height:1.6; margin:0; flex-grow:1;">Transfórmate en cualquier objeto decorativo del mapa. ¡Muévete con sigilo, escóndete en lugares inesperados y sobrevive al tiempo límite!</p>
-          <div style="margin-top:25px; background:rgba(0,255,136,0.1); border:1px solid rgba(0,255,136,0.3); color:#00ff88; padding:10px 20px; border-radius:30px; font-weight:bold; font-size:13px; text-transform:uppercase; letter-spacing:1px; width:80%;">Unirse como Prop</div>
+          <p style="color:#a0a5b5; font-size:14px; line-height:1.6; margin:0; flex-grow:1;">Transfórmate en cualquier
+            objeto decorativo del mapa. ¡Muévete con sigilo, escóndete en lugares inesperados y sobrevive al tiempo
+            límite!</p>
+          <div
+            style="margin-top:25px; background:rgba(0,255,136,0.1); border:1px solid rgba(0,255,136,0.3); color:#00ff88; padding:10px 20px; border-radius:30px; font-weight:bold; font-size:13px; text-transform:uppercase; letter-spacing:1px; width:80%;">
+            Unirse como Prop</div>
         </div>
 
         <!-- Hunters Card -->
-        <div id="phInGameHuntersCard" class="ph-in-game-card hunters" style="flex:1; background:rgba(255,255,255,0.03); border:2px solid rgba(255,68,68,0.2); border-radius:20px; padding:35px 25px; text-align:center; cursor:pointer; display:flex; flex-direction:column; align-items:center; box-shadow:0 10px 30px rgba(0,0,0,0.3); min-width:250px;">
+        <div id="phInGameHuntersCard" class="ph-in-game-card hunters"
+          style="flex:1; background:rgba(255,255,255,0.03); border:2px solid rgba(255,68,68,0.2); border-radius:20px; padding:35px 25px; text-align:center; cursor:pointer; display:flex; flex-direction:column; align-items:center; box-shadow:0 10px 30px rgba(0,0,0,0.3); min-width:250px;">
           <div style="font-size:64px; margin-bottom:20px; filter:drop-shadow(0 0 10px rgba(255,68,68,0.2));">🔴</div>
-          <h3 style="color:#ff4444; font-size:28px; margin:0 0 15px 0; font-weight:800; letter-spacing:1px;">HUNTERS</h3>
-          <p style="color:#a0a5b5; font-size:14px; line-height:1.6; margin:0; flex-grow:1;">Busca y elimina a los Props impostores usando tus armas. ¡Pero ten cuidado! Disparar a objetos reales te restará salud.</p>
-          <div style="margin-top:25px; background:rgba(255,68,68,0.1); border:1px solid rgba(255,68,68,0.3); color:#ff4444; padding:10px 20px; border-radius:30px; font-weight:bold; font-size:13px; text-transform:uppercase; letter-spacing:1px; width:80%;">Unirse como Cazador</div>
+          <h3 style="color:#ff4444; font-size:28px; margin:0 0 15px 0; font-weight:800; letter-spacing:1px;">HUNTERS
+          </h3>
+          <p style="color:#a0a5b5; font-size:14px; line-height:1.6; margin:0; flex-grow:1;">Busca y elimina a los Props
+            impostores usando tus armas. ¡Pero ten cuidado! Disparar a objetos reales te restará salud.</p>
+          <div
+            style="margin-top:25px; background:rgba(255,68,68,0.1); border:1px solid rgba(255,68,68,0.3); color:#ff4444; padding:10px 20px; border-radius:30px; font-weight:bold; font-size:13px; text-transform:uppercase; letter-spacing:1px; width:80%;">
+            Unirse como Cazador</div>
         </div>
 
       </div>
     </div>
 
     <div id="brJumpPrompt">Presiona <span class="key">E</span> para lanzarte</div>
-    <div id="phJumpPrompt" style="display:none; position:absolute; bottom:120px; left:50%; transform:translateX(-50%); background:rgba(10,10,15,0.85); border:1px solid rgba(0,255,136,0.3); border-radius:10px; padding:12px 24px; color:#fff; font-family:'Courier New', monospace; font-size:12px; font-weight:bold; letter-spacing:2px; text-align:center; box-shadow:0 0 20px rgba(0,255,136,0.15); backdrop-filter:blur(8px); pointer-events:none; z-index:10;">
+    <div id="phJumpPrompt"
+      style="display:none; position:absolute; bottom:120px; left:50%; transform:translateX(-50%); background:rgba(10,10,15,0.85); border:1px solid rgba(0,255,136,0.3); border-radius:10px; padding:12px 24px; color:#fff; font-family:'Courier New', monospace; font-size:12px; font-weight:bold; letter-spacing:2px; text-align:center; box-shadow:0 0 20px rgba(0,255,136,0.15); backdrop-filter:blur(8px); pointer-events:none; z-index:10;">
       Lobby de espera<br><span style="font-size:11px;color:#aaa">Esperando jugadores...</span>
     </div>
     <div id="brAltitude">ALT: 50m</div>
@@ -2772,14 +2799,19 @@
     let trajectoryLine = null;
     // Drone inertia / physics
     let droneVelX = 0, droneVelY = 0, droneVelZ = 0;
-    const DRONE_ACCEL = 0.030;  // aceleración por frame
-    const DRONE_MAX_SPEED = 0.38;   // velocidad horizontal máxima
-    const DRONE_FRICTION = 0.95;   // rozamiento suave (como auto - antes 0.82 frenaba muy rápido)
-    const DRONE_VERT_ACCEL = 0.020;  // aceleración vertical
-    const DRONE_MAX_VERT = 0.28;   // velocidad vertical máxima
-    const DRONE_WARN_RANGE = 40;     // desde aquí empieza la interferencia
-    const DRONE_MAX_RANGE = 50;     // señal perdida aquí
+    const DRONE_ACCEL = 0.025;        // aceleración horizontal por frame
+    const DRONE_MAX_SPEED = 0.32;     // velocidad horizontal máxima
+    const DRONE_FRICTION = 0.88;      // rozamiento horizontal (frenado más rápido)
+    const DRONE_VERT_ACCEL = 0.018;   // aceleración vertical
+    const DRONE_MAX_VERT = 0.22;      // velocidad vertical máxima
+    const DRONE_GRAVITY = 0.005;      // gravedad pasiva (cae si no subes)
+    const DRONE_VERT_FRICTION = 0.90; // fricción vertical
+    let droneHoverTime = 0;           // para efecto bobbing
+    const DRONE_WARN_RANGE = 46;      // interferencia empieza a 46m
+    const DRONE_MAX_RANGE = 50;       // señal perdida a 50m
+    const DRONE_LIFETIME = 45000;     // vida del dron en ms (45 segundos)
     let droneSignalLost = false;
+    let droneStartTime = 0;           // timestamp cuando se lanzó el dron
     let droneAiming = false;          // modo apuntar con click derecho en dron
     let droneTargetedId = null;       // id jugador objetivo en la mira
     let propHuntTeam = 'props';       // 'props' o 'hunters'
@@ -2904,7 +2936,7 @@
       localStorage.setItem('zw_propHuntTeam', t);
       isPropHuntTeamSelectActive = false;
       hasSelectedTeamThisMatch = true;
-      
+
       const teamSelectModal = document.getElementById('propHuntInGameTeamSelect');
       if (teamSelectModal) {
         teamSelectModal.style.display = 'none';
@@ -3846,7 +3878,7 @@
 
       function updatePropHuntLobbyPrompt() {
         if (gameMode !== 'propHunt' && !(gameMode === 'custom' && window._activeCustomRoom?.mode === 'propHunt')) return;
-        
+
         const phPrompt = document.getElementById('phJumpPrompt');
         if (!phPrompt) return;
 
@@ -3869,7 +3901,7 @@
 
       function updateInGameTeamSelectUI() {
         if (!isPropHuntTeamSelectActive) return;
-        
+
         const propsCard = document.getElementById('phInGamePropsCard');
         const huntersCard = document.getElementById('phInGameHuntersCard');
         if (!propsCard || !huntersCard) return;
@@ -4467,8 +4499,9 @@
         dronePitch = pitch;
         droneVelX = 0; droneVelY = 0; droneVelZ = 0; // reset inertia
         droneSignalLost = false;
-        droneAudio = new Audio('soidodron.mp3');
-        droneAudio.loop = true;
+        droneStartTime = Date.now();
+        droneAudio = new Audio('https://raw.githubusercontent.com/yoyoyogogo/png/main/dron.mp3');
+        droneAudio.loop = false; // no loop — dura exactamente 45s
         droneAudio.volume = 0.5;
         droneAudio.play().catch(() => { });
 
@@ -4539,13 +4572,14 @@
 
       function moveDrone() {
         if (!inDroneMode || !droneMesh) return;
-        if (droneSignalLost) return; // señal perdida, no mover
+        if (droneSignalLost) return;
 
         const fwd = new THREE.Vector3(-Math.sin(droneYaw), 0, -Math.cos(droneYaw));
         const rgt = new THREE.Vector3(-Math.cos(droneYaw), 0, Math.sin(droneYaw));
 
-        // ── ACELERACIÓN HORIZONTAL (inertia) ──
+        // ── ACELERACIÓN HORIZONTAL ──
         let ax = 0, az = 0;
+        const movingH = keys['w'] || keys['s'] || keys['a'] || keys['d'];
         if (keys['w']) { ax += fwd.x * DRONE_ACCEL; az += fwd.z * DRONE_ACCEL; }
         if (keys['s']) { ax -= fwd.x * DRONE_ACCEL; az -= fwd.z * DRONE_ACCEL; }
         if (keys['a']) { ax += rgt.x * DRONE_ACCEL; az += rgt.z * DRONE_ACCEL; }
@@ -4561,40 +4595,100 @@
           droneVelX *= sc; droneVelZ *= sc;
         }
 
-        // ── ACELERACIÓN VERTICAL ──
-        if (keys[' ']) droneVelY = Math.min(droneVelY + DRONE_VERT_ACCEL, DRONE_MAX_VERT);
-        else if (keys['shift']) droneVelY = Math.max(droneVelY - DRONE_VERT_ACCEL, -DRONE_MAX_VERT);
-        else droneVelY *= DRONE_FRICTION; // frenar vertical si no hay input
+        // ── ACELERACIÓN VERTICAL con gravedad real ──
+        const goingUp   = keys[' '];
+        const goingDown = keys['shift'];
+        if (goingUp) {
+          droneVelY = Math.min(droneVelY + DRONE_VERT_ACCEL, DRONE_MAX_VERT);
+        } else if (goingDown) {
+          droneVelY = Math.max(droneVelY - DRONE_VERT_ACCEL, -DRONE_MAX_VERT);
+        } else {
+          // Gravedad pasiva: el dron cae lentamente si no haces nada
+          droneVelY = (droneVelY - DRONE_GRAVITY) * DRONE_VERT_FRICTION;
+        }
 
         // ── APLICAR MOVIMIENTO con colisión ──
         const prevPos = droneMesh.position.clone();
 
         droneMesh.position.x += droneVelX;
-        if (checkDroneCollision(droneMesh.position)) { droneMesh.position.x = prevPos.x; droneVelX *= -0.2; }
+        if (checkDroneCollision(droneMesh.position)) { droneMesh.position.x = prevPos.x; droneVelX *= -0.15; }
 
         droneMesh.position.y += droneVelY;
-        if (checkDroneCollision(droneMesh.position)) { droneMesh.position.y = prevPos.y; droneVelY *= -0.2; }
+        if (checkDroneCollision(droneMesh.position)) { droneMesh.position.y = prevPos.y; droneVelY *= -0.1; }
 
         droneMesh.position.z += droneVelZ;
-        if (checkDroneCollision(droneMesh.position)) { droneMesh.position.z = prevPos.z; droneVelZ *= -0.2; }
+        if (checkDroneCollision(droneMesh.position)) { droneMesh.position.z = prevPos.z; droneVelZ *= -0.15; }
 
         // Suelo
         const gh = getGroundHeight(droneMesh.position.x, droneMesh.position.z);
         const floorY = gh === -2 ? 0 : gh;
         if (droneMesh.position.y < floorY + 0.3) {
           droneMesh.position.y = floorY + 0.3;
-          droneVelY = 0;
+          if (droneVelY < 0) droneVelY = 0;
         }
 
-        // Inclinación visual del dron según velocidad
-        droneMesh.rotation.z = -droneVelX * 1.8;
-        droneMesh.rotation.x = droneVelZ * 1.8;
+        // ── INCLINACIÓN VISUAL (suave con lerp) ──
+        const targetTiltZ = -droneVelX * 3.5;
+        const targetTiltX = droneVelZ * 3.5;
+        droneMesh.rotation.z += (targetTiltZ - droneMesh.rotation.z) * 0.18;
+        droneMesh.rotation.x += (targetTiltX - droneMesh.rotation.x) * 0.18;
+
+        // Bobbing suave cuando hovering quieto
+        const isHovering = !movingH && !goingUp && !goingDown;
+        if (isHovering) {
+          droneHoverTime += 0.04;
+          droneMesh.position.y += Math.sin(droneHoverTime) * 0.004;
+        } else {
+          droneHoverTime = 0;
+        }
+
+        // ── AUDIO DINÁMICO según velocidad vertical ──
+        if (droneAudio) {
+          if (goingUp) {
+            // Subiendo: más alto y más rápido
+            droneAudio.volume       = Math.min(1.0, 0.5 + droneVelY * 2.5);
+            droneAudio.playbackRate = Math.min(1.6, 1.0 + droneVelY * 2.0);
+          } else if (goingDown) {
+            // Bajando: más suave y más lento
+            droneAudio.volume       = Math.max(0.15, 0.5 + droneVelY * 1.5);
+            droneAudio.playbackRate = Math.max(0.6,  1.0 + droneVelY * 1.5);
+          } else {
+            // Hovering: volver gradualmente a valores normales
+            droneAudio.volume       += (0.5 - droneAudio.volume)       * 0.05;
+            droneAudio.playbackRate += (1.0 - droneAudio.playbackRate) * 0.05;
+          }
+        }
+
+        // ── VIDA / TEMPORIZADOR ──
+        const now = Date.now();
+        const elapsed = now - droneStartTime;
+        const lifeLeft = Math.max(0, DRONE_LIFETIME - elapsed);
+        const lifePct  = lifeLeft / DRONE_LIFETIME;
+
+        const battBar  = document.getElementById('droneBatteryBar');
+        const battText = document.getElementById('droneBatteryText');
+        if (battBar) {
+          battBar.style.width = (lifePct * 100).toFixed(1) + '%';
+          battBar.style.background = lifePct > 0.4 ? '#00ffcc' : lifePct > 0.2 ? '#ffaa00' : '#ff4444';
+        }
+        if (battText) battText.textContent = Math.ceil(lifeLeft / 1000) + 's';
+
+        if (lifeLeft <= 0 && !droneSignalLost) {
+          destroyDrone(true);
+          return;
+        }
 
         // ── RANGO / SEÑAL ──
         const currentDist = droneMesh.position.distanceTo(playerPhysicalPos);
+        // Señal basada en distancia: 100% cerca, 0% en max range
+        const signalPct = Math.max(0, Math.round((1 - currentDist / DRONE_MAX_RANGE) * 100));
+        const signalEl  = document.getElementById('droneSignalText');
+        if (signalEl) {
+          signalEl.textContent = '📶 SEÑAL: ' + signalPct + '%';
+          signalEl.style.color = signalPct > 50 ? '#00ffcc' : signalPct > 25 ? '#ffaa00' : '#ff4444';
+        }
 
         if (currentDist >= DRONE_MAX_RANGE && !droneSignalLost) {
-          // SEÑAL PERDIDA: detener dron y regresar cámara
           droneSignalLost = true;
           droneVelX = droneVelY = droneVelZ = 0;
 
@@ -4603,14 +4697,12 @@
           if (glitch) { glitch.classList.add('active'); glitch.style.opacity = '1'; }
           if (lostEl) { lostEl.style.display = 'flex'; }
 
-          // Detener sonido del dron inmediatamente
           if (droneAudio) { droneAudio.pause(); droneAudio = null; }
 
-          // Esperar 1.8 s y destruir dron CON EXPLOSION
           setTimeout(() => {
             if (glitch) { glitch.style.opacity = '0'; setTimeout(() => glitch.classList.remove('active'), 300); }
             if (lostEl) { lostEl.style.display = 'none'; }
-            destroyDrone(true);  // EXPLOTA al perder señal
+            destroyDrone(true);
             droneSignalLost = false;
           }, 1800);
           return;
@@ -4628,10 +4720,10 @@
         // ── HUD RANGO ──
         const rangePct = Math.min(currentDist / DRONE_MAX_RANGE, 1.0);
         const rangeText = document.getElementById('droneRangeText');
-        const rangeMax = document.getElementById('droneRangeMax');
-        const rangeBar = document.getElementById('droneRangeBar');
+        const rangeMax  = document.getElementById('droneRangeMax');
+        const rangeBar  = document.getElementById('droneRangeBar');
         if (rangeText) rangeText.textContent = currentDist.toFixed(0) + 'm';
-        if (rangeMax) rangeMax.textContent = DRONE_MAX_RANGE + 'm';
+        if (rangeMax)  rangeMax.textContent  = DRONE_MAX_RANGE + 'm';
         if (rangeBar) {
           rangeBar.style.width = (rangePct * 100).toFixed(1) + '%';
           const inWarnZone = currentDist >= DRONE_WARN_RANGE;
@@ -4643,6 +4735,8 @@
         yaw = droneYaw;
         pitch = dronePitch;
       }
+
+
 
       function shootDrone() {
         if (dead || !inDroneMode || !droneMesh) return;
@@ -4880,6 +4974,8 @@
             }
 
             mesh.position.set(b.x || 0, b.y != null ? b.y : (b.h / 2 - 2), b.z || 0);
+            if (b.rotation !== undefined) mesh.rotation.y = b.rotation;
+            if (b.scale !== undefined) mesh.scale.set(b.scale, b.scale, b.scale);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
             if (b.groupId) mesh.userData.groupId = b.groupId;
@@ -4971,6 +5067,7 @@
         if (op.emoteIconMesh) { op.emoteIconMesh.material.dispose(); }
         if (op.video) { op.video.pause(); op.video.src = ''; op.videoTexture.dispose(); }
         if (op.droneMesh) { scene.remove(op.droneMesh); }
+        if (op.droneAudio) { op.droneAudio.pause(); op.droneAudio = null; }
         if (op.propMesh) { op.group.remove(op.propMesh); }
         delete otherPlayers[id];
       }
@@ -5095,6 +5192,11 @@
               if (!op.droneMesh) {
                 op.droneMesh = createDroneMesh3D();
                 scene.add(op.droneMesh);
+                // Start drone sound for this other player
+                op.droneAudio = new Audio('https://raw.githubusercontent.com/yoyoyogogo/png/main/dron.mp3');
+                op.droneAudio.loop = true;
+                op.droneAudio.volume = 0;
+                op.droneAudio.play().catch(() => { });
               }
               op.droneMesh.position.set(p.drone.x, p.drone.y, p.drone.z);
               op.droneMesh.rotation.y = p.drone.yaw || 0;
@@ -5102,10 +5204,19 @@
               if (body) body.rotation.x = p.drone.pitch || 0;
               const rotors = op.droneMesh.userData.rotors || [];
               rotors.forEach(r => r.rotation.y += 0.4);
+              // Update 3D positional volume based on distance
+              if (op.droneAudio) {
+                const droneDist = camera.position.distanceTo(op.droneMesh.position);
+                op.droneAudio.volume = Math.max(0, Math.min(0.7, 0.7 - droneDist * 0.018));
+              }
             } else {
               if (op.droneMesh) {
                 scene.remove(op.droneMesh);
                 op.droneMesh = null;
+              }
+              if (op.droneAudio) {
+                op.droneAudio.pause();
+                op.droneAudio = null;
               }
             }
 
@@ -6022,7 +6133,7 @@
 
         // 5. Draw player arrow
         if (mapExpanded) drawPlayerArrow(ctx, camera.position.x * scale, camera.position.z * scale, -yaw);
-        else drawPlayerArrow(ctx, 0, 0, 0);
+        else drawPlayerArrow(ctx, 0, 0, yaw);
 
         // 6. Draw marker
         if (myMarker) {
@@ -6366,17 +6477,15 @@
       /* ── MOVEMENT ── */
       function checkPlayerCollision(pos) {
         const pb = new THREE.Box3(new THREE.Vector3(pos.x - .4, pos.y - 1.5, pos.z - .4), new THREE.Vector3(pos.x + .4, pos.y + .3, pos.z + .4));
-        return mapObjects.some(b => {
-          if (b.userData.active === false) return false;
-          if (!b.userData.bbox) return false;
-          // Skip objects that are destructible-only (no physical collision)
-          if (b.userData.solidCollision === false) return false;
-          const size = b.userData.bbox.getSize(new THREE.Vector3());
-          const maxDim = Math.max(size.x, size.z);
-          const limit = maxDim / 2 + 3;
-          if (b.position.distanceToSquared(pos) > limit * limit) return false;
-          return pb.intersectsBox(b.userData.bbox);
-        });
+        for (let i = 0; i < mapObjects.length; i++) {
+          const b = mapObjects[i];
+          if (b.userData.active === false) continue;
+          if (b.userData.solidCollision === false) continue;
+          if (b.userData.bbox && pb.intersectsBox(b.userData.bbox)) {
+            return true;
+          }
+        }
+        return false;
       }
 
       function movePlayer() {

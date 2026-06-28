@@ -1101,6 +1101,10 @@
           <option value="2.0">2.0x</option>
           <option value="2.5">2.5x</option>
           <option value="3.0">3.0x</option>
+          <option value="5.0">5.0x</option>
+          <option value="6.0">6.0x</option>
+          <option value="7.0">7.0x</option>
+          <option value="10.0">10.0x</option>
           <option value="0.5">0.5x</option>
         </select>
       </div>
@@ -1220,6 +1224,10 @@
                 <option value="2.0">2.0x</option>
                 <option value="2.5">2.5x</option>
                 <option value="3.0">3.0x</option>
+                <option value="5.0">5.0x</option>
+                <option value="6.0">6.0x</option>
+                <option value="7.0">7.0x</option>
+                <option value="10.0">10.0x</option>
                 <option value="0.5">0.5x</option>
               </select>
             </div>
@@ -2139,25 +2147,46 @@
         // Transform normal to world space
         normal.transformDirection(hit.object.matrixWorld);
 
-        const bw = parseInt(document.getElementById('blockW').value) || 2;
-        const bh = parseInt(document.getElementById('blockH').value) || 2;
-        const bd = parseInt(document.getElementById('blockD').value) || 2;
+        const type = document.getElementById('blockType')?.value || 'block';
+        const isModel = (type === 'chair' || type === 'custom_model');
+        const scaleVal = parseFloat(document.getElementById('blockScale')?.value) || 1.0;
+
+        let w, h, d;
+        if (isModel) {
+          if (type === 'chair') {
+            w = 1 * scaleVal;
+            h = 1.5 * scaleVal;
+            d = 1 * scaleVal;
+          } else {
+            w = 2 * scaleVal;
+            h = 2 * scaleVal;
+            d = 2 * scaleVal;
+          }
+        } else {
+          w = parseInt(document.getElementById('blockW').value) || 2;
+          h = parseInt(document.getElementById('blockH').value) || 2;
+          d = parseInt(document.getElementById('blockD').value) || 2;
+        }
 
         const nx = normal.x, ny = normal.y, nz = normal.z;
         let px, py, pz;
 
         if (Math.abs(ny) > 0.5) {
           px = Math.round(hit.point.x);
-          py = hit.point.y + (ny > 0 ? bh / 2 : -bh / 2);
+          if (isModel) {
+            py = hit.point.y + (ny > 0 ? 0 : -h);
+          } else {
+            py = hit.point.y + (ny > 0 ? h / 2 : -h / 2);
+          }
           pz = Math.round(hit.point.z);
         } else if (Math.abs(nx) > 0.5) {
-          px = hit.point.x + (nx > 0 ? bw / 2 : -bw / 2);
+          px = hit.point.x + (nx > 0 ? w / 2 : -w / 2);
           py = Math.round(hit.point.y);
           pz = Math.round(hit.point.z);
         } else {
           px = Math.round(hit.point.x);
           py = Math.round(hit.point.y);
-          pz = hit.point.z + (nz > 0 ? bd / 2 : -bd / 2);
+          pz = hit.point.z + (nz > 0 ? d / 2 : -d / 2);
         }
 
         px = Math.round(px);
@@ -2241,7 +2270,7 @@
         // Bounding box collider (custom model: 2x2x2 by default)
         const colliderGeo = new THREE.BoxGeometry(2, 2, 2);
         const collider = new THREE.Mesh(colliderGeo, colliderMat);
-        collider.position.set(0, 0, 0);
+        collider.position.set(0, 1, 0);
         collider.name = "collider";
         mesh.add(collider);
 
@@ -2852,7 +2881,7 @@
           if (mesh) {
             const colliderGeo = new THREE.BoxGeometry(d.w || 2, d.h || 2, d.d || 2);
             const collider = new THREE.Mesh(colliderGeo, colliderMat);
-            collider.position.set(0, 0, 0);
+            collider.position.set(0, (d.h || 2) / 2, 0);
             collider.name = "collider";
             mesh.add(collider);
           }
@@ -3385,7 +3414,7 @@
               const d_ = d.d || 2;
               const colliderGeo = new THREE.BoxGeometry(w, h, d_);
               const collider = new THREE.Mesh(colliderGeo, colliderMat);
-              collider.position.set(0, 0, 0);
+              collider.position.set(0, h / 2, 0);
               collider.name = "collider";
               mesh.add(collider);
               const blockData = {
@@ -3393,8 +3422,8 @@
                 type: 'custom_model',
                 rotation: d.rotation || 0,
                 scale: d.scale || 1,
-                collision: false,
-                destructible: false
+                collision: solid,
+                destructible: dest
               };
               const blockObj = { mesh, data: blockData };
               blockObj.raycastMesh = collider;
@@ -3678,7 +3707,7 @@
                 const d_ = b.d || 2;
                 const colliderGeo = new THREE.BoxGeometry(w, h, d_);
                 const collider = new THREE.Mesh(colliderGeo, colliderMat);
-                collider.position.set(0, 0, 0);
+                collider.position.set(0, h / 2, 0);
                 collider.name = "collider";
                 mesh.add(collider);
                 const blockData = {
@@ -3690,8 +3719,8 @@
                   modelName: b.modelName || 'Modelo IA',
                   rotation: b.rotation || 0,
                   scale: b.scale || 1,
-                  collision: false,
-                  destructible: false,
+                  collision: solid,
+                  destructible: b.destructible === true,
                   transformable: b.transformable !== false
                 };
                 if (b.groupId) blockData.groupId = b.groupId;
