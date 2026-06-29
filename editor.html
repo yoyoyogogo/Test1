@@ -921,6 +921,35 @@
       box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4) inset;
     }
 
+    /* ═══════ NEXTBOT ITEM CARDS ═══════ */
+    .nb-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(124, 58, 237, 0.06);
+      border: 1px solid rgba(124, 58, 237, 0.2);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+    .nb-item-img {
+      width: 28px; height: 28px;
+      border-radius: 4px;
+      object-fit: contain;
+      background: rgba(0,0,0,0.3);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .nb-item-img img { width: 100%; height: 100%; object-fit: contain; border-radius: 4px; }
+    .nb-item-info { flex: 1; min-width: 0; }
+    .nb-item-name { color: #c084fc; font-weight: bold; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+    .nb-item-sub { color: #667; font-size: 9px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+    .nb-item-actions { display: flex; gap: 3px; }
+    .nb-item-btn { background: none; border: none; color: #888; cursor: pointer; padding: 2px 4px; font-size: 11px; border-radius: 2px; }
+    .nb-item-btn:hover { color: #ff4444; background: rgba(255,68,68,0.1); }
+
     /* ═══════ NEXTBOT MODAL ═══════ */
     #nextbotModal {
       position: fixed;
@@ -1408,12 +1437,7 @@
         <label>Bots</label>
         <input type="number" id="botsCount" value="0" min="0" max="20" step="1">
       </div>
-      <div style="margin-top: 8px;">
-        <button onclick="openNextbotModal()"
-          style="width:100%;padding:7px 0;background:linear-gradient(135deg,#1a0a2e,#2a0a4a);border:1px solid #7c3aed44;border-radius:8px;color:#c084fc;font-family:monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;"
-          onmouseover="this.style.borderColor='#7c3aed';this.style.color='#e879f9'"
-          onmouseout="this.style.borderColor='#7c3aed44';this.style.color='#c084fc'">🤖 Configurar Nextbot</button>
-      </div>
+
     </div>
 
     <div class="panel">
@@ -1452,8 +1476,10 @@
           <option value="plane_start">✈️ Ruta Inicio</option>
           <option value="plane_end">🛬 Ruta Fin</option>
           <option value="airdrop_spawn">📦 Spawn Airdrop</option>
+          <option value="nextbot_spawn">🤖 Spawn Nextbot</option>
           <option value="chair">🪑 Silla</option>
           <option value="custom_model" style="display:none">🧩 Modelo IA</option>
+          <option value="nb_index_placeholder" style="display:none">nb_index</option>
         </select>
       </div>
       <div class="row">
@@ -1566,6 +1592,7 @@
             <option value="plane_start">✈️ Ruta Inicio</option>
             <option value="plane_end">🛬 Ruta Fin</option>
             <option value="airdrop_spawn">📦 Spawn Airdrop</option>
+            <option value="nextbot_spawn">🤖 Spawn Nextbot</option>
           </select>
         </div>
 
@@ -1713,6 +1740,15 @@
       <button class="btn btn-secondary" onclick="loadMapFromFirebase()">🔄 Cargar de Firebase</button>
       <button class="btn btn-secondary" onclick="exportJSON()">📋 Exportar JSON</button>
       <button class="btn btn-secondary" onclick="importJSON()">📥 Importar JSON</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">🤖 Nextbots</div>
+      <div id="nextbotsList"
+        style="max-height: 200px; overflow-y: auto; margin-bottom: 8px; display: flex; flex-direction: column; gap: 4px; padding-right: 2px;">
+        <div style="color: #667; font-size: 10px; text-align: center; padding: 8px 0;">Sin nextbots. Añade uno.</div>
+      </div>
+      <button class="btn btn-secondary" onclick="openNextbotModal(-1)" style="background:linear-gradient(135deg,#1a0a2e,#2a0a4a);border-color:#7c3aed44;color:#c084fc;">+ Nuevo Nextbot</button>
     </div>
 
     <div class="panel">
@@ -2436,7 +2472,39 @@
           transformableRow.style.opacity = '0.5';
           transformableRow.style.pointerEvents = 'none';
         }
+        // hide nextbot selector
+        const nbSel = document.getElementById('nbSpawnSelect');
+        if (nbSel) nbSel.parentElement.style.display = 'none';
+      } else if (type === 'nextbot_spawn') {
+        colorInput.value = '#c084fc';
+        colorInput.disabled = true;
+        colorPresets.style.pointerEvents = 'none';
+        colorPresets.style.opacity = '0.5';
+        collisionRow.style.opacity = '0.5';
+        collisionRow.style.pointerEvents = 'none';
+        document.getElementById('blockCollision').checked = false;
+        document.getElementById('blockDestructible').checked = false;
+        destructibleRow.style.opacity = '0.5';
+        destructibleRow.style.pointerEvents = 'none';
+        document.getElementById('blockTransformable').checked = false;
+        if (transformableRow) {
+          transformableRow.style.opacity = '0.5';
+          transformableRow.style.pointerEvents = 'none';
+        }
+        // show nextbot selector
+        let nbSel = document.getElementById('nbSpawnSelect');
+        if (!nbSel) {
+          const row = document.createElement('div');
+          row.className = 'row'; row.id = 'nbSpawnRow';
+          row.innerHTML = '<label>Nextbot</label><select id="nbSpawnSelect" style="font-size:10px;"></select>';
+          document.getElementById('blockType').parentElement.parentElement.insertBefore(row, document.getElementById('blockType').parentElement.nextSibling);
+          nbSel = document.getElementById('nbSpawnSelect');
+        }
+        updateNbSpawnSelect();
+        document.getElementById('nbSpawnRow').style.display = 'flex';
       } else if (type === 'chair') {
+        const nbSel2 = document.getElementById('nbSpawnRow');
+        if (nbSel2) nbSel2.style.display = 'none';
         colorInput.disabled = false;
         colorPresets.style.pointerEvents = 'auto';
         colorPresets.style.opacity = '1.0';
@@ -2497,6 +2565,7 @@
       if (type === 'plane_start') col = '#ffaa00';
       if (type === 'plane_end') col = '#00ffff';
       if (type === 'airdrop_spawn') col = '#ffe600';
+      if (type === 'nextbot_spawn') col = '#c084fc';
 
       scene.remove(ghostMesh);
 
@@ -2702,6 +2771,7 @@
       if (type === 'plane_start') col = '#ffaa00';
       if (type === 'plane_end') col = '#00ffff';
       if (type === 'airdrop_spawn') col = '#ffe600';
+      if (type === 'nextbot_spawn') col = '#c084fc';
 
       const rotDeg = parseInt(document.getElementById('blockRotation')?.value) || 0;
       const rotRad = (rotDeg * Math.PI) / 180;
@@ -2715,6 +2785,10 @@
         rotation: rotRad,
         scale: scaleVal
       };
+      if (type === 'nextbot_spawn') {
+        const nbSpawnSel = document.getElementById('nbSpawnSelect');
+        data.nbIndex = nbSpawnSel ? parseInt(nbSpawnSel.value) || 0 : 0;
+      }
 
       // ── Chair: place as 3D Group ──
       if (type === 'chair') {
@@ -2760,6 +2834,8 @@
           mat = new THREE.MeshPhongMaterial({ color: 0x00ffff, transparent: true, opacity: 0.6 });
         } else if (type === 'airdrop_spawn') {
           mat = new THREE.MeshPhongMaterial({ color: 0xffe600, transparent: true, opacity: 0.6 });
+        } else if (type === 'nextbot_spawn') {
+          mat = new THREE.MeshPhongMaterial({ color: 0xc084fc, transparent: true, opacity: 0.6 });
         } else {
           if (solid) {
             mat = getCachedMaterial(col);
@@ -3290,6 +3366,7 @@
           if (type === 'plane_start') col = '#ffaa00';
           if (type === 'plane_end') col = '#00ffff';
           if (type === 'airdrop_spawn') col = '#ffe600';
+          if (type === 'nextbot_spawn') col = '#c084fc';
 
           b.mesh.material.dispose();
           if (type === 'spawn_red') {
@@ -3302,6 +3379,8 @@
             b.mesh.material = new THREE.MeshPhongMaterial({ color: 0x00ffff, transparent: true, opacity: 0.6 });
           } else if (type === 'airdrop_spawn') {
             b.mesh.material = new THREE.MeshPhongMaterial({ color: 0xffe600, transparent: true, opacity: 0.6 });
+          } else if (type === 'nextbot_spawn') {
+            b.mesh.material = new THREE.MeshPhongMaterial({ color: 0xc084fc, transparent: true, opacity: 0.6 });
           } else {
             b.mesh.material = new THREE.MeshPhongMaterial({
               color: new THREE.Color(col),
@@ -3766,9 +3845,9 @@
         blocks: {},
         botsCount: parseInt(document.getElementById('botsCount').value) || 0
       };
-      // Attach Nextbot config if set
-      if (window._nextbotConfig && window._nextbotConfig.name) {
-        mapData.nextbot = window._nextbotConfig;
+      // Attach Nextbots array
+      if (window._nextbots && window._nextbots.length > 0) {
+        mapData.nextbots = window._nextbots;
       }
       blocks.forEach((b, i) => {
         const d = b.data;
@@ -3785,6 +3864,7 @@
         if (d.groupId) entry.groupId = d.groupId;
         if (d.rotation !== undefined) entry.rotation = d.rotation;
         if (d.scale !== undefined) entry.scale = d.scale;
+        if (d.nbIndex !== undefined) entry.nbIndex = d.nbIndex;
         // Preserve custom model code
         if (d.type === 'custom_model' && d.modelCode) {
           entry.modelCode = d.modelCode;
@@ -3815,8 +3895,8 @@
         botsCount: parseInt(document.getElementById('botsCount').value) || 0,
         blocks: blocks.map(b => b.data)
       };
-      if (window._nextbotConfig && window._nextbotConfig.name) {
-        data.nextbot = window._nextbotConfig;
+      if (window._nextbots && window._nextbots.length > 0) {
+        data.nextbots = window._nextbots;
       }
       const json = JSON.stringify(data, null, 2);
       navigator.clipboard.writeText(json).then(() => {
@@ -3841,16 +3921,16 @@
         }
         document.getElementById('floorW').value = floorW;
         document.getElementById('floorD').value = floorD;
-        // Restore Nextbot config
-        if (data.nextbot) {
-          window._nextbotConfig = data.nextbot;
-          document.getElementById('nbName').value = data.nextbot.name || '';
-          document.getElementById('nbImageUrl').value = data.nextbot.imageUrl || '';
-          document.getElementById('nbMusicUrl').value = data.nextbot.musicUrl || '';
-          updateNbPreview();
+        // Restore Nextbots array
+        if (data.nextbots && Array.isArray(data.nextbots)) {
+          window._nextbots = data.nextbots;
+        } else if (data.nextbot) {
+          // backward compat: single nextbot
+          window._nextbots = [data.nextbot];
         } else {
-          window._nextbotConfig = null;
+          window._nextbots = [];
         }
+        renderNextbotsList();
         makeFloor();
 
         // Rebuild blocks
@@ -3926,6 +4006,8 @@
             mat = new THREE.MeshPhongMaterial({ color: 0x00ffff, transparent: true, opacity: 0.6 });
           } else if (btype === 'airdrop_spawn') {
             mat = new THREE.MeshPhongMaterial({ color: 0xffe600, transparent: true, opacity: 0.6 });
+          } else if (btype === 'nextbot_spawn') {
+            mat = new THREE.MeshPhongMaterial({ color: 0xc084fc, transparent: true, opacity: 0.6 });
           } else {
             mat = new THREE.MeshPhongMaterial({
               color: new THREE.Color(d.color),
@@ -4090,20 +4172,15 @@
         const mapData = snap.val();
 
         document.getElementById('botsCount').value = mapData.botsCount !== undefined ? mapData.botsCount : 0;
-        // Load Nextbot config
-        if (mapData.nextbot) {
-          window._nextbotConfig = mapData.nextbot;
-          document.getElementById('nbName').value = mapData.nextbot.name || '';
-          document.getElementById('nbImageUrl').value = mapData.nextbot.imageUrl || '';
-          document.getElementById('nbMusicUrl').value = mapData.nextbot.musicUrl || '';
-          updateNbPreview();
+        // Load Nextbots array (with backward compat)
+        if (mapData.nextbots && Array.isArray(mapData.nextbots)) {
+          window._nextbots = mapData.nextbots;
+        } else if (mapData.nextbot) {
+          window._nextbots = [mapData.nextbot];
         } else {
-          window._nextbotConfig = null;
-          document.getElementById('nbName').value = '';
-          document.getElementById('nbImageUrl').value = '';
-          document.getElementById('nbMusicUrl').value = '';
-          updateNbPreview();
+          window._nextbots = [];
         }
+        renderNextbotsList();
         if (activeMapMode === 'br' || activeMapMode === 'lobby') {
           const otherMode = activeMapMode === 'br' ? 'lobby' : 'br';
           if (mapData.botsCount === undefined) {
@@ -4241,6 +4318,8 @@
               mat = new THREE.MeshPhongMaterial({ color: 0x00ffff, transparent: true, opacity: 0.6 });
             } else if (btype === 'airdrop_spawn') {
               mat = new THREE.MeshPhongMaterial({ color: 0xffe600, transparent: true, opacity: 0.6 });
+            } else if (btype === 'nextbot_spawn') {
+              mat = new THREE.MeshPhongMaterial({ color: 0xc084fc, transparent: true, opacity: 0.6 });
             } else {
               if (solid) {
                 mat = getCachedMaterial(colStr);
@@ -4274,6 +4353,7 @@
               destructible: b.destructible === true,
               transformable: b.transformable !== false
             };
+            if (b.nbIndex !== undefined) blockData.nbIndex = b.nbIndex;
             if (b.groupId) blockData.groupId = b.groupId;
             if (blockData.destructible) {
               addDestructibleIndicator(mesh);
@@ -4834,16 +4914,70 @@
   </div>
 
   <script>
-    window._nextbotConfig = null;
+    window._nextbots = [];
+    let _nbEditIndex = -1; // -1 = new
 
-    window.openNextbotModal = function () {
-      const modal = document.getElementById('nextbotModal');
-      // Pre-fill from existing config
-      if (window._nextbotConfig) {
-        document.getElementById('nbName').value = window._nextbotConfig.name || '';
-        document.getElementById('nbImageUrl').value = window._nextbotConfig.imageUrl || '';
-        document.getElementById('nbMusicUrl').value = window._nextbotConfig.musicUrl || '';
+    function renderNextbotsList() {
+      const container = document.getElementById('nextbotsList');
+      if (!container) return;
+      if (!window._nextbots || window._nextbots.length === 0) {
+        container.innerHTML = '<div style="color: #667; font-size: 10px; text-align: center; padding: 8px 0;">Sin nextbots. Añade uno.</div>';
+        updateNbSpawnSelect();
+        return;
       }
+      container.innerHTML = '';
+      window._nextbots.forEach((nb, i) => {
+        const item = document.createElement('div');
+        item.className = 'nb-item';
+        const imgHtml = nb.imageUrl
+          ? `<img src="${nb.imageUrl}" alt="" onerror="this.src=''">` : '🤖';
+        item.innerHTML = `
+          <div class="nb-item-img">${imgHtml}</div>
+          <div class="nb-item-info">
+            <div class="nb-item-name">${nb.name}</div>
+            <div class="nb-item-sub">${nb.musicUrl ? '🎵 Con música' : 'Sin música'} · ID: ${i}</div>
+          </div>
+          <div class="nb-item-actions">
+            <button class="nb-item-btn" title="Editar" onclick="openNextbotModal(${i})">✏️</button>
+            <button class="nb-item-btn" title="Eliminar" onclick="deleteNextbot(${i})">🗑</button>
+          </div>`;
+        container.appendChild(item);
+      });
+      updateNbSpawnSelect();
+    }
+
+    function updateNbSpawnSelect() {
+      const sel = document.getElementById('nbSpawnSelect');
+      if (!sel) return;
+      const prev = sel.value;
+      sel.innerHTML = '';
+      if (!window._nextbots || window._nextbots.length === 0) {
+        sel.innerHTML = '<option value="0">— Sin nextbots —</option>';
+        return;
+      }
+      window._nextbots.forEach((nb, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = `${i}: ${nb.name}`;
+        sel.appendChild(opt);
+      });
+      if (prev !== '' && prev < window._nextbots.length) sel.value = prev;
+    }
+
+    window.deleteNextbot = function(i) {
+      if (!confirm(`¿Eliminar el nextbot "${window._nextbots[i].name}"?`)) return;
+      window._nextbots.splice(i, 1);
+      renderNextbotsList();
+    };
+
+    window.openNextbotModal = function (idx) {
+      _nbEditIndex = (idx !== undefined && idx >= 0) ? idx : -1;
+      const modal = document.getElementById('nextbotModal');
+      const nb = _nbEditIndex >= 0 ? window._nextbots[_nbEditIndex] : null;
+      document.getElementById('nbName').value = nb ? nb.name : '';
+      document.getElementById('nbImageUrl').value = nb ? (nb.imageUrl || '') : '';
+      document.getElementById('nbMusicUrl').value = nb ? (nb.musicUrl || '') : '';
+      document.querySelector('.nb-title').textContent = _nbEditIndex >= 0 ? '✏️ Editar Nextbot' : '🤖 Nuevo Nextbot';
       updateNbPreview();
       const st = document.getElementById('nbStatus');
       st.textContent = '';
@@ -4882,10 +5016,16 @@
         return;
       }
 
-      window._nextbotConfig = { name, imageUrl, musicUrl };
+      const entry = { name, imageUrl, musicUrl };
+      if (_nbEditIndex >= 0 && _nbEditIndex < window._nextbots.length) {
+        window._nextbots[_nbEditIndex] = entry;
+      } else {
+        window._nextbots.push(entry);
+      }
+      renderNextbotsList();
 
       const st = document.getElementById('nbStatus');
-      st.textContent = `✅ Nextbot "${name}" guardado. Publica el mapa para aplicar los cambios.`;
+      st.textContent = `✅ Nextbot "${name}" guardado.`;
       st.style.background = 'rgba(34,197,94,.1)';
       st.style.border = '1px solid rgba(34,197,94,.25)';
       st.style.color = '#4ade80';
@@ -4893,13 +5033,16 @@
 
       setTimeout(() => {
         closeNextbotModal();
-      }, 1600);
+      }, 900);
     };
 
     // Close on backdrop click
     document.getElementById('nextbotModal').addEventListener('click', function (e) {
       if (e.target === this) closeNextbotModal();
     });
+
+    // Init on load
+    renderNextbotsList();
   </script>
 
 </body>

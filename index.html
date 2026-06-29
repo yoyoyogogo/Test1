@@ -3205,7 +3205,8 @@
 
       /* ── BOTS ── */
       let mapBotsCount = 0;
-      let activeMapNextbot = null; // Nextbot config loaded from map data { name, imageUrl, musicUrl }
+      let activeMapNextbots = []; // Array of nextbot configs { name, imageUrl, musicUrl }
+      let nextbotSpawnBlocks = []; // Array of nextbot_spawn blocks (with nbIndex)
       const BOT_NAMES = ["Rambo", "Terminator", "Robocop", "JohnWick", "Neo", "AgentSmith", "Conan", "Vito", "MaxPayne", "DukeNukem"];
       let currentPlayersData = {};
       let dbSkins = [];
@@ -5001,9 +5002,16 @@
       }
 
       function loadMapFromData(data) {
-        clearMapObjects(); redSpawns = []; blueSpawns = []; editorPlaneStart = null; editorPlaneEnd = null;
+        clearMapObjects(); redSpawns = []; blueSpawns = []; editorPlaneStart = null; editorPlaneEnd = null; nextbotSpawnBlocks = [];
         mapBotsCount = data ? (data.botsCount || 0) : 0;
-        activeMapNextbot = (data && data.nextbot && data.nextbot.name) ? data.nextbot : null;
+        // Support both old single "nextbot" and new "nextbots" array
+        if (data && data.nextbots && Array.isArray(data.nextbots) && data.nextbots.length > 0) {
+          activeMapNextbots = data.nextbots;
+        } else if (data && data.nextbot && data.nextbot.name) {
+          activeMapNextbots = [data.nextbot];
+        } else {
+          activeMapNextbots = [];
+        }
         if (!data) return;
         if (data.floor) setFloor(data.floor.w || 500, data.floor.d || 500, parseInt(data.floor.color) || 0x4f9a45);
         if (data.blocks) {
@@ -5012,6 +5020,7 @@
             if (t === 'spawn_red') { redSpawns.push(b); return; } if (t === 'spawn_blue') { blueSpawns.push(b); return; }
             if (t === 'plane_start') { editorPlaneStart = b; return; } if (t === 'plane_end') { editorPlaneEnd = b; return; }
             if (t === 'airdrop_spawn') { airdropSpawns.push(b); return; }
+            if (t === 'nextbot_spawn') { nextbotSpawnBlocks.push(b); return; }
 
             let mesh;
             if (t === 'chair') {
@@ -5070,7 +5079,8 @@
             get(ref(db, 'fps/map_br')).then(snapBR => {
               const brData = snapBR.val();
               if (brData && brData.botsCount !== undefined) mapBotsCount = brData.botsCount;
-              if (brData && brData.nextbot) activeMapNextbot = brData.nextbot;
+              if (brData && brData.nextbots && Array.isArray(brData.nextbots)) activeMapNextbots = brData.nextbots;
+              else if (brData && brData.nextbot) activeMapNextbots = [brData.nextbot];
             });
           }
         });
@@ -5094,7 +5104,8 @@
         // ── NEXTBOT SPECIAL RENDERING ──
         const isNextbot = id.startsWith('nextbot_');
         if (isNextbot) {
-          const nbConfig = activeMapNextbot || {};
+          const nbIdx = id.startsWith('nextbot_') ? parseInt(id.split('_')[1]) || 0 : 0;
+          const nbConfig = activeMapNextbots[nbIdx] || activeMapNextbots[0] || {};
           const geoNb = new THREE.PlaneGeometry(2.8, 3.2);
           const nbMat = new THREE.MeshBasicMaterial({ transparent: true, side: THREE.DoubleSide, alphaTest: 0.05, depthWrite: false });
           const imageUrl = pData.skin || nbConfig.imageUrl;
@@ -5257,15 +5268,22 @@
               op.targetPosition.set(p.x || 0, (p.y || 1.5) - 1.5 + 1.6, p.z || 0);
 
               // Dynamically load music audio if not initialized yet
-              if (!op.nextbotAudio && activeMapNextbot && activeMapNextbot.musicUrl) {
-                op.nextbotAudio = new Audio(activeMapNextbot.musicUrl);
-                op.nextbotAudio.loop = true;
-                op.nextbotAudio.volume = 0;
-                op.nextbotAudio.play().catch(() => {});
+              if (!op.nextbotAudio && op.isNextbot) {
+                const nbIdx2 = id.startsWith('nextbot_') ? parseInt(id.split('_')[1]) || 0 : 0;
+                const nbCfg2 = activeMapNextbots[nbIdx2] || activeMapNextbots[0] || {};
+                const musicUrl2 = p.musicUrl || nbCfg2.musicUrl;
+                if (musicUrl2) {
+                  op.nextbotAudio = new Audio(musicUrl2);
+                  op.nextbotAudio.loop = true;
+                  op.nextbotAudio.volume = 0;
+                  op.nextbotAudio.play().catch(() => {});
+                }
               }
 
               // Dynamically load skin texture if not loaded yet or if it changed
-              const currentSkin = p.skin || (activeMapNextbot && activeMapNextbot.imageUrl);
+              const nbIdx3 = id.startsWith('nextbot_') ? parseInt(id.split('_')[1]) || 0 : 0;
+              const nbCfg3 = activeMapNextbots[nbIdx3] || activeMapNextbots[0] || {};
+              const currentSkin = p.skin || nbCfg3.imageUrl;
               if (currentSkin && (!op.mesh.material.map || op.loadedSkinUrl !== currentSkin)) {
                 op.loadedSkinUrl = currentSkin;
                 new THREE.TextureLoader().load(currentSkin, tex => {
@@ -5913,113 +5931,119 @@
 
       /* ── NEXTBOT SIMULATION (host only) ── */
       function simulateNextbot() {
-        if (!activeMapNextbot || !activeMapNextbot.name) return;
-        const nbId = 'nextbot_0';
-        const nbData = currentPlayersData[nbId];
+        if (!activeMapNextbots || activeMapNextbots.length === 0) return;
+        activeMapNextbots.forEach((nbCfg, nbIdx) => {
+          if (!nbCfg || !nbCfg.name) return;
+          const nbId = 'nextbot_' + nbIdx;
+          // Find the spawn block for this nextbot index
+          const spawnBlock = nextbotSpawnBlocks.find(bl => (bl.nbIndex || 0) === nbIdx);
+          const nbData = currentPlayersData[nbId];
 
-        if (!nbData) {
-          // Spawn nextbot at map center
-          const sp = spawnPos ? spawnPos() : { x: 0, z: 0 };
-          const gh = getGroundHeight(sp.x, sp.z);
-          const groundY = gh === -2 ? 0 : gh;
-          set(ref(db, `fps/players_${gameMode}/${nbId}`), {
-            name: activeMapNextbot.name,
-            skin: activeMapNextbot.imageUrl || '',
-            x: sp.x, y: groundY + 1.5, z: sp.z,
-            yaw: 0, hp: 9999, dead: false, t: Date.now(),
-            isNextbot: true
-          });
-          return;
-        }
-
-        // Find nearest living target (local player or any other bot)
-        let nearestPos = null;
-        let nearestDist = Infinity;
-
-        if (!dead) {
-          const d = new THREE.Vector3(nbData.x, nbData.y, nbData.z).distanceTo(camera.position);
-          if (d < nearestDist) { nearestDist = d; nearestPos = camera.position.clone(); }
-        }
-        Object.entries(currentPlayersData).forEach(([pid, p]) => {
-          if (pid === nbId || p.dead || p.isNextbot) return;
-          const d = new THREE.Vector3(nbData.x, nbData.y, nbData.z).distanceTo(new THREE.Vector3(p.x, p.y, p.z));
-          if (d < nearestDist) { nearestDist = d; nearestPos = new THREE.Vector3(p.x, p.y, p.z); }
-        });
-
-        const NEXTBOT_SPEED = 1.65;
-        let newX = nbData.x, newZ = nbData.z, newYaw = nbData.yaw || 0;
-
-        if (nearestPos) {
-          const dx = nearestPos.x - nbData.x;
-          const dz = nearestPos.z - nbData.z;
-          const targetAngle = Math.atan2(-dx, -dz);
-          newYaw = +targetAngle.toFixed(4);
-
-          // Sub-stepping movement to prevent clipping through walls at high speeds
-          const stepSize = 0.25;
-          let currX = nbData.x;
-          let currZ = nbData.z;
-          let remainingDist = NEXTBOT_SPEED;
-          let currentAngle = targetAngle;
-
-          while (remainingDist > 0) {
-            const currentStep = Math.min(remainingDist, stepSize);
-            remainingDist -= currentStep;
-
-            let nextX = currX + Math.sin(currentAngle) * -currentStep;
-            let nextZ = currZ + Math.cos(currentAngle) * -currentStep;
-            const testPos = new THREE.Vector3(nextX, nbData.y, nextZ);
-
-            if (checkPlayerCollision(testPos)) {
-              // Obstacle: try lateral offsets
-              const offsets = [Math.PI / 3, -Math.PI / 3, Math.PI * 0.6, -Math.PI * 0.6, Math.PI / 2, -Math.PI / 2];
-              let found = false;
-              for (let off of offsets) {
-                let ta = targetAngle + off;
-                let tx = currX + Math.sin(ta) * -currentStep;
-                let tz = currZ + Math.cos(ta) * -currentStep;
-                if (!checkPlayerCollision(new THREE.Vector3(tx, nbData.y, tz))) {
-                  nextX = tx; nextZ = tz; currentAngle = ta; found = true; break;
-                }
-              }
-              if (!found) {
-                // Stuck completely, stop moving
-                break;
-              }
-            }
-            currX = nextX;
-            currZ = nextZ;
+          if (!nbData) {
+            // Spawn at its designated nextbot_spawn block, or fallback to random
+            let sx = 0, sz = 0;
+            if (spawnBlock) { sx = spawnBlock.x; sz = spawnBlock.z; }
+            else { const sp = spawnPos ? spawnPos() : { x: 0, z: 0 }; sx = sp.x; sz = sp.z; }
+            const gh = getGroundHeight(sx, sz);
+            const groundY = gh === -2 ? 0 : gh;
+            set(ref(db, `fps/players_${gameMode}/${nbId}`), {
+              name: nbCfg.name,
+              skin: nbCfg.imageUrl || '',
+              x: sx, y: groundY + 1.5, z: sz,
+              yaw: 0, hp: 9999, dead: false, t: Date.now(),
+              isNextbot: true
+            });
+            return;
           }
-          newX = currX;
-          newZ = currZ;
-          newYaw = +currentAngle.toFixed(4);
 
-          // Kill bots on contact
+          let nearestPos = null;
+          let nearestDist = Infinity;
+
+          if (!dead) {
+            const d = new THREE.Vector3(nbData.x, nbData.y, nbData.z).distanceTo(camera.position);
+            if (d < nearestDist) { nearestDist = d; nearestPos = camera.position.clone(); }
+          }
           Object.entries(currentPlayersData).forEach(([pid, p]) => {
-            if (pid === nbId || p.dead || p.isNextbot || pid.startsWith('nextbot_')) return;
-            const d = Math.sqrt((p.x - nbData.x) ** 2 + (p.z - nbData.z) ** 2);
-            if (d < 1.8 && pid.startsWith('bot_')) {
-              set(ref(db, `fps/players_${gameMode}/${pid}`), { ...p, hp: 0, dead: true, t: Date.now() });
-              set(ref(db, `fps/killfeed_${gameMode}/latest`), { killer: activeMapNextbot.name, victim: p.name, weapon: 'Atrapado', t: Date.now() });
-            }
+            if (pid === nbId || p.dead || p.isNextbot) return;
+            const d = new THREE.Vector3(nbData.x, nbData.y, nbData.z).distanceTo(new THREE.Vector3(p.x, p.y, p.z));
+            if (d < nearestDist) { nearestDist = d; nearestPos = new THREE.Vector3(p.x, p.y, p.z); }
           });
-        }
 
-        const gh = getGroundHeight(newX, newZ);
-        const groundY = gh === -2 ? 0 : gh;
-        const halfW = currentFloorW / 2 - 2;
-        const halfD = currentFloorD / 2 - 2;
-        newX = Math.max(-halfW, Math.min(halfW, newX));
-        newZ = Math.max(-halfD, Math.min(halfD, newZ));
+          const NEXTBOT_SPEED = 1.65;
+          let newX = nbData.x, newZ = nbData.z, newYaw = nbData.yaw || 0;
 
-        set(ref(db, `fps/players_${gameMode}/${nbId}`), {
-          ...nbData,
-          x: +newX.toFixed(3),
-          y: +(groundY + 1.5).toFixed(3),
-          z: +newZ.toFixed(3),
-          yaw: newYaw,
-          t: Date.now()
-        });
+          if (nearestPos) {
+            const dx = nearestPos.x - nbData.x;
+            const dz = nearestPos.z - nbData.z;
+            const targetAngle = Math.atan2(-dx, -dz);
+            newYaw = +targetAngle.toFixed(4);
+
+            // Sub-stepping movement to prevent clipping through walls at high speeds
+            const stepSize = 0.25;
+            let currX = nbData.x;
+            let currZ = nbData.z;
+            let remainingDist = NEXTBOT_SPEED;
+            let currentAngle = targetAngle;
+
+            while (remainingDist > 0) {
+              const currentStep = Math.min(remainingDist, stepSize);
+              remainingDist -= currentStep;
+
+              let nextX = currX + Math.sin(currentAngle) * -currentStep;
+              let nextZ = currZ + Math.cos(currentAngle) * -currentStep;
+              const testPos = new THREE.Vector3(nextX, nbData.y, nextZ);
+
+              if (checkPlayerCollision(testPos)) {
+                // Obstacle: try lateral offsets
+                const offsets = [Math.PI / 3, -Math.PI / 3, Math.PI * 0.6, -Math.PI * 0.6, Math.PI / 2, -Math.PI / 2];
+                let found = false;
+                for (let off of offsets) {
+                  let ta = targetAngle + off;
+                  let tx = currX + Math.sin(ta) * -currentStep;
+                  let tz = currZ + Math.cos(ta) * -currentStep;
+                  if (!checkPlayerCollision(new THREE.Vector3(tx, nbData.y, tz))) {
+                    nextX = tx; nextZ = tz; currentAngle = ta; found = true; break;
+                  }
+                }
+                if (!found) {
+                  // Stuck completely, stop moving
+                  break;
+                }
+            }
+              currX = nextX;
+              currZ = nextZ;
+            }
+            newX = currX;
+            newZ = currZ;
+            newYaw = +currentAngle.toFixed(4);
+
+            // Kill bots on contact
+            Object.entries(currentPlayersData).forEach(([pid, p]) => {
+              if (pid === nbId || p.dead || p.isNextbot || pid.startsWith('nextbot_')) return;
+              const d = Math.sqrt((p.x - nbData.x) ** 2 + (p.z - nbData.z) ** 2);
+              if (d < 1.8 && pid.startsWith('bot_')) {
+                set(ref(db, `fps/players_${gameMode}/${pid}`), { ...p, hp: 0, dead: true, t: Date.now() });
+                set(ref(db, `fps/killfeed_${gameMode}/latest`), { killer: nbCfg.name, victim: p.name, weapon: 'Atrapado', t: Date.now() });
+              }
+            });
+          }
+
+          const gh = getGroundHeight(newX, newZ);
+          const groundY = gh === -2 ? 0 : gh;
+          const halfW = currentFloorW / 2 - 2;
+          const halfD = currentFloorD / 2 - 2;
+          newX = Math.max(-halfW, Math.min(halfW, newX));
+          newZ = Math.max(-halfD, Math.min(halfD, newZ));
+
+          set(ref(db, `fps/players_${gameMode}/${nbId}`), {
+            ...nbData,
+            x: +newX.toFixed(3),
+            y: +(groundY + 1.5).toFixed(3),
+            z: +newZ.toFixed(3),
+            yaw: newYaw,
+            t: Date.now()
+          });
+        }); // end forEach nextbot
       }
 
       /* ── KILL FEED ── */
@@ -6864,15 +6888,18 @@
         const bX = Math.sin(walkTime * 2) * 8, bY = Math.abs(Math.cos(walkTime * 2)) * 6;
         if (!aiming) { weapon.style.bottom = (-10 + bY) + 'px'; weapon.style.right = (-20 + bX) + 'px'; } else weapon.style.bottom = (-60 + bY * .3) + 'px';
 
-        // ── NEXTBOT KILL CHECK ──
-        if (!dead && activeMapNextbot) {
-          const op = otherPlayers['nextbot_0'];
-          if (op && op.group.visible) {
-            const nbDist = camera.position.distanceTo(op.group.position);
-            if (nbDist < 1.8) {
-              applyDamage(MAX_HP, activeMapNextbot.name, null, 'Atrapado 👻');
+        // ── NEXTBOT KILL CHECK (all active nextbots) ──
+        if (!dead && activeMapNextbots.length > 0) {
+          activeMapNextbots.forEach((nbCfg, i) => {
+            if (!nbCfg) return;
+            const op = otherPlayers['nextbot_' + i];
+            if (op && op.group.visible) {
+              const nbDist = camera.position.distanceTo(op.group.position);
+              if (nbDist < 1.8) {
+                applyDamage(MAX_HP, nbCfg.name, null, 'Atrapado 👻');
+              }
             }
-          }
+          });
         }
       }
 
