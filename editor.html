@@ -1473,6 +1473,7 @@
           <option value="block">🧱 Bloque</option>
           <option value="spawn_red">🔴 Spawn Red</option>
           <option value="spawn_blue">🔵 Spawn Blue</option>
+          <option value="spawn_player">🟢 Spawn Jugador</option>
           <option value="plane_start">✈️ Ruta Inicio</option>
           <option value="plane_end">🛬 Ruta Fin</option>
           <option value="airdrop_spawn">📦 Spawn Airdrop</option>
@@ -2408,6 +2409,7 @@
           transformableRow.style.opacity = '0.5';
           transformableRow.style.pointerEvents = 'none';
         }
+        const nbRow1 = document.getElementById('nbSpawnRow'); if (nbRow1) nbRow1.style.display = 'none';
       } else if (type === 'spawn_blue') {
         colorInput.value = '#4444ff';
         colorInput.disabled = true;
@@ -2424,6 +2426,24 @@
           transformableRow.style.opacity = '0.5';
           transformableRow.style.pointerEvents = 'none';
         }
+        const nbRow2 = document.getElementById('nbSpawnRow'); if (nbRow2) nbRow2.style.display = 'none';
+      } else if (type === 'spawn_player') {
+        colorInput.value = '#44ff88';
+        colorInput.disabled = true;
+        colorPresets.style.pointerEvents = 'none';
+        colorPresets.style.opacity = '0.5';
+        collisionRow.style.opacity = '0.5';
+        collisionRow.style.pointerEvents = 'none';
+        document.getElementById('blockCollision').checked = false;
+        document.getElementById('blockDestructible').checked = false;
+        destructibleRow.style.opacity = '0.5';
+        destructibleRow.style.pointerEvents = 'none';
+        document.getElementById('blockTransformable').checked = false;
+        if (transformableRow) {
+          transformableRow.style.opacity = '0.5';
+          transformableRow.style.pointerEvents = 'none';
+        }
+        const nbRowSP = document.getElementById('nbSpawnRow'); if (nbRowSP) nbRowSP.style.display = 'none';
       } else if (type === 'plane_start') {
         colorInput.value = '#ffaa00';
         colorInput.disabled = true;
@@ -2440,6 +2460,7 @@
           transformableRow.style.opacity = '0.5';
           transformableRow.style.pointerEvents = 'none';
         }
+        const nbRow3 = document.getElementById('nbSpawnRow'); if (nbRow3) nbRow3.style.display = 'none';
       } else if (type === 'plane_end') {
         colorInput.value = '#00ffff';
         colorInput.disabled = true;
@@ -2456,6 +2477,7 @@
           transformableRow.style.opacity = '0.5';
           transformableRow.style.pointerEvents = 'none';
         }
+        const nbRow4 = document.getElementById('nbSpawnRow'); if (nbRow4) nbRow4.style.display = 'none';
       } else if (type === 'airdrop_spawn') {
         colorInput.value = '#ffe600';
         colorInput.disabled = true;
@@ -2534,10 +2556,12 @@
           transformableRow.style.opacity = '1.0';
           transformableRow.style.pointerEvents = 'auto';
         }
+        const nbRowC = document.getElementById('nbSpawnRow'); if (nbRowC) nbRowC.style.display = 'none';
       } else {
         colorInput.disabled = false;
         colorPresets.style.pointerEvents = 'auto';
         colorPresets.style.opacity = '1.0';
+        const nbRowE = document.getElementById('nbSpawnRow'); if (nbRowE) nbRowE.style.display = 'none';
         collisionRow.style.opacity = '1.0';
         collisionRow.style.pointerEvents = 'auto';
         document.getElementById('blockCollision').checked = true;
@@ -2562,6 +2586,7 @@
       let col = document.getElementById('blockColor').value;
       if (type === 'spawn_red') col = '#ff4444';
       if (type === 'spawn_blue') col = '#4444ff';
+      if (type === 'spawn_player') col = '#44ff88';
       if (type === 'plane_start') col = '#ffaa00';
       if (type === 'plane_end') col = '#00ffff';
       if (type === 'airdrop_spawn') col = '#ffe600';
@@ -2768,6 +2793,7 @@
       let col = document.getElementById('blockColor').value;
       if (type === 'spawn_red') col = '#ff4444';
       if (type === 'spawn_blue') col = '#4444ff';
+      if (type === 'spawn_player') col = '#44ff88';
       if (type === 'plane_start') col = '#ffaa00';
       if (type === 'plane_end') col = '#00ffff';
       if (type === 'airdrop_spawn') col = '#ffe600';
@@ -2828,6 +2854,8 @@
           mat = new THREE.MeshPhongMaterial({ color: 0xff4444, transparent: true, opacity: 0.6 });
         } else if (type === 'spawn_blue') {
           mat = new THREE.MeshPhongMaterial({ color: 0x4444ff, transparent: true, opacity: 0.6 });
+        } else if (type === 'spawn_player') {
+          mat = new THREE.MeshPhongMaterial({ color: 0x44ff88, transparent: true, opacity: 0.6 });
         } else if (type === 'plane_start') {
           mat = new THREE.MeshPhongMaterial({ color: 0xffaa00, transparent: true, opacity: 0.6 });
         } else if (type === 'plane_end') {
@@ -3363,6 +3391,7 @@
           let col = b.data.color;
           if (type === 'spawn_red') col = '#ff4444';
           if (type === 'spawn_blue') col = '#4444ff';
+          if (type === 'spawn_player') col = '#44ff88';
           if (type === 'plane_start') col = '#ffaa00';
           if (type === 'plane_end') col = '#00ffff';
           if (type === 'airdrop_spawn') col = '#ffe600';
@@ -3373,6 +3402,8 @@
             b.mesh.material = new THREE.MeshPhongMaterial({ color: 0xff4444, transparent: true, opacity: 0.6 });
           } else if (type === 'spawn_blue') {
             b.mesh.material = new THREE.MeshPhongMaterial({ color: 0x4444ff, transparent: true, opacity: 0.6 });
+          } else if (type === 'spawn_player') {
+            b.mesh.material = new THREE.MeshPhongMaterial({ color: 0x44ff88, transparent: true, opacity: 0.6 });
           } else if (type === 'plane_start') {
             b.mesh.material = new THREE.MeshPhongMaterial({ color: 0xffaa00, transparent: true, opacity: 0.6 });
           } else if (type === 'plane_end') {
@@ -4000,6 +4031,8 @@
             mat = new THREE.MeshPhongMaterial({ color: 0xff4444, transparent: true, opacity: 0.6 });
           } else if (btype === 'spawn_blue') {
             mat = new THREE.MeshPhongMaterial({ color: 0x4444ff, transparent: true, opacity: 0.6 });
+          } else if (btype === 'spawn_player') {
+            mat = new THREE.MeshPhongMaterial({ color: 0x44ff88, transparent: true, opacity: 0.6 });
           } else if (btype === 'plane_start') {
             mat = new THREE.MeshPhongMaterial({ color: 0xffaa00, transparent: true, opacity: 0.6 });
           } else if (btype === 'plane_end') {
@@ -4312,6 +4345,8 @@
               mat = new THREE.MeshPhongMaterial({ color: 0xff4444, transparent: true, opacity: 0.6 });
             } else if (btype === 'spawn_blue') {
               mat = new THREE.MeshPhongMaterial({ color: 0x4444ff, transparent: true, opacity: 0.6 });
+            } else if (btype === 'spawn_player') {
+              mat = new THREE.MeshPhongMaterial({ color: 0x44ff88, transparent: true, opacity: 0.6 });
             } else if (btype === 'plane_start') {
               mat = new THREE.MeshPhongMaterial({ color: 0xffaa00, transparent: true, opacity: 0.6 });
             } else if (btype === 'plane_end') {

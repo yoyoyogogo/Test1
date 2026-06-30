@@ -4117,7 +4117,7 @@
 
       /* ── MAP ── */
       const mapObjects = [], particles = [], tracers = [], projectiles = [];
-      let showWireframes = false, redSpawns = [], blueSpawns = [], airdropSpawns = [];
+      let showWireframes = false, redSpawns = [], blueSpawns = [], airdropSpawns = [], playerSpawns = [];
       let editorPlaneStart = null, editorPlaneEnd = null, firstSpawnDone = false;
       const structureGroups = {}, destroyedStructures = new Set();
 
@@ -4164,6 +4164,11 @@
         if (gameMode === 'rvb') {
           const pool = selectedTeam === 'red' ? redSpawns : blueSpawns;
           if (pool.length) { const s = pool[Math.floor(Math.random() * pool.length)]; return { x: s.x, y: s.y + 1.5, z: s.z }; }
+        }
+        // Generic player spawns (spawn_player blocks)
+        if (playerSpawns.length > 0) {
+          const s = playerSpawns[Math.floor(Math.random() * playerSpawns.length)];
+          return { x: s.x, y: s.y + 1.5, z: s.z };
         }
         const s = spawnPos(); return { x: s.x, y: 1.5, z: s.z };
       }
@@ -5002,7 +5007,7 @@
       }
 
       function loadMapFromData(data) {
-        clearMapObjects(); redSpawns = []; blueSpawns = []; editorPlaneStart = null; editorPlaneEnd = null; nextbotSpawnBlocks = [];
+        clearMapObjects(); redSpawns = []; blueSpawns = []; editorPlaneStart = null; editorPlaneEnd = null; nextbotSpawnBlocks = []; playerSpawns = [];
         mapBotsCount = data ? (data.botsCount || 0) : 0;
         // Support both old single "nextbot" and new "nextbots" array
         if (data && data.nextbots && Array.isArray(data.nextbots) && data.nextbots.length > 0) {
@@ -5021,6 +5026,7 @@
             if (t === 'plane_start') { editorPlaneStart = b; return; } if (t === 'plane_end') { editorPlaneEnd = b; return; }
             if (t === 'airdrop_spawn') { airdropSpawns.push(b); return; }
             if (t === 'nextbot_spawn') { nextbotSpawnBlocks.push(b); return; }
+            if (t === 'spawn_player') { playerSpawns.push(b); return; }
 
             let mesh;
             if (t === 'chair') {
@@ -5525,6 +5531,10 @@
           const pool = team === 'red' ? redSpawns : blueSpawns;
           if (pool.length) { const s = pool[Math.floor(Math.random() * pool.length)]; return { x: s.x, y: s.y + 1.5, z: s.z }; }
         }
+        if (playerSpawns.length > 0) {
+          const s = playerSpawns[Math.floor(Math.random() * playerSpawns.length)];
+          return { x: s.x, y: s.y + 1.5, z: s.z };
+        }
         const s = spawnPos(); return { x: s.x, y: 1.5, z: s.z };
       }
 
@@ -5941,15 +5951,21 @@
 
           if (!nbData) {
             // Spawn at its designated nextbot_spawn block, or fallback to random
-            let sx = 0, sz = 0;
-            if (spawnBlock) { sx = spawnBlock.x; sz = spawnBlock.z; }
-            else { const sp = spawnPos ? spawnPos() : { x: 0, z: 0 }; sx = sp.x; sz = sp.z; }
-            const gh = getGroundHeight(sx, sz);
-            const groundY = gh === -2 ? 0 : gh;
+            let sx, sy, sz;
+            if (spawnBlock) {
+              sx = spawnBlock.x;
+              sy = (spawnBlock.y || 0) + 1.5;
+              sz = spawnBlock.z;
+            } else {
+              const sp = spawnPos ? spawnPos() : { x: 0, z: 0 };
+              sx = sp.x; sz = sp.z;
+              const gh = getGroundHeight(sx, sz);
+              sy = (gh === -2 ? 0 : gh) + 1.5;
+            }
             set(ref(db, `fps/players_${gameMode}/${nbId}`), {
               name: nbCfg.name,
               skin: nbCfg.imageUrl || '',
-              x: sx, y: groundY + 1.5, z: sz,
+              x: sx, y: sy, z: sz,
               yaw: 0, hp: 9999, dead: false, t: Date.now(),
               isNextbot: true
             });
